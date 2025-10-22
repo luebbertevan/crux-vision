@@ -203,10 +203,21 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 ### M4 — Overlay video generation
 
--   **Files:** `backend/src/pipeline/output.py`
--   **Acceptance:** Render skeleton overlay on original video using existing pose data, save to `static/outputs/`
--   **Test:** Output video displays smooth, continuous pose landmarks overlaid on climber
--   **Dependencies:** Pose data from M3 (full frame sampling), OpenCV for video rendering
+## M4a — Basic overlay rendering
+
+-   **Files:** `backend/src/pipeline/output.py` (basic implementation)
+-   **Acceptance:** Render skeleton overlay on individual frames, save as image sequence for testing
+-   **Test:** Verify skeleton overlay works on individual frames, MediaPipe drawing utilities function correctly
+-   **Dependencies:** Pose data from M3 (full frame sampling), MediaPipe drawing utilities
+-   **Scope:** Focus on getting the overlay rendering working correctly on frames
+
+## M4b — Full video generation
+
+-   **Files:** `backend/src/pipeline/output.py` (video generation), `backend/src/api/routes.py` (integration)
+-   **Acceptance:** Generate complete overlay video with smooth skeleton overlay, save to `static/outputs/`
+-   **Test:** Full end-to-end video generation with continuous overlay (no flickering), API integration works
+-   **Dependencies:** M4a overlay rendering, video processing pipeline
+-   **Scope:** Handle full video processing, frame synchronization, and API integration
 
 ### M5 — Minimal frontend
 
