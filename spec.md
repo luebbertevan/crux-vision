@@ -67,6 +67,7 @@ crux-vision/
         schema.py            # Pydantic models
       utils/
         file_utils.py        # File validation & cleanup
+        analysis_storage.py  # Analysis status tracking & storage
     static/
       uploads/
       outputs/
@@ -156,9 +157,9 @@ class Result(BaseModel):
 
 ## Milestones
 
-Each milestone is intentionally small and testable.
+Each milestone is intentionally small and testable. M3 has been broken down into sub-parts (M3a, M3b, M3c) for safer testing and debugging.
 
-### ✅ M0 — Specification (done)
+### ✅ M0 — Specification
 
 -   **Purpose:** Agree spec, milestones, file structure
 -   **Acceptance:** This `spec.md` reviewed & approved
@@ -169,17 +170,36 @@ Each milestone is intentionally small and testable.
 -   **Acceptance:** `uvicorn backend.main:app --reload` serves `/api/ping` -> `{message: 'pong'}`
 -   **Test:** curl GET localhost:8000/api/ping
 
-### M2 — File upload endpoint & storage
+### ✅ M2 — File upload endpoint & storage
 
 -   **Files:** `backend/src/api/routes.py`, `backend/src/pipeline/input.py`, `backend/src/utils/file_utils.py`
 -   **Acceptance:** `POST /api/analyze` accepts video files via multipart form, validates format/size, stores in `static/uploads/`, returns 202 with id
 -   **Test:** curl POST with valid/invalid files; proper error handling for large/invalid files
 
-### M3 — Pose extraction (MediaPipe)
+### ✅ M3 — Pose extraction
+
+## ✅ M3a — Basic video processing (OpenCV)
 
 -   **Files:** `backend/src/pipeline/process.py`
--   **Acceptance:** Reads an uploaded video, runs MediaPipe Pose on sampled frames, writes keypoints JSON
--   **Test:** Run process on sample video and inspect keypoints JSON
+-   **Acceptance:** Reads uploaded video, extracts frames (N=3 sampling), basic error handling
+-   **Test:** Can read frames from uploaded video, verify frame sampling works
+-   **Dependencies:** OpenCV only (no MediaPipe yet)
+
+## ✅ M3b — MediaPipe integration
+
+-   **Files:** `backend/src/pipeline/process.py` (add MediaPipe)
+-   **Acceptance:** Runs MediaPipe Pose on sampled frames, detects keypoints with simple confidence tracking
+-   **Test:** Verify pose detection works on sample frames, handles low confidence poses gracefully
+-   **Dependencies:** OpenCV + MediaPipe
+-   **Error Handling:** Simple confidence thresholds, keep all frames (occlusion is normal in climbing)
+
+## ✅ M3c — JSON output & integration
+
+-   **Files:** `backend/src/pipeline/process.py` (add JSON output), `backend/src/api/routes.py` (integration), `backend/src/utils/analysis_storage.py` (new)
+-   **Acceptance:** Background processing, results endpoint, status tracking, saves keypoints to JSON
+-   **Test:** Full end-to-end processing: upload → background processing → status checking → results retrieval
+-   **Performance:** ~2-3 seconds processing time for 12-second video (exceeds expectations)
+-   **API Integration:** Upload returns immediately (202), background processing, `/api/results/{id}` endpoint
 
 ### M4 — Heuristic analysis & feedback
 
@@ -281,14 +301,14 @@ bun run dev
 
 ## Acceptance Tests
 
-1. Select 30-60s demo video via file input; server returns 202 with id
-2. After processing, `GET /api/results/:id` returns `status: complete`, `metrics`, and `feedback`
+1. ✅ Select 30-60s demo video via file input; server returns 202 with id
+2. ✅ After processing, `GET /api/results/:id` returns `status: complete`, `metrics`, and `feedback`
 3. If overlay enabled, output video exists and displays skeleton overlay
 
 ## Risks & Mitigations
 
 -   **Pose errors due to angle/lighting:** provide clear demo videos and UX hints (camera distance, frontal angle)
--   **Long processing times:** limit duration to 60s, sample frames (e.g., every 2nd or 3rd frame)
+-   **Long processing times:** limit duration to 60s, sample frames (every 3rd frame), safety limit of 2000 frames (supports 60s at 60 FPS)
 -   **Large uploads:** reject >50MB and show guidance
 -   **Overfitting heuristics:** start conservative; surface raw metrics alongside feedback
 
@@ -296,6 +316,18 @@ bun run dev
 
 -   Persistent storage and user accounts
 -   Session tracking and trend charts
+-   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic/static
 -   LLM-driven coaching summaries and personalization
 -   Multi-attempt comparison and drill generation
 -   Real-time analysis (WebRTC) for live coaching
+-   **Hybrid sampling strategy**: Adaptive frame sampling based on movement detection
+    -   Base sampling rate (N=5) for normal climbing movements
+    -   High-speed sampling (N=2) for dynamic sections (dynos, foot slips, campus moves)
+    -   Movement detection using optical flow or pose velocity analysis
+    -   Automatic transition between sampling rates based on detected movement intensity
+-   **Advanced error handling**: Interpolation for missing poses, temporal smoothing, complex confidence analysis
+-   **Enhanced pose tracking**: Face pose detection (when not occluded), advanced occlusion detection
+
+## Testing Strategy
+
+For detailed testing procedures, error handling approaches, and confidence threshold specifications, refer to `TESTING_STRATEGY.md`.
