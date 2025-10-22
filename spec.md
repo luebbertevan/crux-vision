@@ -187,9 +187,10 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 ## M3b — MediaPipe integration
 
 -   **Files:** `backend/src/pipeline/process.py` (add MediaPipe)
--   **Acceptance:** Runs MediaPipe Pose on sampled frames, detects keypoints
--   **Test:** Verify pose detection works on sample frames
+-   **Acceptance:** Runs MediaPipe Pose on sampled frames, detects keypoints with simple confidence tracking
+-   **Test:** Verify pose detection works on sample frames, handles low confidence poses gracefully
 -   **Dependencies:** OpenCV + MediaPipe
+-   **Error Handling:** Simple confidence thresholds, keep all frames (occlusion is normal in climbing)
 
 ## M3c — JSON output & integration
 
@@ -313,6 +314,7 @@ bun run dev
 
 -   Persistent storage and user accounts
 -   Session tracking and trend charts
+-   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic/static
 -   LLM-driven coaching summaries and personalization
 -   Multi-attempt comparison and drill generation
 -   Real-time analysis (WebRTC) for live coaching
@@ -321,3 +323,9 @@ bun run dev
     -   High-speed sampling (N=2) for dynamic sections (dynos, foot slips, campus moves)
     -   Movement detection using optical flow or pose velocity analysis
     -   Automatic transition between sampling rates based on detected movement intensity
+-   **Advanced error handling**: Interpolation for missing poses, temporal smoothing, complex confidence analysis
+-   **Enhanced pose tracking**: Face pose detection (when not occluded), advanced occlusion detection
+
+## Testing Strategy
+
+For detailed testing procedures, error handling approaches, and confidence threshold specifications, refer to `TESTING_STRATEGY.md`.
