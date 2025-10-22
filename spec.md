@@ -201,23 +201,26 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 -   **Performance:** ~2-3 seconds processing time for 12-second video (exceeds expectations)
 -   **API Integration:** Upload returns immediately (202), background processing, `/api/results/{id}` endpoint
 
-### M4 — Heuristic analysis & feedback
+### M4 — Overlay video generation
+
+-   **Files:** `backend/src/pipeline/output.py`
+-   **Acceptance:** Render skeleton overlay on original video, save to `static/outputs/`
+-   **Test:** Output video displays pose landmarks overlaid on climber
+-   **Dependencies:** Pose data from M3, OpenCV for video rendering
+
+### M5 — Minimal frontend
+
+-   **Files:** `frontend/` (new directory)
+-   **Acceptance:** Simple web interface for video upload, progress tracking, results display
+-   **Test:** Upload video via web UI, see processing status, view results and overlay video
+-   **Dependencies:** Backend API from M1-M3, overlay video from M4
+
+### M6 — Heuristic analysis & feedback
 
 -   **Files:** `backend/src/pipeline/analysis.py`
 -   **Acceptance:** Compute average joint angles and a stability score, produce 2–5 human-readable feedback items
--   **Test:** `GET /api/results/:id` shows metrics and feedback
-
-### M5 — Optional overlay renderer (defer if timeboxed)
-
--   **Files:** `backend/src/pipeline/output.py`
--   **Acceptance:** Produce `static/outputs/output_<id>.mp4` with skeleton overlay and simple flags
--   **Test:** Play the output video locally; overlays align with motion
-
-### M6 — Frontend minimal UI
-
--   **Files:** `frontend/src/pages/*`, `frontend/src/components/*`
--   **Acceptance:** Dev server runs (`bun run dev`), user can select video file via standard file input, see processing state, and view results page
--   **Test:** Full end-to-end file selection -> processing -> results locally
+-   **Test:** `GET /api/results/:id` shows metrics and feedback, frontend displays analysis
+-   **Dependencies:** Pose data from M3, visual validation from M4, frontend from M5
 
 ### M7 — Small polish & docs
 
@@ -303,7 +306,9 @@ bun run dev
 
 1. ✅ Select 30-60s demo video via file input; server returns 202 with id
 2. ✅ After processing, `GET /api/results/:id` returns `status: complete`, `metrics`, and `feedback`
-3. If overlay enabled, output video exists and displays skeleton overlay
+3. Upload video via web UI, see processing status, view results and overlay video (M5)
+4. Visual validation of pose detection accuracy via skeleton overlay (M4)
+5. Heuristic analysis matches visual observations (M6)
 
 ## Risks & Mitigations
 
@@ -314,9 +319,9 @@ bun run dev
 
 ## Future Roadmap (post-MVP)
 
--   Persistent storage and user accounts
+-   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic
+-   staticPersistent storage and user accounts
 -   Session tracking and trend charts
--   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic/static
 -   LLM-driven coaching summaries and personalization
 -   Multi-attempt comparison and drill generation
 -   Real-time analysis (WebRTC) for live coaching
