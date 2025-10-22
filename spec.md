@@ -6,7 +6,7 @@
 
 **Core Deliverables (MVP):**
 
--   Upload a climbing video (≤60s recommended for processing speed)
+-   Select a climbing video file (≤60s recommended for processing speed)
 -   Backend runs pose estimation (MediaPipe + OpenCV) and computes simple metrics
 -   Backend returns structured JSON metrics and coaching feedback
 -   Optional: annotated overlay video (skeleton + flags)
@@ -30,8 +30,6 @@
 
 ## Project Structure
 
-**Note:** This uses a monorepo structure with separate frontend/backend folders. This is common for full-stack projects but you could also use separate repositories if preferred.
-
 ```
 crux-vision/
   frontend/
@@ -48,7 +46,7 @@ crux-vision/
         ResultsPage.tsx
       components/
         Header.tsx
-        Upload.tsx
+        FileUpload.tsx
         VideoPreview.tsx
         FeedbackCard.tsx
       styles/
@@ -158,7 +156,7 @@ class Result(BaseModel):
 
 ## Milestones
 
-Each milestone is intentionally small and testable in under ~3 hours.
+Each milestone is intentionally small and testable.
 
 ### M0 — Specification (done)
 
@@ -171,10 +169,10 @@ Each milestone is intentionally small and testable in under ~3 hours.
 -   **Acceptance:** `uvicorn backend.main:app --reload` serves `/api/ping` -> `{message: 'pong'}`
 -   **Test:** curl GET localhost:8000/api/ping
 
-### M2 — Upload endpoint & storage
+### M2 — File upload endpoint & storage
 
 -   **Files:** `backend/src/api/routes.py`, `backend/src/pipeline/input.py`, `backend/src/utils/file_utils.py`
--   **Acceptance:** `POST /api/analyze` accepts video files, validates format/size, stores in `static/uploads/`, returns 202 with id
+-   **Acceptance:** `POST /api/analyze` accepts video files via multipart form, validates format/size, stores in `static/uploads/`, returns 202 with id
 -   **Test:** curl POST with valid/invalid files; proper error handling for large/invalid files
 
 ### M3 — Pose extraction (MediaPipe)
@@ -198,8 +196,8 @@ Each milestone is intentionally small and testable in under ~3 hours.
 ### M6 — Frontend minimal UI
 
 -   **Files:** `frontend/src/pages/*`, `frontend/src/components/*`
--   **Acceptance:** Dev server runs (`npm run dev` or `bun dev`), user can upload video, see processing state, and view results page
--   **Test:** Full end-to-end upload -> processing -> results locally
+-   **Acceptance:** Dev server runs (`bun run dev`), user can select video file via standard file input, see processing state, and view results page
+-   **Test:** Full end-to-end file selection -> processing -> results locally
 
 ### M7 — Small polish & docs
 
@@ -226,19 +224,20 @@ These are simple, explainable rules good for MVP. Implement in `analysis.py` usi
 -   Use venv or virtualenv, Python 3.10+
 -   **requirements.txt:**
     ```
-    fastapi==0.104.1
-    uvicorn[standard]==0.24.0
-    mediapipe==0.10.8
-    opencv-python-headless==4.8.1.78
-    pydantic==2.5.0
-    python-multipart==0.0.6
-    python-magic==0.4.27
+    fastapi>=0.100.0
+    uvicorn[standard]>=0.20.0
+    mediapipe>=0.10.0
+    opencv-python-headless>=4.8.0
+    pydantic>=2.0.0
+    python-multipart>=0.0.5
+    python-magic>=0.4.0
     ```
 
 ### Frontend
 
 -   Vite React + TypeScript template
 -   Tailwind CSS for quick styling
+-   **Package manager:** Bun
 -   **package.json dependencies:**
     ```json
     {
@@ -276,13 +275,13 @@ uvicorn backend.main:app --reload
 
 ```bash
 cd frontend
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 ## Acceptance Tests
 
-1. Upload 30-60s demo video; server returns 202 with id
+1. Select 30-60s demo video via file input; server returns 202 with id
 2. After processing, `GET /api/results/:id` returns `status: complete`, `metrics`, and `feedback`
 3. If overlay enabled, output video exists and displays skeleton overlay
 
