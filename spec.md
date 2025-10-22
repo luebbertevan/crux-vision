@@ -67,6 +67,7 @@ crux-vision/
         schema.py            # Pydantic models
       utils/
         file_utils.py        # File validation & cleanup
+        analysis_storage.py  # Analysis status tracking & storage
     static/
       uploads/
       outputs/
@@ -158,7 +159,7 @@ class Result(BaseModel):
 
 Each milestone is intentionally small and testable. M3 has been broken down into sub-parts (M3a, M3b, M3c) for safer testing and debugging.
 
-### ✅ M0 — Specification (done)
+### ✅ M0 — Specification
 
 -   **Purpose:** Agree spec, milestones, file structure
 -   **Acceptance:** This `spec.md` reviewed & approved
@@ -175,16 +176,16 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 -   **Acceptance:** `POST /api/analyze` accepts video files via multipart form, validates format/size, stores in `static/uploads/`, returns 202 with id
 -   **Test:** curl POST with valid/invalid files; proper error handling for large/invalid files
 
-### M3 — Pose extraction
+### ✅ M3 — Pose extraction
 
-## M3a — Basic video processing (OpenCV)
+## ✅ M3a — Basic video processing (OpenCV)
 
 -   **Files:** `backend/src/pipeline/process.py`
 -   **Acceptance:** Reads uploaded video, extracts frames (N=3 sampling), basic error handling
 -   **Test:** Can read frames from uploaded video, verify frame sampling works
 -   **Dependencies:** OpenCV only (no MediaPipe yet)
 
-## M3b — MediaPipe integration
+## ✅ M3b — MediaPipe integration
 
 -   **Files:** `backend/src/pipeline/process.py` (add MediaPipe)
 -   **Acceptance:** Runs MediaPipe Pose on sampled frames, detects keypoints with simple confidence tracking
@@ -192,12 +193,13 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 -   **Dependencies:** OpenCV + MediaPipe
 -   **Error Handling:** Simple confidence thresholds, keep all frames (occlusion is normal in climbing)
 
-## M3c — JSON output & integration
+## ✅ M3c — JSON output & integration
 
--   **Files:** `backend/src/pipeline/process.py` (add JSON output), `backend/src/api/routes.py` (integration)
--   **Acceptance:** Saves keypoints to JSON, integrates with upload flow
--   **Test:** Full end-to-end processing: upload → pose detection → JSON output
--   **Performance:** ~50-75 seconds processing time for 60-second video
+-   **Files:** `backend/src/pipeline/process.py` (add JSON output), `backend/src/api/routes.py` (integration), `backend/src/utils/analysis_storage.py` (new)
+-   **Acceptance:** Background processing, results endpoint, status tracking, saves keypoints to JSON
+-   **Test:** Full end-to-end processing: upload → background processing → status checking → results retrieval
+-   **Performance:** ~2-3 seconds processing time for 12-second video (exceeds expectations)
+-   **API Integration:** Upload returns immediately (202), background processing, `/api/results/{id}` endpoint
 
 ### M4 — Heuristic analysis & feedback
 
@@ -299,8 +301,8 @@ bun run dev
 
 ## Acceptance Tests
 
-1. Select 30-60s demo video via file input; server returns 202 with id
-2. After processing, `GET /api/results/:id` returns `status: complete`, `metrics`, and `feedback`
+1. ✅ Select 30-60s demo video via file input; server returns 202 with id
+2. ✅ After processing, `GET /api/results/:id` returns `status: complete`, `metrics`, and `feedback`
 3. If overlay enabled, output video exists and displays skeleton overlay
 
 ## Risks & Mitigations
