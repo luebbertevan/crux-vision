@@ -172,7 +172,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 ### ✅ M2 — File upload endpoint & storage
 
--   **Files:** `backend/src/api/routes.py`, `backend/src/pipeline/input.py`, `backend/src/utils/file_utils.py`
+-   **Files:** `backend/src/api/routes.py`, `backend/src/pipeline/upload.py`, `backend/src/utils/file_utils.py`
 -   **Acceptance:** `POST /api/analyze` accepts video files via multipart form, validates format/size, stores in `static/uploads/`, returns 202 with id
 -   **Test:** curl POST with valid/invalid files; proper error handling for large/invalid files
 
@@ -180,14 +180,14 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 ## ✅ M3a — Basic video processing (OpenCV)
 
--   **Files:** `backend/src/pipeline/process.py`
+-   **Files:** `backend/src/pipeline/pose_detection.py`
 -   **Acceptance:** Reads uploaded video, extracts frames (N=3 sampling), basic error handling
 -   **Test:** Can read frames from uploaded video, verify frame sampling works
 -   **Dependencies:** OpenCV only (no MediaPipe yet)
 
 ## ✅ M3b — MediaPipe integration
 
--   **Files:** `backend/src/pipeline/process.py` (add MediaPipe)
+-   **Files:** `backend/src/pipeline/pose_detection.py` (add MediaPipe)
 -   **Acceptance:** Runs MediaPipe Pose on sampled frames, detects keypoints with simple confidence tracking
 -   **Test:** Verify pose detection works on sample frames, handles low confidence poses gracefully
 -   **Dependencies:** OpenCV + MediaPipe
@@ -195,7 +195,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 ## ✅ M3c — JSON output & integration
 
--   **Files:** `backend/src/pipeline/process.py` (add JSON output), `backend/src/api/routes.py` (integration), `backend/src/utils/analysis_storage.py` (new)
+-   **Files:** `backend/src/pipeline/pose_detection.py` (add JSON output), `backend/src/api/routes.py` (integration), `backend/src/utils/analysis_storage.py` (new)
 -   **Acceptance:** Background processing, results endpoint, status tracking, saves keypoints to JSON
 -   **Test:** Full end-to-end processing: upload → background processing → status checking → results retrieval
 -   **Performance:** ~6-9 seconds processing time for 12-second video with full frame sampling
@@ -205,7 +205,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 ## M4a — Basic overlay rendering
 
--   **Files:** `backend/src/pipeline/output.py` (basic implementation)
+-   **Files:** `backend/src/pipeline/overlay.py` (basic implementation)
 -   **Acceptance:** Render skeleton overlay on individual frames, save as image sequence for testing
 -   **Test:** Verify skeleton overlay works on individual frames, custom OpenCV drawing functions correctly
 -   **Dependencies:** Pose data from M3 (full frame sampling), OpenCV drawing utilities
@@ -213,7 +213,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 ## M4b — Full video generation
 
--   **Files:** `backend/src/pipeline/output.py` (video generation), `backend/src/api/routes.py` (integration)
+-   **Files:** `backend/src/pipeline/overlay.py` (video generation), `backend/src/api/routes.py` (integration)
 -   **Acceptance:** Generate complete overlay video with smooth skeleton overlay, save to `static/outputs/`
 -   **Test:** Full end-to-end video generation with continuous overlay (no flickering), API integration works
 -   **Dependencies:** M4a overlay rendering, video processing pipeline, OpenCV video writing
