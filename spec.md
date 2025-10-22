@@ -59,10 +59,10 @@ crux-vision/
       api/
         routes.py            # /api/analyze, /api/results, /api/ping
       pipeline/
-        input.py             # Load & validate video
-        process.py           # MediaPipe + OpenCV wrapper
+        upload.py            # Load & validate video
+        pose_detection.py    # MediaPipe + OpenCV wrapper
         analysis.py          # Heuristics and metrics
-        output.py            # Annotated overlay renderer (optional)
+        overlay.py           # Annotated overlay renderer (optional)
       models/
         schema.py            # Pydantic models
       utils/
@@ -172,7 +172,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 ### ✅ M2 — File upload endpoint & storage
 
--   **Files:** `backend/src/api/routes.py`, `backend/src/pipeline/input.py`, `backend/src/utils/file_utils.py`
+-   **Files:** `backend/src/api/routes.py`, `backend/src/pipeline/upload.py`, `backend/src/utils/file_utils.py`
 -   **Acceptance:** `POST /api/analyze` accepts video files via multipart form, validates format/size, stores in `static/uploads/`, returns 202 with id
 -   **Test:** curl POST with valid/invalid files; proper error handling for large/invalid files
 
@@ -180,14 +180,14 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 ## ✅ M3a — Basic video processing (OpenCV)
 
--   **Files:** `backend/src/pipeline/process.py`
--   **Acceptance:** Reads uploaded video, extracts frames (N=3 sampling), basic error handling
+-   **Files:** `backend/src/pipeline/pose_detection.py`
+-   **Acceptance:** Reads uploaded video, extracts frames (full frame sampling), basic error handling
 -   **Test:** Can read frames from uploaded video, verify frame sampling works
 -   **Dependencies:** OpenCV only (no MediaPipe yet)
 
 ## ✅ M3b — MediaPipe integration
 
--   **Files:** `backend/src/pipeline/process.py` (add MediaPipe)
+-   **Files:** `backend/src/pipeline/pose_detection.py` (add MediaPipe)
 -   **Acceptance:** Runs MediaPipe Pose on sampled frames, detects keypoints with simple confidence tracking
 -   **Test:** Verify pose detection works on sample frames, handles low confidence poses gracefully
 -   **Dependencies:** OpenCV + MediaPipe
@@ -195,31 +195,52 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 ## ✅ M3c — JSON output & integration
 
--   **Files:** `backend/src/pipeline/process.py` (add JSON output), `backend/src/api/routes.py` (integration), `backend/src/utils/analysis_storage.py` (new)
+-   **Files:** `backend/src/pipeline/pose_detection.py` (add JSON output), `backend/src/api/routes.py` (integration), `backend/src/utils/analysis_storage.py` (new)
 -   **Acceptance:** Background processing, results endpoint, status tracking, saves keypoints to JSON
 -   **Test:** Full end-to-end processing: upload → background processing → status checking → results retrieval
--   **Performance:** ~2-3 seconds processing time for 12-second video (exceeds expectations)
+-   **Performance:** ~6-9 seconds processing time for 12-second video with full frame sampling
 -   **API Integration:** Upload returns immediately (202), background processing, `/api/results/{id}` endpoint
 
-### M4 — Heuristic analysis & feedback
+### M4 — Overlay video generation
+
+## ✅ M4a — Basic overlay rendering
+
+-   **Files:** `backend/src/pipeline/overlay.py` (basic implementation)
+-   **Acceptance:** Render skeleton overlay on individual frames, save as image sequence for testing
+-   **Test:** Verify skeleton overlay works on individual frames, custom OpenCV drawing functions correctly
+-   **Dependencies:** Pose data from M3 (full frame sampling), OpenCV drawing utilities
+-   **Scope:** Focus on getting the overlay rendering working correctly on frames using direct JSON-to-OpenCV drawing
+
+## M4b — Full video generation
+
+-   **Files:** `backend/src/pipeline/overlay.py` (video generation), `backend/src/api/routes.py` (integration)
+-   **Acceptance:** Generate complete overlay video with smooth skeleton overlay, save to `static/outputs/`
+-   **Test:** Full end-to-end video generation with continuous overlay (no flickering), API integration works
+-   **Dependencies:** M4a overlay rendering, video processing pipeline, OpenCV video writing
+-   **Scope:** Handle full video processing, frame synchronization, and API integration using custom skeleton rendering
+
+### M5 — Minimal frontend
+
+-   **Files:** `frontend/` (new directory)
+-   **Acceptance:** Simple web interface for video upload, progress tracking, results display
+-   **Test:** Upload video via web UI, see processing status, view results and overlay video
+-   **Dependencies:** Backend API from M1-M3, overlay video from M4
+
+### M6 — Heuristic analysis & feedback
 
 -   **Files:** `backend/src/pipeline/analysis.py`
 -   **Acceptance:** Compute average joint angles and a stability score, produce 2–5 human-readable feedback items
--   **Test:** `GET /api/results/:id` shows metrics and feedback
+-   **Test:** `GET /api/results/:id` shows metrics and feedback, frontend displays analysis
+-   **Dependencies:** Pose data from M3, visual validation from M4, frontend from M5
 
-### M5 — Optional overlay renderer (defer if timeboxed)
+### M7 — LLM feedback and coaching
 
--   **Files:** `backend/src/pipeline/output.py`
--   **Acceptance:** Produce `static/outputs/output_<id>.mp4` with skeleton overlay and simple flags
--   **Test:** Play the output video locally; overlays align with motion
+-   **Files:** `backend/src/pipeline/llm_analysis.py`, `backend/src/api/routes.py` (LLM endpoint)
+-   **Acceptance:** Generate contextual coaching feedback using LLM based on heuristic analysis results
+-   **Test:** LLM provides personalized, actionable feedback based on pose analysis metrics
+-   **Dependencies:** Heuristic analysis from M6, LLM API integration (OpenAI/Anthropic)
 
-### M6 — Frontend minimal UI
-
--   **Files:** `frontend/src/pages/*`, `frontend/src/components/*`
--   **Acceptance:** Dev server runs (`bun run dev`), user can select video file via standard file input, see processing state, and view results page
--   **Test:** Full end-to-end file selection -> processing -> results locally
-
-### M7 — Small polish & docs
+### M8 — Small polish & docs
 
 -   Add README quick start, comment code, and pin dependency versions
 
@@ -303,20 +324,26 @@ bun run dev
 
 1. ✅ Select 30-60s demo video via file input; server returns 202 with id
 2. ✅ After processing, `GET /api/results/:id` returns `status: complete`, `metrics`, and `feedback`
-3. If overlay enabled, output video exists and displays skeleton overlay
+3. Upload video via web UI, see processing status, view results and overlay video (M5)
+4. Visual validation of pose detection accuracy via skeleton overlay (M4)
+5. Heuristic analysis matches visual observations (M6)
 
 ## Risks & Mitigations
 
 -   **Pose errors due to angle/lighting:** provide clear demo videos and UX hints (camera distance, frontal angle)
--   **Long processing times:** limit duration to 60s, sample frames (every 3rd frame), safety limit of 2000 frames (supports 60s at 60 FPS)
+-   **Long processing times:** limit duration to 60s, process every frame, safety limit of 6000 frames (supports 60s at 60 FPS)
 -   **Large uploads:** reject >50MB and show guidance
 -   **Overfitting heuristics:** start conservative; surface raw metrics alongside feedback
 
 ## Future Roadmap (post-MVP)
 
--   Persistent storage and user accounts
+-   **Movement visualization**: Center of balance heat maps, joint angles visualization, velocity vectors with toggle on/off functionality
+-   **Video timestamped LLM feedback**: Per-movement coaching feedback synchronized with video timestamps
+-   **Side-by-side comparison mode**: Compare multiple attempts of the same route or movement
+-   **Custom skeleton visualization**: Replace default MediaPipe skeleton with custom icons styling and animated effects
+-   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic
+-   staticPersistent storage and user accounts
 -   Session tracking and trend charts
--   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic/static
 -   LLM-driven coaching summaries and personalization
 -   Multi-attempt comparison and drill generation
 -   Real-time analysis (WebRTC) for live coaching

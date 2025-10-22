@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
 from backend.src.models.schema import AnalyzeResponse, ErrorResponse, Result
-from backend.src.pipeline.input import validate_and_save_video
-from backend.src.pipeline.process import process_video_background_task
+from backend.src.pipeline.upload import validate_and_save_video
+from backend.src.pipeline.pose_detection import process_video_background_task
 from backend.src.utils.file_utils import generate_analysis_id
 from backend.src.utils.analysis_storage import create_analysis_record, get_analysis_record
 import logging
