@@ -198,15 +198,15 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 -   **Files:** `backend/src/pipeline/process.py` (add JSON output), `backend/src/api/routes.py` (integration), `backend/src/utils/analysis_storage.py` (new)
 -   **Acceptance:** Background processing, results endpoint, status tracking, saves keypoints to JSON
 -   **Test:** Full end-to-end processing: upload → background processing → status checking → results retrieval
--   **Performance:** ~2-3 seconds processing time for 12-second video (exceeds expectations)
+-   **Performance:** ~6-9 seconds processing time for 12-second video with full frame sampling
 -   **API Integration:** Upload returns immediately (202), background processing, `/api/results/{id}` endpoint
 
 ### M4 — Overlay video generation
 
 -   **Files:** `backend/src/pipeline/output.py`
--   **Acceptance:** Render skeleton overlay on original video, save to `static/outputs/`
--   **Test:** Output video displays pose landmarks overlaid on climber
--   **Dependencies:** Pose data from M3, OpenCV for video rendering
+-   **Acceptance:** Render skeleton overlay on original video using existing pose data, save to `static/outputs/`
+-   **Test:** Output video displays smooth, continuous pose landmarks overlaid on climber
+-   **Dependencies:** Pose data from M3 (full frame sampling), OpenCV for video rendering
 
 ### M5 — Minimal frontend
 
@@ -222,7 +222,14 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 -   **Test:** `GET /api/results/:id` shows metrics and feedback, frontend displays analysis
 -   **Dependencies:** Pose data from M3, visual validation from M4, frontend from M5
 
-### M7 — Small polish & docs
+### M7 — LLM feedback and coaching
+
+-   **Files:** `backend/src/pipeline/llm_analysis.py`, `backend/src/api/routes.py` (LLM endpoint)
+-   **Acceptance:** Generate contextual coaching feedback using LLM based on heuristic analysis results
+-   **Test:** LLM provides personalized, actionable feedback based on pose analysis metrics
+-   **Dependencies:** Heuristic analysis from M6, LLM API integration (OpenAI/Anthropic)
+
+### M8 — Small polish & docs
 
 -   Add README quick start, comment code, and pin dependency versions
 
@@ -313,12 +320,15 @@ bun run dev
 ## Risks & Mitigations
 
 -   **Pose errors due to angle/lighting:** provide clear demo videos and UX hints (camera distance, frontal angle)
--   **Long processing times:** limit duration to 60s, sample frames (every 3rd frame), safety limit of 2000 frames (supports 60s at 60 FPS)
+-   **Long processing times:** limit duration to 60s, process every frame, safety limit of 6000 frames (supports 60s at 60 FPS)
 -   **Large uploads:** reject >50MB and show guidance
 -   **Overfitting heuristics:** start conservative; surface raw metrics alongside feedback
 
 ## Future Roadmap (post-MVP)
 
+-   **Movement visualization**: Center of balance heat maps, joint angles visualization, velocity vectors with toggle on/off functionality
+-   **Video timestamped LLM feedback**: Per-movement coaching feedback synchronized with video timestamps
+-   **Side-by-side comparison mode**: Compare multiple attempts of the same route or movement
 -   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic
 -   staticPersistent storage and user accounts
 -   Session tracking and trend charts

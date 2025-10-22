@@ -23,8 +23,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Configuration
-SAMPLE_RATE = 3  # Process every 3rd frame
-MAX_FRAMES_TO_PROCESS = 2000  # Safety limit: supports 60s videos at 60 FPS (60*60/3 = 1200 frames)
+SAMPLE_RATE = 1  # Process every frame for analysis and overlay
+MAX_FRAMES_TO_PROCESS = 6000  # Safety limit: supports 60s videos at 60 FPS (60*60 = 3600 frames)
 
 # Confidence thresholds for different landmarks (from testing strategy)
 CONFIDENCE_LEVELS = {
@@ -110,7 +110,7 @@ def read_video_frames(video_path: str) -> Tuple[List[cv2.Mat], dict]:
             if not ret:
                 break
                 
-            # Process every Nth frame
+            # Process every frame
             if frame_count % SAMPLE_RATE == 0:
                 sampled_frames.append(frame.copy())
                 processed_count += 1
@@ -370,10 +370,10 @@ def process_video_background_task(video_path: str, analysis_id: str) -> None:
 
 def process_video_with_pose(video_path: str, analysis_id: str) -> dict:
     """
-    Enhanced video processing function for M3b.
+    Enhanced video processing function for M3b/M4.
     
-    This function reads a video, samples frames, runs MediaPipe pose detection,
-    and saves pose data to JSON. Includes simple confidence tracking.
+    This function reads a video, processes every frame with MediaPipe pose detection,
+    and saves pose data to JSON. Used for both analysis and overlay generation.
     
     Args:
         video_path: Path to the uploaded video file
