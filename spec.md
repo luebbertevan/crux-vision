@@ -59,10 +59,10 @@ crux-vision/
       api/
         routes.py            # /api/analyze, /api/results, /api/ping
       pipeline/
-        input.py             # Load & validate video
-        process.py           # MediaPipe + OpenCV wrapper
+        upload.py            # Load & validate video
+        pose_detection.py    # MediaPipe + OpenCV wrapper
         analysis.py          # Heuristics and metrics
-        output.py            # Annotated overlay renderer (optional)
+        overlay.py           # Annotated overlay renderer (optional)
       models/
         schema.py            # Pydantic models
       utils/
@@ -181,7 +181,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 ## ✅ M3a — Basic video processing (OpenCV)
 
 -   **Files:** `backend/src/pipeline/pose_detection.py`
--   **Acceptance:** Reads uploaded video, extracts frames (N=3 sampling), basic error handling
+-   **Acceptance:** Reads uploaded video, extracts frames (full frame sampling), basic error handling
 -   **Test:** Can read frames from uploaded video, verify frame sampling works
 -   **Dependencies:** OpenCV only (no MediaPipe yet)
 
@@ -203,7 +203,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 ### M4 — Overlay video generation
 
-## M4a — Basic overlay rendering
+## ✅ M4a — Basic overlay rendering
 
 -   **Files:** `backend/src/pipeline/overlay.py` (basic implementation)
 -   **Acceptance:** Render skeleton overlay on individual frames, save as image sequence for testing
