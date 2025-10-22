@@ -20,7 +20,7 @@
 ## Tech Stack
 
 -   **Frontend:** React + TypeScript + Vite + Tailwind
--   **Backend:** Python 3.10+ + FastAPI
+-   **Backend:** Python 3.9+ + FastAPI (Note: Using Python 3.9.6 due to system availability)
 -   **Pose estimation:** MediaPipe (Python)
 -   **Video processing:** OpenCV (opencv-python-headless)
 -   **Storage:** local filesystem (backend/static/uploads, backend/static/outputs)
@@ -221,7 +221,7 @@ These are simple, explainable rules good for MVP. Implement in `analysis.py` usi
 
 ### Backend (Python)
 
--   Use venv or virtualenv, Python 3.10+
+-   Use venv or virtualenv, Python 3.9+ (Note: Using Python 3.9.6 due to system availability)
 -   **requirements.txt:**
     ```
     fastapi>=0.100.0
