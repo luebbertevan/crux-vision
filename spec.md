@@ -163,7 +163,7 @@ Each milestone is intentionally small and testable.
 -   **Purpose:** Agree spec, milestones, file structure
 -   **Acceptance:** This `spec.md` reviewed & approved
 
-### M1 — Backend bootstrap (FastAPI + ping)
+### ✅ M1 — Backend bootstrap (FastAPI + ping)
 
 -   **Files:** `backend/main.py`, `backend/src/api/routes.py`, `requirements.txt`
 -   **Acceptance:** `uvicorn backend.main:app --reload` serves `/api/ping` -> `{message: 'pong'}`

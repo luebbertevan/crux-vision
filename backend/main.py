@@ -1,12 +1,3 @@
-# Simple test
-#curl http://localhost:8000/api/ping
-
-# More verbose test to see headers
-#curl -v http://localhost:8000/api/ping
-
-# Test with different HTTP methods (should work)
-#curl -X GET http://localhost:8000/api/ping
-
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from backend.src.api.routes import router
