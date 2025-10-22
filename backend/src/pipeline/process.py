@@ -133,15 +133,15 @@ def read_video_frames(video_path: str) -> Tuple[List[cv2.Mat], dict]:
         cap.release()
 
 
-def detect_pose_in_frame(frame: cv2.Mat) -> Dict[str, Any]:
+def detect_pose_in_frame(frame: cv2.Mat) -> Tuple[Dict[str, Any], Any]:
     """
-    Detect pose landmarks in a single frame using MediaPipe.
+    Detect pose landmarks in a single frame using MediaPipe, returning both JSON and MediaPipe formats.
     
     Args:
         frame: OpenCV Mat object (BGR format)
         
     Returns:
-        Dictionary with pose detection results
+        Tuple of (json_pose_data, mediapipe_results)
     """
     # Convert BGR to RGB for MediaPipe
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -210,10 +210,10 @@ def detect_pose_in_frame(frame: cv2.Mat) -> Dict[str, Any]:
         pose_data["quality_flags"]["hands_occluded"] = any(lm["confidence"] == "low" for lm in hand_landmarks)
         pose_data["quality_flags"]["feet_hidden"] = any(lm["confidence"] == "low" for lm in foot_landmarks)
     
-    return pose_data
+    return pose_data, results
 
 
-def process_frames_with_pose(frames: List[cv2.Mat]) -> List[Dict[str, Any]]:
+def process_frames_with_pose(frames: List[cv2.Mat]) -> Tuple[List[Dict[str, Any]], List[Any]]:
     """
     Process all sampled frames with MediaPipe pose detection.
     
@@ -221,17 +221,20 @@ def process_frames_with_pose(frames: List[cv2.Mat]) -> List[Dict[str, Any]]:
         frames: List of OpenCV Mat objects
         
     Returns:
-        List of pose detection results for each frame
+        Tuple of (pose_results_json, mediapipe_results) for each frame
     """
     logger.info(f"Processing {len(frames)} frames with MediaPipe pose detection")
     
     pose_results = []
+    mediapipe_results = []
     
     for i, frame in enumerate(frames):
         try:
-            pose_data = detect_pose_in_frame(frame)
+            # Get both JSON format and original MediaPipe format
+            pose_data, mediapipe_data = detect_pose_in_frame(frame)
             pose_data["frame_index"] = i
             pose_results.append(pose_data)
+            mediapipe_results.append(mediapipe_data)
             
             if i % 50 == 0:  # Log progress every 50 frames
                 logger.info(f"Processed frame {i}/{len(frames)}")
@@ -248,9 +251,10 @@ def process_frames_with_pose(frames: List[cv2.Mat]) -> List[Dict[str, Any]]:
                 "quality_flags": {},
                 "error": str(e)
             })
+            mediapipe_results.append(None)
     
     logger.info(f"Completed pose detection on {len(frames)} frames")
-    return pose_results
+    return pose_results, mediapipe_results
 
 
 def save_pose_data(pose_results: List[Dict[str, Any]], video_info: dict, analysis_id: str) -> str:
@@ -393,10 +397,12 @@ def process_video_with_pose(video_path: str, analysis_id: str) -> dict:
         frames, video_info = read_video_frames(video_path)
         
         # Process frames with MediaPipe pose detection
-        pose_results = process_frames_with_pose(frames)
+        pose_results, mediapipe_results = process_frames_with_pose(frames)
         
         # Save pose data to JSON
         pose_file = save_pose_data(pose_results, video_info, analysis_id)
+        
+        # Note: MediaPipe data will be converted from JSON when needed for overlay generation
         
         # Save frame information for debugging
         info_file = save_frame_info(frames, video_info, analysis_id)
