@@ -158,7 +158,7 @@ class Result(BaseModel):
 
 Each milestone is intentionally small and testable.
 
-### M0 — Specification (done)
+### ✅ M0 — Specification (done)
 
 -   **Purpose:** Agree spec, milestones, file structure
 -   **Acceptance:** This `spec.md` reviewed & approved
