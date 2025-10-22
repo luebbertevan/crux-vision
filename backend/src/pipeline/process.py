@@ -318,6 +318,56 @@ def save_frame_info(frames: List[cv2.Mat], video_info: dict, analysis_id: str) -
     return str(info_file)
 
 
+def process_video_background_task(video_path: str, analysis_id: str) -> None:
+    """
+    Background task function for M3c - processes video with pose detection.
+    
+    This function is designed to be run as a FastAPI background task.
+    It processes the video and updates the analysis status.
+    
+    Args:
+        video_path: Path to the uploaded video file
+        analysis_id: Unique identifier for this analysis
+    """
+    logger.info(f"Starting background pose processing for analysis {analysis_id}")
+    
+    try:
+        # Import here to avoid circular imports
+        from backend.src.utils.analysis_storage import update_analysis_status, update_analysis_results
+        
+        # Update status to processing
+        update_analysis_status(analysis_id, "processing")
+        
+        # Process video with pose detection
+        results = process_video_with_pose(video_path, analysis_id)
+        
+        # Extract pose data and processing info for storage
+        pose_data = None
+        processing_info = None
+        
+        # Load pose data from JSON file if it exists
+        pose_file = results.get("pose_file")
+        if pose_file and Path(pose_file).exists():
+            import json
+            with open(pose_file, 'r') as f:
+                pose_data = json.load(f)
+                processing_info = pose_data.get("processing_info", {})
+        
+        # Update analysis with results
+        update_analysis_results(analysis_id, pose_data, processing_info)
+        
+        logger.info(f"Background pose processing completed for analysis {analysis_id}")
+        
+    except Exception as e:
+        logger.error(f"Background pose processing failed for analysis {analysis_id}: {str(e)}")
+        # Update status to error
+        try:
+            from backend.src.utils.analysis_storage import update_analysis_status
+            update_analysis_status(analysis_id, "error", str(e))
+        except Exception as update_error:
+            logger.error(f"Failed to update error status for {analysis_id}: {str(update_error)}")
+
+
 def process_video_with_pose(video_path: str, analysis_id: str) -> dict:
     """
     Enhanced video processing function for M3b.
