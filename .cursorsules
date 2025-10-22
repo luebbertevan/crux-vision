@@ -21,6 +21,7 @@
 -   Write small inline comments only when behavior is non-obvious; rely on self-documenting code elsewhere
 -   Each milestone should be testable on its own
 -   **Always update spec.md when changes are made to the design or milestone status**
+-   **CRITICAL: Always test that code compiles/runs before confirming changes - never deliver broken code**
 
 ## File Organization
 
