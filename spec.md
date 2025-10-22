@@ -207,17 +207,17 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 -   **Files:** `backend/src/pipeline/output.py` (basic implementation)
 -   **Acceptance:** Render skeleton overlay on individual frames, save as image sequence for testing
--   **Test:** Verify skeleton overlay works on individual frames, MediaPipe drawing utilities function correctly
--   **Dependencies:** Pose data from M3 (full frame sampling), MediaPipe drawing utilities
--   **Scope:** Focus on getting the overlay rendering working correctly on frames
+-   **Test:** Verify skeleton overlay works on individual frames, custom OpenCV drawing functions correctly
+-   **Dependencies:** Pose data from M3 (full frame sampling), OpenCV drawing utilities
+-   **Scope:** Focus on getting the overlay rendering working correctly on frames using direct JSON-to-OpenCV drawing
 
 ## M4b — Full video generation
 
 -   **Files:** `backend/src/pipeline/output.py` (video generation), `backend/src/api/routes.py` (integration)
 -   **Acceptance:** Generate complete overlay video with smooth skeleton overlay, save to `static/outputs/`
 -   **Test:** Full end-to-end video generation with continuous overlay (no flickering), API integration works
--   **Dependencies:** M4a overlay rendering, video processing pipeline
--   **Scope:** Handle full video processing, frame synchronization, and API integration
+-   **Dependencies:** M4a overlay rendering, video processing pipeline, OpenCV video writing
+-   **Scope:** Handle full video processing, frame synchronization, and API integration using custom skeleton rendering
 
 ### M5 — Minimal frontend
 
@@ -340,6 +340,7 @@ bun run dev
 -   **Movement visualization**: Center of balance heat maps, joint angles visualization, velocity vectors with toggle on/off functionality
 -   **Video timestamped LLM feedback**: Per-movement coaching feedback synchronized with video timestamps
 -   **Side-by-side comparison mode**: Compare multiple attempts of the same route or movement
+-   **Custom skeleton visualization**: Replace default MediaPipe skeleton with custom icons styling and animated effects
 -   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic
 -   staticPersistent storage and user accounts
 -   Session tracking and trend charts
