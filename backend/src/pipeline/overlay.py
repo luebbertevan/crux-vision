@@ -712,10 +712,8 @@ def setup_video_writer(analysis_id: str, video_path: str) -> Tuple[cv2.VideoWrit
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     cap.release()
     
-    # Setup output video path with original filename and truncated analysis ID
-    original_filename = Path(video_path).stem  # Get filename without extension
-    truncated_id = analysis_id[:8]  # Use first 8 characters
-    output_path = OVERLAY_DIR / f"overlay_{original_filename}_{truncated_id}.mp4"
+    # Get video rotation
+    rotation = get_video_rotation(video_path)
     
     # Adjust dimensions if rotated
     if rotation in [90, 270]:

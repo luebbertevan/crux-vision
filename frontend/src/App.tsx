@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Header from "./components/Header";
 import FileUpload from "./components/FileUpload";
 import ProcessingSpinner from "./components/ProcessingSpinner";
+import VideoPlayer from "./components/VideoPlayer";
 import { useAnalysis } from "./hooks/useAnalysis";
 import { AnalysisState } from "./utils/types";
 
@@ -55,31 +56,58 @@ function App() {
 				)}
 
 				{data.state === AnalysisState.COMPLETE && data.result && (
-					<div className="mt-8 text-center">
-						<div className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100">
-							<svg
-								className="h-5 w-5 mr-2"
-								fill="currentColor"
-								viewBox="0 0 20 20"
-							>
-								<path
-									fillRule="evenodd"
-									d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-									clipRule="evenodd"
+					<div className="mt-8">
+						{data.result.video_url ? (
+							<div className="max-w-4xl mx-auto">
+								<VideoPlayer
+									videoUrl={data.result.video_url}
+									title="Climbing Analysis with Skeleton Overlay"
+									onError={(error) => {
+										console.error(
+											"Video player error:",
+											error
+										);
+									}}
 								/>
-							</svg>
-							Analysis Complete!
-						</div>
-						<div className="mt-4 text-sm text-gray-600">
-							<p>Analysis ID: {data.result.id}</p>
-							<p>
-								Video URL:{" "}
-								{data.result.video_url || "Not available yet"}
-							</p>
-							<p className="mt-2 text-xs text-gray-500">
-								(M5d will add video display component)
-							</p>
-						</div>
+								<div className="mt-4 text-center">
+									<div className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100">
+										<svg
+											className="h-5 w-5 mr-2"
+											fill="currentColor"
+											viewBox="0 0 20 20"
+										>
+											<path
+												fillRule="evenodd"
+												d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+												clipRule="evenodd"
+											/>
+										</svg>
+										Analysis Complete!
+									</div>
+								</div>
+							</div>
+						) : (
+							<div className="text-center">
+								<div className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100">
+									<svg
+										className="h-5 w-5 mr-2"
+										fill="currentColor"
+										viewBox="0 0 20 20"
+									>
+										<path
+											fillRule="evenodd"
+											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+											clipRule="evenodd"
+										/>
+									</svg>
+									Analysis Complete!
+								</div>
+								<div className="mt-4 text-sm text-gray-600">
+									<p>Analysis ID: {data.result.id}</p>
+									<p>Video overlay is being generated...</p>
+								</div>
+							</div>
+						)}
 					</div>
 				)}
 

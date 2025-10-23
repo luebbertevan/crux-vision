@@ -357,6 +357,10 @@ def process_video_background_task(video_path: str, analysis_id: str) -> None:
                 pose_data = json.load(f)
                 processing_info = pose_data.get("processing_info", {})
         
+        # Add overlay file info to processing_info
+        if results.get("overlay_file"):
+            processing_info["overlay_file"] = results["overlay_file"]
+        
         # Update analysis with results
         update_analysis_results(analysis_id, pose_data, processing_info)
         
