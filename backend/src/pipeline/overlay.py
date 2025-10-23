@@ -400,8 +400,9 @@ def setup_video_writer(analysis_id: str, video_path: str) -> Tuple[cv2.VideoWrit
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     cap.release()
     
-    # Setup output video path
-    output_path = OVERLAY_DIR / f"overlay_{analysis_id}.mp4"
+    # Setup output video path with truncated analysis ID
+    truncated_id = analysis_id[:8]  # Use first 8 characters
+    output_path = OVERLAY_DIR / f"overlay_{truncated_id}.mp4"
     
     # Create video writer with same properties as original
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
