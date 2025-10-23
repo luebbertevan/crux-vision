@@ -201,7 +201,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 -   **Performance:** ~6-9 seconds processing time for 12-second video with full frame sampling
 -   **API Integration:** Upload returns immediately (202), background processing, `/api/results/{id}` endpoint
 
-### M4 — Overlay video generation
+### ✅ M4 — Overlay video generation
 
 ## ✅ M4a — Basic overlay rendering
 
@@ -211,7 +211,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 -   **Dependencies:** Pose data from M3 (full frame sampling), OpenCV drawing utilities
 -   **Scope:** Focus on getting the overlay rendering working correctly on frames using direct JSON-to-OpenCV drawing
 
-## M4b — Full video generation
+## ✅ M4b — Full video generation
 
 -   **Files:** `backend/src/pipeline/overlay.py` (video generation), `backend/src/pipeline/pose_detection.py` (integration)
 -   **Acceptance:** Generate complete overlay video with smooth skeleton overlay, save to `static/outputs/`
@@ -257,21 +257,21 @@ POST /api/analyze
 
 ### M5 — Minimal frontend
 
-## M5a — Frontend project setup
+## ✅ M5a — Frontend project setup
 
 -   **Files:** `frontend/` (new directory), `frontend/package.json`, `frontend/vite.config.ts`, `frontend/index.html`, `frontend/src/main.tsx`, `frontend/src/App.tsx`
 -   **Acceptance:** React + TypeScript + Vite + Tailwind project boots successfully, basic "Hello World" renders with Tailwind styling
 -   **Test:** `bun run dev` starts frontend on localhost:5173, verify Tailwind CSS is working
 -   **Dependencies:** None (new frontend project)
 
-## M5b — File upload component
+## ✅ M5b — File upload component
 
 -   **Files:** `frontend/src/components/FileUpload.tsx`, `frontend/src/components/Header.tsx`
 -   **Acceptance:** File upload interface with file picker, file validation (size ≤100MB, formats: MP4/MOV/AVI), upload progress indicator, error handling for invalid files
 -   **Test:** Upload valid/invalid files, see validation errors, verify file size and format restrictions
 -   **Dependencies:** M5a frontend setup
 
-## M5c — API integration and status polling
+## ✅ M5c — API integration and status polling
 
 -   **Files:** `frontend/src/api/client.ts`, `frontend/src/hooks/useAnalysis.ts`, `frontend/src/utils/types.ts`
 -   **Acceptance:** Upload video to `/api/analyze`, receive analysis ID, poll `/api/results/{id}` for status updates, handle processing/complete/error states
