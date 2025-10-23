@@ -456,11 +456,26 @@ def find_original_video(analysis_id: str) -> str:
     Raises:
         FileNotFoundError: If no video file is found
     """
-    # Try to find video file by analysis ID
+    # Try to find video file by analysis ID (new format: originalname_analysisid.ext)
+    upload_dir = Path("backend/static/uploads")
+    
+    # Look for files that end with the analysis ID
+    for video_file in upload_dir.glob("*"):
+        if video_file.is_file() and video_file.name.endswith(f"_{analysis_id}.mov"):
+            logger.info(f"Found video file: {video_file}")
+            return str(video_file)
+        elif video_file.is_file() and video_file.name.endswith(f"_{analysis_id}.MOV"):
+            logger.info(f"Found video file: {video_file}")
+            return str(video_file)
+        elif video_file.is_file() and video_file.name.endswith(f"_{analysis_id}.mp4"):
+            logger.info(f"Found video file: {video_file}")
+            return str(video_file)
+    
+    # Fallback: try old format (analysis_id.ext)
     for ext in ['.mov', '.MOV', '.mp4', '.avi']:
         potential_path = f"backend/static/uploads/{analysis_id}{ext}"
         if Path(potential_path).exists():
-            logger.info(f"Found video file: {potential_path}")
+            logger.info(f"Found video file (old format): {potential_path}")
             return potential_path
     
     raise FileNotFoundError(f"No video file found for analysis {analysis_id}")
@@ -711,8 +726,10 @@ def setup_video_writer(analysis_id: str, video_path: str) -> Tuple[cv2.VideoWrit
         width, height = height, width  # Swap dimensions for rotated videos
         logger.info(f"Video rotated {rotation}°, adjusted dimensions: {width}x{height}")
     
-    # Setup output video path
-    output_path = f"backend/static/outputs/overlay_{analysis_id}.mp4"
+    # Setup output video path with original filename
+    original_filename = Path(video_path).stem  # Get filename without extension
+    analysis_prefix = analysis_id[:8]  # First 8 characters of analysis ID
+    output_path = f"backend/static/outputs/overlay_{original_filename}_{analysis_prefix}.mp4"
     
     # Create video writer with same properties as original (adjusted for rotation)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')

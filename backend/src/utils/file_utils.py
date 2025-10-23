@@ -31,9 +31,18 @@ def validate_file_size(file_size: int) -> bool:
     return file_size <= MAX_FILE_SIZE
 
 def get_safe_filename(filename: str, analysis_id: str) -> str:
-    """Generate a safe filename for storage"""
+    """Generate a safe filename for storage, preserving original name"""
+    import re
+    
+    # Get original filename without extension
+    original_name = Path(filename).stem
     file_ext = Path(filename).suffix.lower()
-    return f"{analysis_id}{file_ext}"
+    
+    # Sanitize filename: remove/replace unsafe characters
+    safe_name = re.sub(r'[^\w\-_.]', '_', original_name)
+    
+    # Combine original name with analysis ID
+    return f"{safe_name}_{analysis_id}{file_ext}"
 
 def cleanup_file(file_path: Path) -> bool:
     """Remove a file if it exists"""
