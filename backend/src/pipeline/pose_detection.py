@@ -407,6 +407,15 @@ def process_video_with_pose(video_path: str, analysis_id: str) -> dict:
         # Save frame information for debugging
         info_file = save_frame_info(frames, video_info, analysis_id)
         
+        # Generate overlay video (M4b)
+        try:
+            from backend.src.pipeline.overlay import generate_overlay_video
+            overlay_file = generate_overlay_video(analysis_id)
+            logger.info(f"Overlay video generated: {overlay_file}")
+        except Exception as overlay_error:
+            logger.warning(f"Overlay video generation failed: {str(overlay_error)}")
+            overlay_file = None
+        
         # Calculate processing statistics
         poses_detected = sum(1 for result in pose_results if result.get("pose_detected", False))
         avg_confidence = sum(result.get("overall_confidence", 0) for result in pose_results) / len(pose_results) if pose_results else 0
@@ -421,6 +430,7 @@ def process_video_with_pose(video_path: str, analysis_id: str) -> dict:
             "avg_confidence": avg_confidence,
             "pose_file": pose_file,
             "info_file": info_file,
+            "overlay_file": overlay_file,
             "message": f"Successfully processed {len(frames)} frames, detected poses in {poses_detected} frames"
         }
         

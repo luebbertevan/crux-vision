@@ -359,6 +359,186 @@ def test_overlay_with_existing_data() -> None:
     test_overlay_on_sample_frames(analysis_id, num_frames=5)
 
 
-if __name__ == "__main__":
-    # Test overlay rendering with existing data
-    test_overlay_with_existing_data()
+def find_original_video(analysis_id: str) -> str:
+    """
+    Find the original video file for a given analysis ID.
+    
+    Args:
+        analysis_id: Unique identifier for the analysis
+        
+    Returns:
+        Path to the original video file
+        
+    Raises:
+        FileNotFoundError: If no video file is found
+    """
+    # Try to find video file by analysis ID
+    for ext in ['.mov', '.MOV', '.mp4', '.avi']:
+        potential_path = f"backend/static/uploads/{analysis_id}{ext}"
+        if Path(potential_path).exists():
+            logger.info(f"Found video file: {potential_path}")
+            return potential_path
+    
+    raise FileNotFoundError(f"No video file found for analysis {analysis_id}")
+
+
+def setup_video_writer(analysis_id: str, video_path: str) -> Tuple[cv2.VideoWriter, Dict[str, Any]]:
+    """
+    Setup OpenCV VideoWriter for overlay video generation.
+    
+    Args:
+        analysis_id: Unique identifier for the analysis
+        video_path: Path to the original video file
+        
+    Returns:
+        Tuple of (video_writer, video_properties)
+    """
+    # Get video properties from original video
+    cap = cv2.VideoCapture(video_path)
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    cap.release()
+    
+    # Setup output video path
+    output_path = f"backend/static/outputs/overlay_{analysis_id}.mp4"
+    
+    # Create video writer with same properties as original
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    video_writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    
+    if not video_writer.isOpened():
+        raise RuntimeError(f"Failed to create video writer for {output_path}")
+    
+    video_properties = {
+        "fps": fps,
+        "width": width,
+        "height": height,
+        "output_path": output_path
+    }
+    
+    logger.info(f"Video writer setup: {width}x{height} @ {fps}fps -> {output_path}")
+    return video_writer, video_properties
+
+
+def get_pose_for_frame(pose_data: List[Dict], frame_index: int) -> Optional[Dict]:
+    """
+    Get pose data for a specific frame index.
+    
+    Args:
+        pose_data: List of pose data dictionaries
+        frame_index: Frame index to get pose data for
+        
+    Returns:
+        Pose data dictionary for the frame, or None if not found
+    """
+    for pose_frame in pose_data:
+        if pose_frame.get("frame_index") == frame_index:
+            return pose_frame
+    return None
+
+
+def process_video_frames(video_path: str, pose_data: List[Dict], video_writer: cv2.VideoWriter) -> None:
+    """
+    Process video frames and write overlay video.
+    
+    Args:
+        video_path: Path to the original video file
+        pose_data: List of pose data dictionaries
+        video_writer: OpenCV VideoWriter for output
+    """
+    cap = cv2.VideoCapture(video_path)
+    frame_index = 0
+    frames_processed = 0
+    frames_with_overlay = 0
+    
+    logger.info(f"Starting video frame processing for {len(pose_data)} pose frames")
+    
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        # Get pose data for this frame
+        frame_pose_data = get_pose_for_frame(pose_data, frame_index)
+        
+        if frame_pose_data and frame_pose_data.get("pose_detected", False):
+            # Draw skeleton overlay
+            landmarks = frame_pose_data.get("landmarks", [])
+            if landmarks:
+                frame = draw_skeleton_overlay(frame, landmarks)
+                frames_with_overlay += 1
+        # If no pose data, just use original frame
+        
+        video_writer.write(frame)
+        frames_processed += 1
+        frame_index += 1
+        
+        # Log progress every 50 frames
+        if frame_index % 50 == 0:
+            logger.info(f"Processed frame {frame_index}, overlay applied to {frames_with_overlay} frames")
+    
+    cap.release()
+    logger.info(f"Video processing completed: {frames_processed} frames processed, {frames_with_overlay} frames with overlay")
+
+
+def cleanup_video_writer(video_writer: cv2.VideoWriter) -> None:
+    """
+    Cleanup video writer resources.
+    
+    Args:
+        video_writer: OpenCV VideoWriter to cleanup
+    """
+    if video_writer:
+        video_writer.release()
+        logger.info("Video writer cleaned up")
+
+
+def generate_overlay_video(analysis_id: str) -> str:
+    """
+    Generate complete overlay video from pose data and original video.
+    
+    Args:
+        analysis_id: Unique identifier for the analysis
+        
+    Returns:
+        Path to the generated overlay video file
+        
+    Raises:
+        FileNotFoundError: If pose data or video file is not found
+        RuntimeError: If video generation fails
+    """
+    logger.info(f"Starting overlay video generation for analysis {analysis_id}")
+    
+    try:
+        # Load pose data
+        pose_data_dict = load_pose_data(analysis_id)
+        if not pose_data_dict:
+            raise FileNotFoundError(f"No pose data found for analysis {analysis_id}")
+        
+        # Extract frames from pose data
+        pose_data = pose_data_dict.get("frames", [])
+        if not pose_data:
+            raise FileNotFoundError(f"No frame data found in pose data for analysis {analysis_id}")
+        
+        # Find original video file
+        video_path = find_original_video(analysis_id)
+        
+        # Setup video writer
+        video_writer, video_properties = setup_video_writer(analysis_id, video_path)
+        
+        # Process video frames
+        process_video_frames(video_path, pose_data, video_writer)
+        
+        # Cleanup
+        cleanup_video_writer(video_writer)
+        
+        output_path = video_properties["output_path"]
+        logger.info(f"Overlay video generation completed: {output_path}")
+        return output_path
+        
+    except Exception as e:
+        logger.error(f"Overlay video generation failed for analysis {analysis_id}: {str(e)}")
+        raise RuntimeError(f"Overlay video generation failed: {str(e)}")
+
+
