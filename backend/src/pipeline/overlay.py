@@ -726,7 +726,7 @@ def setup_video_writer(analysis_id: str, video_path: str) -> Tuple[cv2.VideoWrit
     output_path = f"backend/static/outputs/overlay_{original_filename}_{analysis_prefix}.mp4"
     
     # Create video writer with same properties as original (adjusted for rotation)
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    fourcc = cv2.VideoWriter_fourcc(*'H264')
     video_writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
     
     if not video_writer.isOpened():

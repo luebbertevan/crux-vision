@@ -105,6 +105,14 @@ function VideoPlayer({
 			return;
 		}
 
+		// Don't show error if we're in the middle of loading
+		if (video.networkState === 2) {
+			console.log(
+				"Video is loading (network state 2), ignoring error event"
+			);
+			return;
+		}
+
 		let errorMessage = "Failed to load video. Please try again.";
 
 		if (error) {
@@ -303,11 +311,11 @@ function VideoPlayer({
 				<video
 					ref={videoRef}
 					className="w-full h-auto max-h-96"
-					poster=""
 					onError={handleVideoError}
-					preload="metadata"
+					preload="auto"
+					src={videoUrl}
+					controls
 				>
-					<source src={videoUrl} type="video/mp4" />
 					Your browser does not support the video tag.
 				</video>
 			</div>

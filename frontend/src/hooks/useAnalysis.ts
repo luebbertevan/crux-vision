@@ -11,7 +11,7 @@ export function useAnalysis() {
 		progress: 0,
 	});
 
-	const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+	const pollingIntervalRef = useRef<number | null>(null);
 
 	// Clear polling interval
 	const clearPolling = useCallback(() => {
