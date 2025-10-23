@@ -4,15 +4,17 @@ from pathlib import Path
 from typing import Optional
 
 # Configuration constants
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB in bytes
+MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB in bytes
 ALLOWED_EXTENSIONS = {'.mp4', '.mov', '.avi'}
 UPLOAD_DIR = Path("backend/static/uploads")
 OUTPUT_DIR = Path("backend/static/outputs")
+OVERLAY_DIR = Path("backend/static/overlays")
 
 def ensure_directories_exist():
-    """Ensure upload and output directories exist"""
+    """Ensure upload, output, and overlay directories exist"""
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    OVERLAY_DIR.mkdir(parents=True, exist_ok=True)
 
 def generate_analysis_id() -> str:
     """Generate a unique analysis ID"""
@@ -31,9 +33,18 @@ def validate_file_size(file_size: int) -> bool:
     return file_size <= MAX_FILE_SIZE
 
 def get_safe_filename(filename: str, analysis_id: str) -> str:
-    """Generate a safe filename for storage"""
+    """Generate a safe filename for storage with original filename and analysis ID"""
+    import re
     file_ext = Path(filename).suffix.lower()
-    return f"{analysis_id}{file_ext}"
+    original_name = Path(filename).stem
+    
+    # Sanitize original filename (remove special characters, keep alphanumeric, hyphens, underscores)
+    sanitized_name = re.sub(r'[^a-zA-Z0-9\-_]', '_', original_name)
+    
+    # Truncate analysis ID to first 8 characters
+    truncated_id = analysis_id[:8]
+    
+    return f"{sanitized_name}_{truncated_id}{file_ext}"
 
 def cleanup_file(file_path: Path) -> bool:
     """Remove a file if it exists"""

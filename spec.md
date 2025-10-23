@@ -213,11 +213,47 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 
 ## M4b — Full video generation
 
--   **Files:** `backend/src/pipeline/overlay.py` (video generation), `backend/src/api/routes.py` (integration)
+-   **Files:** `backend/src/pipeline/overlay.py` (video generation), `backend/src/pipeline/pose_detection.py` (integration)
 -   **Acceptance:** Generate complete overlay video with smooth skeleton overlay, save to `static/outputs/`
 -   **Test:** Full end-to-end video generation with continuous overlay (no flickering), API integration works
 -   **Dependencies:** M4a overlay rendering, video processing pipeline, OpenCV video writing
 -   **Scope:** Handle full video processing, frame synchronization, and API integration using custom skeleton rendering
+-   **Implementation:** Automatic overlay video generation after pose processing completes
+-   **Error Handling:** Graceful handling of missing pose data (skip overlay for that frame), fail fast on critical errors
+-   **Quality:** Match original video properties (resolution, fps, codec)
+-   **Storage:** Manual cleanup for now, keep overlay videos indefinitely
+
+### M4b Video Generation Flow
+
+```
+POST /api/analyze
+├── routes.py: analyze_video()
+├── upload.py: validate_and_save_video()
+├── routes.py: process_video_background_task() [Background]
+└── pose_detection.py: process_video_with_pose()
+    ├── read_video_frames()
+    ├── process_frames_with_pose()
+    ├── save_pose_data()
+    ├── save_frame_info()
+    └── overlay.py: generate_overlay_video() [NEW]
+        ├── load_pose_data() [REUSE]
+        ├── find_original_video() [NEW]
+        ├── setup_video_writer() [NEW]
+        ├── process_video_frames() [NEW]
+        │   ├── load_video_frame() [REUSE from M4a]
+        │   └── draw_skeleton_overlay() [REUSE from M4a]
+        └── cleanup_video_writer() [NEW]
+```
+
+**Function Details:**
+
+-   **Entry Point:** `pose_detection.py: process_video_with_pose()` calls `generate_overlay_video()` after pose processing
+-   **Video Generation:** `overlay.py: generate_overlay_video()` orchestrates the full video creation process
+-   **Frame Processing:** `process_video_frames()` loops through video frames, applying skeleton overlay when pose data exists
+-   **Error Handling:** Missing pose data → skip overlay for that frame, corrupted frames → log warning and continue
+-   **Code Reuse:** Leverages existing M4a functions (`load_pose_data`, `draw_skeleton_overlay`, `load_video_frame`)
+
+**Output:** `backend/static/outputs/overlay_{analysis_id}.mp4` with skeleton overlay matching original video properties
 
 ### M5 — Minimal frontend
 
@@ -225,6 +261,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 -   **Acceptance:** Simple web interface for video upload, progress tracking, results display
 -   **Test:** Upload video via web UI, see processing status, view results and overlay video
 -   **Dependencies:** Backend API from M1-M3, overlay video from M4
+-   **Video Rotation:** Handle video orientation in frontend using CSS transforms or canvas-based rotation for user control and optimal performance
 
 ### M6 — Heuristic analysis & feedback
 
@@ -341,6 +378,7 @@ bun run dev
 -   **Video timestamped LLM feedback**: Per-movement coaching feedback synchronized with video timestamps
 -   **Side-by-side comparison mode**: Compare multiple attempts of the same route or movement
 -   **Custom skeleton visualization**: Replace default MediaPipe skeleton with custom icons styling and animated effects
+-   **Frontend video controls**: Rotation controls, zoom, playback speed adjustment, frame-by-frame navigation
 -   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic
 -   staticPersistent storage and user accounts
 -   Session tracking and trend charts
