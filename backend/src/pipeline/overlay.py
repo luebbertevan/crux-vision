@@ -17,7 +17,7 @@ from typing import List, Dict, Any, Optional, Tuple
 import sys
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 
-from backend.src.utils.file_utils import OUTPUT_DIR
+from backend.src.utils.file_utils import OUTPUT_DIR, OVERLAY_DIR
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -401,7 +401,7 @@ def setup_video_writer(analysis_id: str, video_path: str) -> Tuple[cv2.VideoWrit
     cap.release()
     
     # Setup output video path
-    output_path = f"backend/static/outputs/overlay_{analysis_id}.mp4"
+    output_path = OVERLAY_DIR / f"overlay_{analysis_id}.mp4"
     
     # Create video writer with same properties as original
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')

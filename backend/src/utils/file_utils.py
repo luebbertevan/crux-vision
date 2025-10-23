@@ -4,15 +4,17 @@ from pathlib import Path
 from typing import Optional
 
 # Configuration constants
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB in bytes
+MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB in bytes
 ALLOWED_EXTENSIONS = {'.mp4', '.mov', '.avi'}
 UPLOAD_DIR = Path("backend/static/uploads")
 OUTPUT_DIR = Path("backend/static/outputs")
+OVERLAY_DIR = Path("backend/static/overlays")
 
 def ensure_directories_exist():
-    """Ensure upload and output directories exist"""
+    """Ensure upload, output, and overlay directories exist"""
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    OVERLAY_DIR.mkdir(parents=True, exist_ok=True)
 
 def generate_analysis_id() -> str:
     """Generate a unique analysis ID"""
