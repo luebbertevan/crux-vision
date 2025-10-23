@@ -257,10 +257,34 @@ POST /api/analyze
 
 ### M5 — Minimal frontend
 
--   **Files:** `frontend/` (new directory)
--   **Acceptance:** Simple web interface for video upload, progress tracking, results display
--   **Test:** Upload video via web UI, see processing status, view results and overlay video
--   **Dependencies:** Backend API from M1-M3, overlay video from M4
+## M5a — Frontend project setup
+
+-   **Files:** `frontend/` (new directory), `frontend/package.json`, `frontend/vite.config.ts`, `frontend/index.html`, `frontend/src/main.tsx`, `frontend/src/App.tsx`
+-   **Acceptance:** React + TypeScript + Vite + Tailwind project boots successfully, basic "Hello World" renders with Tailwind styling
+-   **Test:** `bun run dev` starts frontend on localhost:5173, verify Tailwind CSS is working
+-   **Dependencies:** None (new frontend project)
+
+## M5b — File upload component
+
+-   **Files:** `frontend/src/components/FileUpload.tsx`, `frontend/src/components/Header.tsx`
+-   **Acceptance:** Drag-and-drop file upload interface, file validation (size ≤50MB, formats: MP4/MOV/AVI), upload progress indicator, error handling for invalid files
+-   **Test:** Upload valid/invalid files, see validation errors, verify file size and format restrictions
+-   **Dependencies:** M5a frontend setup
+
+## M5c — API integration and status polling
+
+-   **Files:** `frontend/src/api/client.ts`, `frontend/src/hooks/useAnalysis.ts`, `frontend/src/utils/types.ts`
+-   **Acceptance:** Upload video to `/api/analyze`, receive analysis ID, poll `/api/results/{id}` for status updates, handle processing/complete/error states
+-   **Test:** Upload → get analysis ID → poll until complete, verify error handling for failed uploads
+-   **Dependencies:** M5b upload component, backend CORS configuration
+-   **Backend Changes:** Add CORS middleware to FastAPI for frontend requests
+
+## M5d — Processing UI and video display
+
+-   **Files:** `frontend/src/components/VideoPlayer.tsx`, `frontend/src/pages/ResultsPage.tsx`, `frontend/src/components/ProcessingSpinner.tsx`
+-   **Acceptance:** Spinner during processing, overlay video player with play/pause/seek controls, responsive layout, error state display
+-   **Test:** End-to-end flow: upload → processing spinner → view overlay video, verify video controls work
+-   **Dependencies:** M5c API integration, backend overlay video generation from M4
 -   **Video Rotation:** Handle video orientation in frontend using CSS transforms or canvas-based rotation for user control and optimal performance
 
 ### M6 — Heuristic analysis & feedback
@@ -361,9 +385,12 @@ bun run dev
 
 1. ✅ Select 30-60s demo video via file input; server returns 202 with id
 2. ✅ After processing, `GET /api/results/:id` returns `status: complete`, `metrics`, and `feedback`
-3. Upload video via web UI, see processing status, view results and overlay video (M5)
-4. Visual validation of pose detection accuracy via skeleton overlay (M4)
-5. Heuristic analysis matches visual observations (M6)
+3. M5a: Frontend project boots successfully with Tailwind styling
+4. M5b: File upload component validates files and shows progress
+5. M5c: API integration uploads video and polls for completion
+6. M5d: End-to-end web UI flow: upload → processing → view overlay video
+7. Visual validation of pose detection accuracy via skeleton overlay (M4)
+8. Heuristic analysis matches visual observations (M6)
 
 ## Risks & Mitigations
 
