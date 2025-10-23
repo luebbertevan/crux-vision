@@ -28,54 +28,6 @@
 -   **File size limit:** 100MB max upload
 -   **Processing:** Async background tasks (FastAPI BackgroundTasks)
 
-## Project Structure
-
-```
-crux-vision/
-  frontend/
-    package.json
-    vite.config.ts
-    index.html
-    src/
-      main.tsx
-      App.tsx
-      routes/
-        index.tsx
-      pages/
-        UploadPage.tsx
-        ResultsPage.tsx
-      components/
-        Header.tsx
-        FileUpload.tsx
-        VideoPreview.tsx
-        FeedbackCard.tsx
-      styles/
-        tailwind.css
-  backend/
-    README.md
-    requirements.txt
-    main.py                # FastAPI entrypoint
-    src/
-      api/
-        routes.py            # /api/analyze, /api/results, /api/ping
-      pipeline/
-        upload.py            # Load & validate video
-        pose_detection.py    # MediaPipe + OpenCV wrapper
-        analysis.py          # Heuristics and metrics
-        overlay.py           # Annotated overlay renderer (optional)
-      models/
-        schema.py            # Pydantic models
-      utils/
-        file_utils.py        # File validation & cleanup
-        analysis_storage.py  # Analysis status tracking & storage
-    static/
-      uploads/
-      outputs/
-  README.md
-  LICENSE
-  spec.md
-```
-
 ## API Contract
 
 ### POST /api/analyze
@@ -109,7 +61,7 @@ crux-vision/
         "stability_score": number | null
       } | null,
       "feedback": ["string", ...] | null,
-      "video_url": "/static/outputs/output_<id>.mp4" | null,
+      "video_url": "/static/overlays/overlay_<filename>_<id>.mp4" | null,
       "error_message": string | null
     }
     ```
@@ -281,11 +233,13 @@ POST /api/analyze
 
 ## M5d — Processing UI and video display
 
--   **Files:** `frontend/src/components/VideoPlayer.tsx`, `frontend/src/pages/ResultsPage.tsx`, `frontend/src/components/ProcessingSpinner.tsx`
--   **Acceptance:** Spinner during processing, overlay video player with play/pause/seek controls, responsive layout, error state display
+-   **Files:** `frontend/src/components/VideoPlayer.tsx`, `frontend/src/components/ProcessingSpinner.tsx`, `frontend/src/App.tsx` (single-page flow)
+-   **Acceptance:** Spinner during processing, overlay video player with play/pause/seek controls, responsive layout, error state display, basic analysis info display
 -   **Test:** End-to-end flow: upload → processing spinner → view overlay video, verify video controls work
 -   **Dependencies:** M5c API integration, backend overlay video generation from M4
--   **Video Rotation:** Handle video orientation in frontend using CSS transforms or canvas-based rotation for user control and optimal performance
+-   **Design:** Single-page flow (no routing) - upload, processing, and results all on one page
+-   **Results Display:** Basic analysis information below video player (analysis ID, completion status, minimal metrics)
+-   **Actions:** "Upload New Video" button only for now
 
 ### M6 — Heuristic analysis & feedback
 
@@ -385,10 +339,10 @@ bun run dev
 
 1. ✅ Select 30-60s demo video via file input; server returns 202 with id
 2. ✅ After processing, `GET /api/results/:id` returns `status: complete`, `metrics`, and `feedback`
-3. M5a: Frontend project boots successfully with Tailwind styling
-4. M5b: File upload component validates files and shows progress
-5. M5c: API integration uploads video and polls for completion
-6. M5d: End-to-end web UI flow: upload → processing → view overlay video
+3. ✅ M5a: Frontend project boots successfully with Tailwind styling
+4. ✅ M5b: File upload component validates files and shows progress
+5. ✅ M5c: API integration uploads video and polls for completion
+6. M5d: End-to-end web UI flow: upload → processing → view overlay video (single-page flow)
 7. Visual validation of pose detection accuracy via skeleton overlay (M4)
 8. Heuristic analysis matches visual observations (M6)
 
@@ -401,11 +355,33 @@ bun run dev
 
 ## Future Roadmap (post-MVP)
 
+### Analysis Page & Results Display
+
+-   **Dedicated Analysis Page**: Separate route/page for viewing analysis results with enhanced layout and navigation
+-   **Enhanced Results Display**: Detailed metrics visualization, progress charts, pose confidence scores
+-   **Analysis History**: View previous analyses, compare results over time
+-   **Export Functionality**: Download analysis reports, share results via URL
+-   **Advanced Video Controls**: Frame-by-frame navigation, slow-motion playback, pose overlay toggle
+
+### Actions After Analysis
+
+-   **Save Analysis**: Bookmark favorite analyses for future reference
+-   **Share Results**: Generate shareable links to analysis results
+-   **Compare Analyses**: Side-by-side comparison of multiple attempts
+-   **Generate Drills**: AI-suggested training exercises based on analysis results
+-   **Export Data**: Download pose data, metrics, and feedback as JSON/CSV
+-   **Create Training Plan**: Generate personalized training recommendations
+
+### Enhanced Visualization
+
 -   **Movement visualization**: Center of balance heat maps, joint angles visualization, velocity vectors with toggle on/off functionality
 -   **Video timestamped LLM feedback**: Per-movement coaching feedback synchronized with video timestamps
 -   **Side-by-side comparison mode**: Compare multiple attempts of the same route or movement
 -   **Custom skeleton visualization**: Replace default MediaPipe skeleton with custom icons styling and animated effects
 -   **Frontend video controls**: Rotation controls, zoom, playback speed adjustment, frame-by-frame navigation
+
+### Advanced Features
+
 -   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic
 -   staticPersistent storage and user accounts
 -   Session tracking and trend charts
