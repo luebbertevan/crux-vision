@@ -261,6 +261,7 @@ POST /api/analyze
 -   **Acceptance:** Simple web interface for video upload, progress tracking, results display
 -   **Test:** Upload video via web UI, see processing status, view results and overlay video
 -   **Dependencies:** Backend API from M1-M3, overlay video from M4
+-   **Video Rotation:** Handle video orientation in frontend using CSS transforms or canvas-based rotation for user control and optimal performance
 
 ### M6 — Heuristic analysis & feedback
 
@@ -377,6 +378,7 @@ bun run dev
 -   **Video timestamped LLM feedback**: Per-movement coaching feedback synchronized with video timestamps
 -   **Side-by-side comparison mode**: Compare multiple attempts of the same route or movement
 -   **Custom skeleton visualization**: Replace default MediaPipe skeleton with custom icons styling and animated effects
+-   **Frontend video controls**: Rotation controls, zoom, playback speed adjustment, frame-by-frame navigation
 -   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic
 -   staticPersistent storage and user accounts
 -   Session tracking and trend charts
