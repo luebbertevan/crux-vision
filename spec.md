@@ -25,7 +25,7 @@
 -   **Video processing:** OpenCV (opencv-python-headless)
 -   **Storage:** local filesystem (backend/static/uploads, backend/static/outputs)
 -   **Video formats:** MP4, MOV, AVI (common formats)
--   **File size limit:** 50MB max upload
+-   **File size limit:** 100MB max upload
 -   **Processing:** Async background tasks (FastAPI BackgroundTasks)
 
 ## Project Structure
@@ -267,7 +267,7 @@ POST /api/analyze
 ## M5b — File upload component
 
 -   **Files:** `frontend/src/components/FileUpload.tsx`, `frontend/src/components/Header.tsx`
--   **Acceptance:** Drag-and-drop file upload interface, file validation (size ≤50MB, formats: MP4/MOV/AVI), upload progress indicator, error handling for invalid files
+-   **Acceptance:** File upload interface with file picker, file validation (size ≤100MB, formats: MP4/MOV/AVI), upload progress indicator, error handling for invalid files
 -   **Test:** Upload valid/invalid files, see validation errors, verify file size and format restrictions
 -   **Dependencies:** M5a frontend setup
 
@@ -396,7 +396,7 @@ bun run dev
 
 -   **Pose errors due to angle/lighting:** provide clear demo videos and UX hints (camera distance, frontal angle)
 -   **Long processing times:** limit duration to 60s, process every frame, safety limit of 6000 frames (supports 60s at 60 FPS)
--   **Large uploads:** reject >50MB and show guidance
+-   **Large uploads:** reject >100MB and show guidance
 -   **Overfitting heuristics:** start conservative; surface raw metrics alongside feedback
 
 ## Future Roadmap (post-MVP)
