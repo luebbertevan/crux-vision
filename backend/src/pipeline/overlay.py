@@ -723,7 +723,7 @@ def setup_video_writer(analysis_id: str, video_path: str) -> Tuple[cv2.VideoWrit
     # Setup output video path with original filename
     original_filename = Path(video_path).stem  # Get filename without extension
     analysis_prefix = analysis_id[:8]  # First 8 characters of analysis ID
-    output_path = f"backend/static/outputs/overlay_{original_filename}_{analysis_prefix}.mp4"
+    output_path = f"backend/static/overlays/overlay_{original_filename}_{analysis_prefix}.mp4"
     
     # Create video writer with same properties as original (adjusted for rotation)
     fourcc = cv2.VideoWriter_fourcc(*'H264')

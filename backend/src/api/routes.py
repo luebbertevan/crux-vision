@@ -110,7 +110,7 @@ async def get_results(analysis_id: str):
             # Extract filename from full path for URL
             from pathlib import Path
             filename = Path(overlay_file).name
-            video_url = f"/static/outputs/{filename}"
+            video_url = f"/static/overlays/{filename}"
     
     # Return result
     return Result(
