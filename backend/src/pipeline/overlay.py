@@ -372,7 +372,16 @@ def find_original_video(analysis_id: str) -> str:
     Raises:
         FileNotFoundError: If no video file is found
     """
-    # Try to find video file by analysis ID
+    # Try to find video file by analysis ID (new format: originalname_analysisid.ext)
+    truncated_id = analysis_id[:8]
+    for ext in ['.mov', '.MOV', '.mp4', '.avi']:
+        # Look for files matching pattern: *_analysisid.ext
+        upload_dir = Path("backend/static/uploads")
+        for video_file in upload_dir.glob(f"*_{truncated_id}{ext}"):
+            logger.info(f"Found video file: {video_file}")
+            return str(video_file)
+    
+    # Fallback: try old format (analysis_id.ext)
     for ext in ['.mov', '.MOV', '.mp4', '.avi']:
         potential_path = f"backend/static/uploads/{analysis_id}{ext}"
         if Path(potential_path).exists():
@@ -400,9 +409,10 @@ def setup_video_writer(analysis_id: str, video_path: str) -> Tuple[cv2.VideoWrit
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     cap.release()
     
-    # Setup output video path with truncated analysis ID
+    # Setup output video path with original filename and truncated analysis ID
+    original_filename = Path(video_path).stem  # Get filename without extension
     truncated_id = analysis_id[:8]  # Use first 8 characters
-    output_path = OVERLAY_DIR / f"overlay_{truncated_id}.mp4"
+    output_path = OVERLAY_DIR / f"overlay_{original_filename}_{truncated_id}.mp4"
     
     # Create video writer with same properties as original
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
