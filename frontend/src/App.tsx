@@ -38,12 +38,15 @@ function App() {
 					</p>
 				</div>
 
-				<div className="flex justify-center">
-					<FileUpload
-						onFileSelect={handleFileSelect}
-						isUploading={isUploading}
-					/>
-				</div>
+				{/* Only show file upload when not displaying results */}
+				{data.state !== AnalysisState.COMPLETE && (
+					<div className="flex justify-center">
+						<FileUpload
+							onFileSelect={handleFileSelect}
+							isUploading={isUploading}
+						/>
+					</div>
+				)}
 
 				{isUploading && (
 					<div className="mt-8">

@@ -23,7 +23,7 @@
 -   **Backend:** Python 3.9+ + FastAPI (Note: Using Python 3.9.6 due to system availability)
 -   **Pose estimation:** MediaPipe (Python)
 -   **Video processing:** OpenCV (opencv-python-headless)
--   **Storage:** local filesystem (backend/static/uploads, backend/static/outputs)
+-   **Storage:** local filesystem (backend/static/originals, backend/static/overlays)
 -   **Video formats:** MP4, MOV, AVI (common formats)
 -   **File size limit:** 100MB max upload
 -   **Processing:** Async background tasks (FastAPI BackgroundTasks)
@@ -166,7 +166,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 ## ✅ M4b — Full video generation
 
 -   **Files:** `backend/src/pipeline/overlay.py` (video generation), `backend/src/pipeline/pose_detection.py` (integration)
--   **Acceptance:** Generate complete overlay video with smooth skeleton overlay, save to `static/outputs/`
+-   **Acceptance:** Generate complete overlay video with smooth skeleton overlay, save to `static/overlays/`
 -   **Test:** Full end-to-end video generation with continuous overlay (no flickering), API integration works
 -   **Dependencies:** M4a overlay rendering, video processing pipeline, OpenCV video writing
 -   **Scope:** Handle full video processing, frame synchronization, and API integration using custom skeleton rendering
@@ -205,7 +205,21 @@ POST /api/analyze
 -   **Error Handling:** Missing pose data → skip overlay for that frame, corrupted frames → log warning and continue
 -   **Code Reuse:** Leverages existing M4a functions (`load_pose_data`, `draw_skeleton_overlay`, `load_video_frame`)
 
-**Output:** `backend/static/outputs/overlay_{analysis_id}.mp4` with skeleton overlay matching original video properties
+**Video Processing Pipeline:**
+
+1. **Rotation Detection:** `get_video_rotation()` uses `ffprobe` to extract rotation metadata from original video
+2. **Dimension Setup:** `setup_video_writer()` swaps width/height for rotated videos (1920x1080 → 1080x1920)
+3. **Frame Processing:** `process_video_frames()` reads frames, applies pose overlay, then rotates frames to correct orientation
+4. **Output Generation:** Creates H264-encoded MP4 with correct dimensions for video player compatibility
+
+**Orientation Handling:**
+
+-   **Input:** Portrait videos with `-90°` rotation metadata (1920x1080 dimensions)
+-   **Processing:** MediaPipe detects poses on rotated frames, skeleton overlay applied
+-   **Output:** Videos generated in correct portrait orientation (1080x1920) without rotation metadata
+-   **Result:** Video players display videos correctly without needing to interpret rotation metadata
+
+**Output:** `backend/static/overlays/overlay_{filename}_{analysis_id}.mp4` with skeleton overlay and correct orientation
 
 ### M5 — Minimal frontend
 
@@ -231,7 +245,7 @@ POST /api/analyze
 -   **Dependencies:** M5b upload component, backend CORS configuration
 -   **Backend Changes:** Add CORS middleware to FastAPI for frontend requests
 
-## M5d — Processing UI and video display
+## ✅ M5d — Processing UI and video display
 
 -   **Files:** `frontend/src/components/VideoPlayer.tsx`, `frontend/src/components/ProcessingSpinner.tsx`, `frontend/src/App.tsx` (single-page flow)
 -   **Acceptance:** Spinner during processing, overlay video player with play/pause/seek controls, responsive layout, error state display, basic analysis info display
@@ -240,6 +254,7 @@ POST /api/analyze
 -   **Design:** Single-page flow (no routing) - upload, processing, and results all on one page
 -   **Results Display:** Basic analysis information below video player (analysis ID, completion status, minimal metrics)
 -   **Actions:** "Upload New Video" button only for now
+-   **Video Orientation Fix:** Portrait videos now display correctly (1080x1920) without rotation metadata
 
 ### M6 — Heuristic analysis & feedback
 
