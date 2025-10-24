@@ -18,6 +18,7 @@ import sys
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 
 from backend.src.utils.file_utils import OUTPUT_DIR, OVERLAY_DIR
+from backend.src.pipeline.motion_tracer import MotionTracer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -25,7 +26,15 @@ logger = logging.getLogger(__name__)
 
 # Confidence-based rendering configuration
 CONFIDENCE_THRESHOLD = 0.5  # Threshold for rendering landmarks and connections
-DEBUG_MODE = True  # Debug mode shows all landmarks with confidence colors but filters connections
+DEBUG_MODE = False  # Debug mode shows all landmarks with confidence colors but filters connections
+
+# Motion tracer configuration
+TRACER_ENABLED = True
+HIP_TRACER_COLOR = (0, 0, 255)  # Red in BGR
+SHOULDER_TRACER_COLOR = (255, 0, 255)  # Purple in BGR
+TRACER_DOT_RADIUS = 10
+TRACER_PERSISTENCE_SECONDS = 2.0  # Frame-rate aware
+TRACER_DOT_SPACING = 1  # Draw every N frames
 
 # MediaPipe pose connections (climbing-focused, simplified)
 POSE_CONNECTIONS = [
@@ -238,7 +247,171 @@ def draw_skeleton_landmarks(image: cv2.Mat, landmarks_json: List[Dict], style: D
     return image
 
 
-def draw_skeleton_overlay(image: cv2.Mat, landmarks_json: List[Dict], style: Dict[str, Any] = None) -> cv2.Mat:
+def calculate_shoulder_midpoint(landmarks_json: List[Dict], image_shape: Tuple[int, int, int]) -> Optional[Tuple[int, int]]:
+    """
+    Calculate shoulder midpoint anchor from MediaPipe landmarks.
+    
+    Args:
+        landmarks_json: List of landmark data from JSON
+        image_shape: Image shape (height, width, channels)
+        
+    Returns:
+        (x, y) pixel coordinates of shoulder midpoint, or None if not available
+    """
+    try:
+        # MediaPipe pose landmarks: left_shoulder (11), right_shoulder (12)
+        left_shoulder_idx = 11
+        right_shoulder_idx = 12
+        
+        if len(landmarks_json) <= max(left_shoulder_idx, right_shoulder_idx):
+            return None
+        
+        left_shoulder = landmarks_json[left_shoulder_idx]
+        right_shoulder = landmarks_json[right_shoulder_idx]
+        
+        left_confidence = left_shoulder.get("visibility", 0.0)
+        right_confidence = right_shoulder.get("visibility", 0.0)
+        
+        if left_confidence < 0.3 or right_confidence < 0.3:
+            return None
+        
+        # Calculate midpoint in normalized coordinates
+        mid_x = (left_shoulder["x"] + right_shoulder["x"]) / 2
+        mid_y = (left_shoulder["y"] + right_shoulder["y"]) / 2
+        
+        # Convert to pixel coordinates
+        pixel_x = int(mid_x * image_shape[1])
+        pixel_y = int(mid_y * image_shape[0])
+        
+        # Check if coordinates are within image bounds
+        if 0 <= pixel_x < image_shape[1] and 0 <= pixel_y < image_shape[0]:
+            return (pixel_x, pixel_y)
+        else:
+            return None
+            
+    except Exception as e:
+        logger.warning(f"Error calculating shoulder midpoint: {e}")
+        return None
+
+
+def calculate_hip_midpoint(landmarks_json: List[Dict], image_shape: Tuple[int, int, int]) -> Optional[Tuple[int, int]]:
+    """
+    Calculate hip midpoint anchor from MediaPipe landmarks.
+    
+    Args:
+        landmarks_json: List of landmark data from JSON
+        image_shape: Image shape (height, width, channels)
+        
+    Returns:
+        (x, y) pixel coordinates of hip midpoint, or None if not available
+    """
+    try:
+        # MediaPipe pose landmarks: left_hip (23), right_hip (24)
+        left_hip_idx = 23
+        right_hip_idx = 24
+        
+        if len(landmarks_json) <= max(left_hip_idx, right_hip_idx):
+            return None
+        
+        left_hip = landmarks_json[left_hip_idx]
+        right_hip = landmarks_json[right_hip_idx]
+        
+        left_confidence = left_hip.get("visibility", 0.0)
+        right_confidence = right_hip.get("visibility", 0.0)
+        
+        if left_confidence < 0.3 or right_confidence < 0.3:
+            return None
+        
+        # Calculate midpoint in normalized coordinates
+        mid_x = (left_hip["x"] + right_hip["x"]) / 2
+        mid_y = (left_hip["y"] + right_hip["y"]) / 2
+        
+        # Convert to pixel coordinates
+        pixel_x = int(mid_x * image_shape[1])
+        pixel_y = int(mid_y * image_shape[0])
+        
+        # Check if coordinates are within image bounds
+        if 0 <= pixel_x < image_shape[1] and 0 <= pixel_y < image_shape[0]:
+            return (pixel_x, pixel_y)
+        else:
+            return None
+            
+    except Exception as e:
+        logger.warning(f"Error calculating hip midpoint: {e}")
+        return None
+
+
+def draw_motion_tracers(image: cv2.Mat, landmarks_json: List[Dict], hip_tracer_positions: List[Tuple[int, int]], shoulder_tracer_positions: List[Tuple[int, int]], current_frame_index: int, fps: float) -> cv2.Mat:
+    """
+    Draw red dot at hip midpoint and purple dot at shoulder midpoint with tracer trails.
+    
+    Args:
+        image: OpenCV image to draw on
+        landmarks_json: List of landmark data from JSON
+        hip_tracer_positions: List of (x, y, frame_index) tuples from last 2 seconds for hip
+        shoulder_tracer_positions: List of (x, y, frame_index) tuples from last 2 seconds for shoulder
+        current_frame_index: Current frame number
+        fps: Video frame rate
+        
+    Returns:
+        Image with hip and shoulder midpoint dots and tracer trails drawn
+    """
+    if not TRACER_ENABLED or not landmarks_json:
+        return image
+    
+    try:
+        # Draw hip tracer trail
+        persistence_frames = int(fps * TRACER_PERSISTENCE_SECONDS)
+        
+        # Draw hip tracer trail
+        for x, y, frame_idx in hip_tracer_positions:
+            frame_age = current_frame_index - frame_idx
+            if frame_age < persistence_frames:
+                # Calculate fade opacity (1.0 = solid, 0.0 = transparent)
+                opacity = 1.0 - (frame_age / persistence_frames)
+                opacity = max(0.0, min(1.0, opacity))  # Clamp between 0 and 1
+                
+                # Draw faded dot
+                if opacity > 0.1:  # Only draw if visible enough
+                    # Create temporary image for alpha blending
+                    temp_image = image.copy()
+                    cv2.circle(temp_image, (x, y), TRACER_DOT_RADIUS, HIP_TRACER_COLOR, -1)
+                    image = cv2.addWeighted(image, 1.0 - opacity, temp_image, opacity, 0)
+        
+        # Draw shoulder tracer trail
+        for x, y, frame_idx in shoulder_tracer_positions:
+            frame_age = current_frame_index - frame_idx
+            if frame_age < persistence_frames:
+                # Calculate fade opacity (1.0 = solid, 0.0 = transparent)
+                opacity = 1.0 - (frame_age / persistence_frames)
+                opacity = max(0.0, min(1.0, opacity))  # Clamp between 0 and 1
+                
+                # Draw faded dot
+                if opacity > 0.1:  # Only draw if visible enough
+                    # Create temporary image for alpha blending
+                    temp_image = image.copy()
+                    cv2.circle(temp_image, (x, y), TRACER_DOT_RADIUS, SHOULDER_TRACER_COLOR, -1)
+                    image = cv2.addWeighted(image, 1.0 - opacity, temp_image, opacity, 0)
+        
+        # Calculate and draw current hip position
+        hip_midpoint = calculate_hip_midpoint(landmarks_json, image.shape)
+        if hip_midpoint:
+            pixel_x, pixel_y = hip_midpoint
+            cv2.circle(image, (pixel_x, pixel_y), TRACER_DOT_RADIUS, HIP_TRACER_COLOR, -1)
+        
+        # Calculate and draw current shoulder position
+        shoulder_midpoint = calculate_shoulder_midpoint(landmarks_json, image.shape)
+        if shoulder_midpoint:
+            pixel_x, pixel_y = shoulder_midpoint
+            cv2.circle(image, (pixel_x, pixel_y), TRACER_DOT_RADIUS, SHOULDER_TRACER_COLOR, -1)
+        
+    except Exception as e:
+        logger.warning(f"Error drawing motion tracers: {e}")
+    
+    return image
+
+
+def draw_skeleton_overlay(image: cv2.Mat, landmarks_json: List[Dict], style: Dict[str, Any] = None, hip_tracer_positions: List[Tuple[int, int]] = None, shoulder_tracer_positions: List[Tuple[int, int]] = None, current_frame_index: int = 0, fps: float = 30.0) -> cv2.Mat:
     """
     Draw complete skeleton overlay on an image.
     
@@ -267,6 +440,64 @@ def draw_skeleton_overlay(image: cv2.Mat, landmarks_json: List[Dict], style: Dic
     
     # Draw landmarks
     annotated_image = draw_skeleton_landmarks(annotated_image, landmarks_json, style)
+    
+    # Draw hip and shoulder midpoint dots and tracers
+    annotated_image = draw_motion_tracers(annotated_image, landmarks_json, hip_tracer_positions or [], shoulder_tracer_positions or [], current_frame_index, fps)
+    
+    return annotated_image
+
+
+def draw_motion_tracer(image: cv2.Mat, tracer: MotionTracer, current_frame_index: int) -> cv2.Mat:
+    """
+    Draw motion tracer trail on an image.
+    
+    Args:
+        image: OpenCV image to draw on
+        tracer: MotionTracer instance with position history
+        current_frame_index: Current frame index for fade calculations
+        
+    Returns:
+        Image with motion tracer trail drawn
+    """
+    if not TRACER_ENABLED or not tracer:
+        return image
+    
+    # Create a copy to avoid modifying the original
+    annotated_image = image.copy()
+    
+    try:
+        # Get active trail positions
+        active_trail = tracer.get_active_trail(current_frame_index)
+        
+        if not active_trail:
+            logger.info(f"No active trail for frame {current_frame_index}")
+            return annotated_image
+        
+        # Draw trail dots (older to newer for proper layering)
+        for x, y, frame_index in active_trail:
+            frame_age = current_frame_index - frame_index
+            
+            # Calculate fade opacity
+            opacity = tracer.get_fade_opacity(frame_age)
+            
+            if opacity > 0.0:
+                # Create a temporary image for the dot
+                dot_image = annotated_image.copy()
+                cv2.circle(dot_image, (int(x), int(y)), TRACER_DOT_RADIUS, TRACER_COLOR, -1)
+                
+                # Blend with main image using alpha blending
+                annotated_image = cv2.addWeighted(annotated_image, 1.0 - opacity, dot_image, opacity, 0)
+        
+        # Draw current anchor position as solid red circle
+        current_pos = tracer.get_current_anchor_position()
+        if current_pos:
+            x, y = current_pos
+            cv2.circle(annotated_image, (int(x), int(y)), TRACER_DOT_RADIUS, TRACER_COLOR, -1)
+        
+        logger.info(f"Motion tracer drawn: {len(active_trail)} trail dots, current position: {current_pos}")
+        
+    except Exception as e:
+        logger.warning(f"Error drawing motion tracer: {e}")
     
     return annotated_image
 
@@ -590,13 +821,18 @@ def process_video_frames(video_path: str, pose_data: List[Dict], video_writer: c
     """
     cap = cv2.VideoCapture(video_path)
 
-    # Get original video dimensions
+    # Get original video dimensions and fps
     original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
 
     frame_index = 0
     frames_processed = 0
     frames_with_overlay = 0
+    
+    # Initialize tracer position storage
+    hip_tracer_positions = []  # List of (x, y, frame_index) tuples for hip
+    shoulder_tracer_positions = []  # List of (x, y, frame_index) tuples for shoulder
 
     logger.info(f"Starting video frame processing for {len(pose_data)} pose frames")
     logger.info(f"Original video dimensions: {original_width}x{original_height}, rotation: {rotation}°")
@@ -613,8 +849,32 @@ def process_video_frames(video_path: str, pose_data: List[Dict], video_writer: c
             # Draw skeleton overlay
             landmarks = frame_pose_data.get("landmarks", [])
             if landmarks:
-                frame = draw_skeleton_overlay(frame, landmarks)
+                # Calculate hip midpoint for tracer
+                hip_midpoint = calculate_hip_midpoint(landmarks, frame.shape)
+                if hip_midpoint:
+                    x, y = hip_midpoint
+                    hip_tracer_positions.append((x, y, frame_index))
+                
+                # Calculate shoulder midpoint for tracer
+                shoulder_midpoint = calculate_shoulder_midpoint(landmarks, frame.shape)
+                if shoulder_midpoint:
+                    x, y = shoulder_midpoint
+                    shoulder_tracer_positions.append((x, y, frame_index))
+                
+                # Remove old positions (keep only last 2 seconds)
+                persistence_frames = int(fps * TRACER_PERSISTENCE_SECONDS)
+                hip_tracer_positions = [
+                    pos for pos in hip_tracer_positions 
+                    if frame_index - pos[2] < persistence_frames
+                ]
+                shoulder_tracer_positions = [
+                    pos for pos in shoulder_tracer_positions 
+                    if frame_index - pos[2] < persistence_frames
+                ]
+                
+                frame = draw_skeleton_overlay(frame, landmarks, None, hip_tracer_positions, shoulder_tracer_positions, frame_index, fps)
                 frames_with_overlay += 1
+                
         # If no pose data, just use original frame
 
         # Rotate frame to compensate for original rotation
