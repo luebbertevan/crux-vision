@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 # Confidence-based rendering configuration
 CONFIDENCE_THRESHOLD = 0.5  # Threshold for rendering landmarks and connections
-DEBUG_MODE = True  # Debug mode shows all landmarks with confidence colors but filters connections
+DEBUG_MODE = False  # Debug mode shows all landmarks with confidence colors but filters connections
 
 # MediaPipe pose connections (climbing-focused, simplified)
 POSE_CONNECTIONS = [

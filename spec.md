@@ -256,7 +256,7 @@ POST /api/analyze
 -   **Actions:** "Upload New Video" button only for now
 -   **Video Orientation Fix:** Portrait videos now display correctly (1080x1920) without rotation metadata
 
-### M6 — Confidence-based pose rendering
+### ✅ M6 — Confidence-based pose rendering
 
 -   **Files:** `backend/src/pipeline/overlay.py` (modify skeleton drawing functions)
 -   **Acceptance:**
@@ -280,11 +280,22 @@ POST /api/analyze
 ### M7 — Motion tracer visualization
 
 -   **Files:** `backend/src/pipeline/overlay.py` (add tracer functionality), `backend/src/pipeline/motion_tracer.py` (new file)
--   **Acceptance:** Fading dots show path of selected joints (starting with center of mass), configurable persistence time, dots fade out over time
--   **Test:** Upload climbing video, verify center of mass tracer creates smooth fading path on overlay
--   **Dependencies:** Pose data from M3, overlay generation from M4
--   **Implementation:** Track joint positions over time, draw fading dots with configurable fade duration
--   **Scope:** Start with center of mass only, user-selectable joints deferred to future roadmap
+-   **Acceptance:**
+    -   Red dot trail follows hip midpoint anchor with 2-second persistence
+    -   Trail fades smoothly over time (linear fade from solid to transparent)
+    -   Frame-rate-aware persistence (2 seconds regardless of video fps)
+    -   Solid red circle marks current anchor position
+    -   Trail drawn on top of skeleton overlay
+-   **Test:** Upload climbing video, verify red trail appears behind climber's hips and fades over 2 seconds
+-   **Dependencies:** Pose data from M3, overlay generation from M4, confidence filtering from M6
+-   **Implementation:**
+    -   Create `MotionTracer` class to track hip midpoint positions over time
+    -   Use MediaPipe landmarks: left_hip (23) and right_hip (24) for anchor calculation
+    -   Store (x, y, frame_index) tuples with frame-rate-aware persistence
+    -   Draw 5-pixel red dots with alpha blending for fade effect
+    -   Skip frames where hip confidence < 0.5 to prevent jumpy trails
+    -   Render trail AFTER skeleton (on top) for visibility
+-   **Scope:** Start with hip midpoint anchor only, user-selectable joints deferred to future roadmap
 
 ### M8 — Heuristic analysis & feedback
 
