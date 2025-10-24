@@ -18,6 +18,7 @@ import sys
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 
 from backend.src.utils.file_utils import OUTPUT_DIR, OVERLAY_DIR
+from backend.src.pipeline.motion_tracer import MotionTracer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,6 +27,13 @@ logger = logging.getLogger(__name__)
 # Confidence-based rendering configuration
 CONFIDENCE_THRESHOLD = 0.5  # Threshold for rendering landmarks and connections
 DEBUG_MODE = False  # Debug mode shows all landmarks with confidence colors but filters connections
+
+# Motion tracer configuration
+TRACER_ENABLED = True
+TRACER_COLOR = (0, 0, 255)  # Red in BGR
+TRACER_DOT_RADIUS = 5
+TRACER_PERSISTENCE_SECONDS = 2.0  # Frame-rate aware
+TRACER_DOT_SPACING = 1  # Draw every N frames
 
 # MediaPipe pose connections (climbing-focused, simplified)
 POSE_CONNECTIONS = [
@@ -238,6 +246,56 @@ def draw_skeleton_landmarks(image: cv2.Mat, landmarks_json: List[Dict], style: D
     return image
 
 
+def draw_hip_midpoint_dot(image: cv2.Mat, landmarks_json: List[Dict]) -> cv2.Mat:
+    """
+    Draw a red dot at the hip midpoint.
+    
+    Args:
+        image: OpenCV image to draw on
+        landmarks_json: List of landmark data from JSON
+        
+    Returns:
+        Image with hip midpoint dot drawn
+    """
+    if not TRACER_ENABLED or not landmarks_json:
+        return image
+    
+    try:
+        # MediaPipe pose landmarks: left_hip (23), right_hip (24)
+        left_hip_idx = 23
+        right_hip_idx = 24
+        
+        if len(landmarks_json) <= max(left_hip_idx, right_hip_idx):
+            return image
+        
+        left_hip = landmarks_json[left_hip_idx]
+        right_hip = landmarks_json[right_hip_idx]
+        
+        # Check confidence of both hips
+        left_confidence = left_hip.get("visibility", 0.0)
+        right_confidence = right_hip.get("visibility", 0.0)
+        
+        if left_confidence < 0.3 or right_confidence < 0.3:
+            return image
+        
+        # Calculate midpoint in normalized coordinates
+        mid_x = (left_hip["x"] + right_hip["x"]) / 2
+        mid_y = (left_hip["y"] + right_hip["y"]) / 2
+        
+        # Convert to pixel coordinates
+        pixel_x = int(mid_x * image.shape[1])
+        pixel_y = int(mid_y * image.shape[0])
+        
+        # Check if coordinates are within image bounds
+        if 0 <= pixel_x < image.shape[1] and 0 <= pixel_y < image.shape[0]:
+            cv2.circle(image, (pixel_x, pixel_y), TRACER_DOT_RADIUS, TRACER_COLOR, -1)
+        
+    except Exception as e:
+        logger.warning(f"Error drawing hip midpoint dot: {e}")
+    
+    return image
+
+
 def draw_skeleton_overlay(image: cv2.Mat, landmarks_json: List[Dict], style: Dict[str, Any] = None) -> cv2.Mat:
     """
     Draw complete skeleton overlay on an image.
@@ -267,6 +325,64 @@ def draw_skeleton_overlay(image: cv2.Mat, landmarks_json: List[Dict], style: Dic
     
     # Draw landmarks
     annotated_image = draw_skeleton_landmarks(annotated_image, landmarks_json, style)
+    
+    # Draw hip midpoint dot
+    annotated_image = draw_hip_midpoint_dot(annotated_image, landmarks_json)
+    
+    return annotated_image
+
+
+def draw_motion_tracer(image: cv2.Mat, tracer: MotionTracer, current_frame_index: int) -> cv2.Mat:
+    """
+    Draw motion tracer trail on an image.
+    
+    Args:
+        image: OpenCV image to draw on
+        tracer: MotionTracer instance with position history
+        current_frame_index: Current frame index for fade calculations
+        
+    Returns:
+        Image with motion tracer trail drawn
+    """
+    if not TRACER_ENABLED or not tracer:
+        return image
+    
+    # Create a copy to avoid modifying the original
+    annotated_image = image.copy()
+    
+    try:
+        # Get active trail positions
+        active_trail = tracer.get_active_trail(current_frame_index)
+        
+        if not active_trail:
+            logger.info(f"No active trail for frame {current_frame_index}")
+            return annotated_image
+        
+        # Draw trail dots (older to newer for proper layering)
+        for x, y, frame_index in active_trail:
+            frame_age = current_frame_index - frame_index
+            
+            # Calculate fade opacity
+            opacity = tracer.get_fade_opacity(frame_age)
+            
+            if opacity > 0.0:
+                # Create a temporary image for the dot
+                dot_image = annotated_image.copy()
+                cv2.circle(dot_image, (int(x), int(y)), TRACER_DOT_RADIUS, TRACER_COLOR, -1)
+                
+                # Blend with main image using alpha blending
+                annotated_image = cv2.addWeighted(annotated_image, 1.0 - opacity, dot_image, opacity, 0)
+        
+        # Draw current anchor position as solid red circle
+        current_pos = tracer.get_current_anchor_position()
+        if current_pos:
+            x, y = current_pos
+            cv2.circle(annotated_image, (int(x), int(y)), TRACER_DOT_RADIUS, TRACER_COLOR, -1)
+        
+        logger.info(f"Motion tracer drawn: {len(active_trail)} trail dots, current position: {current_pos}")
+        
+    except Exception as e:
+        logger.warning(f"Error drawing motion tracer: {e}")
     
     return annotated_image
 
@@ -590,9 +706,10 @@ def process_video_frames(video_path: str, pose_data: List[Dict], video_writer: c
     """
     cap = cv2.VideoCapture(video_path)
 
-    # Get original video dimensions
+    # Get original video dimensions and fps
     original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
 
     frame_index = 0
     frames_processed = 0
@@ -615,6 +732,7 @@ def process_video_frames(video_path: str, pose_data: List[Dict], video_writer: c
             if landmarks:
                 frame = draw_skeleton_overlay(frame, landmarks)
                 frames_with_overlay += 1
+                
         # If no pose data, just use original frame
 
         # Rotate frame to compensate for original rotation
