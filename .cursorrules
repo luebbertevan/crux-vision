@@ -1,5 +1,13 @@
 # Cursor AI Rules for CruxVision Project
 
+# Context Key : 🥸
+
+## Rule Compliance Protocol:
+
+-   **MANDATORY: Reread .cursorrules when switching between major tasks, before implementing complex solutions, or when you notice drift from the standard simple approach**
+-   **Before implementing any solution, confirm you're following the standard simple approach**
+-   **If you notice drift from these rules, immediately pause and reread .cursorrules**
+
 ## Coding Standards
 
 -   Follow clean code principles with descriptive variable and function names
@@ -22,6 +30,45 @@
 -   Each milestone should be testable on its own
 -   **Always update spec.md when changes are made to the design or milestone status**
 -   **CRITICAL: Always test that code compiles/runs before confirming changes - never deliver broken code**
+
+## 🚨 STANDARD SIMPLE APPROACH - CRITICAL DIRECTIVE 🚨
+
+**MANDATORY: Always pursue the standard, simple, straightforward approach first. Never overcomplicate solutions.**
+
+### Core Principles:
+
+-   **STANDARD TOOLS FIRST**: Use standard tools (ffprobe, curl, standard libraries) before building custom solutions
+-   **SIMPLEST SOLUTION WINS**: The simplest solution that works is always better than a complex one
+-   **QUESTION COMPLEXITY**: Before implementing any solution, ask "Is this the simplest standard approach?"
+
+### What NOT to Do:
+
+-   **DO NOT engage in premature optimization** - trying to be "smart" instead of simple
+-   **DO NOT fall into solution bias** - prioritizing "any working solution" over "best solution"
+-   **DO NOT allow complexity creep** - building elaborate systems when simple tools exist
+-   **DO NOT go rogue** - abandoning standard approaches for custom alternatives
+
+### Self-Monitoring Protocol:
+
+-   **If you begin to notice overcomplication occurring, you MUST:**
+    1. **PAUSE current implementation** - stop building the complex solution
+    2. **DIAGNOSE** what is happening and explain the cause to the user
+    3. **PIVOT BACK** to pursuing the best, standard, simple solution
+    4. **STOP completely and ASK FOR CLARIFICATION** if overcomplication is suspected or you're unsure of the standard approach
+
+### Missing Dependencies Protocol:
+
+-   **NEVER abandon the standard/simple approach due to missing dependencies**
+-   **ALWAYS install required tools first** before considering alternative approaches
+-   **Standard tools are preferred**
+-   **Installation is normal**: Don't treat missing tools as blockers - install them and continue with the standard approach
+
+### Examples of Standard Simple Approaches:
+
+-   Video metadata: Use `ffprobe` not custom heuristics
+-   HTTP requests: Use `curl` or standard HTTP libraries, not complex wrappers
+-   File operations: Use standard file tools, not custom file handling
+-   API calls: Use standard REST patterns, not complex abstraction layers
 
 ## File Organization
 
