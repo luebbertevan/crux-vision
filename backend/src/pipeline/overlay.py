@@ -23,6 +23,10 @@ from backend.src.utils.file_utils import OUTPUT_DIR, OVERLAY_DIR
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Confidence-based rendering configuration
+CONFIDENCE_THRESHOLD = 0.5  # Threshold for rendering landmarks and connections
+DEBUG_MODE = True  # Debug mode shows all landmarks with confidence colors but filters connections
+
 # MediaPipe pose connections (climbing-focused, simplified)
 POSE_CONNECTIONS = [
     # Simple head indicator (nose to shoulders)
@@ -127,15 +131,39 @@ def draw_skeleton_connections(image: cv2.Mat, landmarks_json: List[Dict], style:
     if style is None:
         style = {
             "connection_color": (255, 255, 255),  # White
-            "connection_thickness": 2
+            "connection_thickness": 5  # Increased thickness for better visibility
         }
     
+    # Track connection filtering statistics
+    total_connections = 0
+    filtered_connections = 0
+    
     for connection in POSE_CONNECTIONS:
-        point1 = get_landmark_coords(landmarks_json, connection[0], image.shape)
-        point2 = get_landmark_coords(landmarks_json, connection[1], image.shape)
+        total_connections += 1
         
-        if point1 and point2:
-            cv2.line(image, point1, point2, style["connection_color"], style["connection_thickness"])
+        # Check confidence of both endpoints
+        landmark1 = landmarks_json[connection[0]]
+        landmark2 = landmarks_json[connection[1]]
+        
+        confidence1 = landmark1.get("visibility", 0.0)
+        confidence2 = landmark2.get("visibility", 0.0)
+        
+        # Both endpoints must pass confidence threshold
+        both_pass_threshold = confidence1 >= CONFIDENCE_THRESHOLD and confidence2 >= CONFIDENCE_THRESHOLD
+        
+        if both_pass_threshold:
+            point1 = get_landmark_coords(landmarks_json, connection[0], image.shape)
+            point2 = get_landmark_coords(landmarks_json, connection[1], image.shape)
+            
+            if point1 and point2:
+                cv2.line(image, point1, point2, style["connection_color"], style["connection_thickness"])
+        else:
+            filtered_connections += 1
+    
+    # Log filtering statistics
+    if total_connections > 0:
+        filtered_percentage = (filtered_connections / total_connections) * 100
+        logger.info(f"Connection filtering: {filtered_connections}/{total_connections} ({filtered_percentage:.1f}%) filtered out")
     
     return image
 
@@ -163,28 +191,49 @@ def draw_skeleton_landmarks(image: cv2.Mat, landmarks_json: List[Dict], style: D
     # Face landmark indices to skip (except nose which is 0)
     face_landmarks_to_skip = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # All face landmarks except nose
     
+    # Track filtering statistics
+    total_landmarks = 0
+    filtered_landmarks = 0
+    
     for i, landmark in enumerate(landmarks_json):
         # Skip face landmarks except nose
         if i in face_landmarks_to_skip:
             continue
             
+        total_landmarks += 1
         coords = get_landmark_coords(landmarks_json, i, image.shape)
         if coords:
             x, y = coords
             
-            # Determine landmark color based on confidence if enabled
-            if style.get("confidence_based", False):
-                confidence = landmark.get("visibility", 0.0)
-                if confidence > 0.8:
-                    color = (0, 255, 0)  # Green - high confidence
-                elif confidence > 0.5:
-                    color = (255, 255, 0)  # Yellow - medium confidence
-                else:
-                    color = (255, 0, 0)  # Red - low confidence
-            else:
-                color = style["landmark_color"]
+            # Get confidence score
+            confidence = landmark.get("visibility", 0.0)
             
-            cv2.circle(image, (x, y), style["landmark_radius"], color, -1)
+            # Apply confidence filtering based on mode
+            should_draw = True
+            if not DEBUG_MODE:
+                # Regular mode: filter by confidence threshold
+                should_draw = confidence >= CONFIDENCE_THRESHOLD
+                if not should_draw:
+                    filtered_landmarks += 1
+            
+            if should_draw:
+                # Determine landmark color based on confidence if enabled
+                if style.get("confidence_based", False):
+                    if confidence > 0.8:
+                        color = (0, 255, 0)  # Green - high confidence
+                    elif confidence > 0.5:
+                        color = (255, 255, 0)  # Yellow - medium confidence
+                    else:
+                        color = (255, 0, 0)  # Red - low confidence
+                else:
+                    color = style["landmark_color"]
+                
+                cv2.circle(image, (x, y), style["landmark_radius"], color, -1)
+    
+    # Log filtering statistics
+    if total_landmarks > 0:
+        filtered_percentage = (filtered_landmarks / total_landmarks) * 100
+        logger.info(f"Landmark filtering: {filtered_landmarks}/{total_landmarks} ({filtered_percentage:.1f}%) filtered out")
     
     return image
 
@@ -204,7 +253,7 @@ def draw_skeleton_overlay(image: cv2.Mat, landmarks_json: List[Dict], style: Dic
     if style is None:
         style = {
             "connection_color": (255, 255, 255),  # White connections
-            "connection_thickness": 2,
+            "connection_thickness": 5,  # Increased thickness for better visibility
             "landmark_color": (0, 255, 0),  # Green landmarks
             "landmark_radius": 4,
             "confidence_based": True

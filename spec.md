@@ -256,14 +256,44 @@ POST /api/analyze
 -   **Actions:** "Upload New Video" button only for now
 -   **Video Orientation Fix:** Portrait videos now display correctly (1080x1920) without rotation metadata
 
-### M6 — Heuristic analysis & feedback
+### M6 — Confidence-based pose rendering
+
+-   **Files:** `backend/src/pipeline/overlay.py` (modify skeleton drawing functions)
+-   **Acceptance:**
+    -   Pose landmarks only rendered when confidence exceeds configurable threshold (default 0.5)
+    -   Connections only drawn between landmarks that both pass confidence filter (both modes)
+    -   Debug mode shows all landmarks with confidence-based colors but filters connections
+    -   Regular mode filters both landmarks and connections by confidence
+    -   Thicker connection lines (5 pixels) for better visibility
+-   **Test:** Upload videos with occluded/partial poses, verify low-confidence landmarks are not drawn on overlay
+-   **Dependencies:** Pose data from M3, overlay generation from M4
+-   **Implementation:**
+    -   Add `CONFIDENCE_THRESHOLD = 0.5` constant
+    -   Modify `draw_skeleton_landmarks()` to check `visibility` score before rendering
+    -   Modify `draw_skeleton_connections()` to check both endpoints before drawing
+    -   Add debug mode flag to show confidence colors without filtering
+    -   Increase connection thickness from 2 to 5 pixels
+    -   Use MediaPipe's `visibility` field (0-1) for confidence scoring
+-   **Scope:** Keep simple - no limb continuity logic or pose smoothing yet (deferred to future roadmap)
+-   **Debug Features:** Debug mode shows all landmarks with confidence-based coloring (green >0.8, yellow >0.5, red <0.5) but filters connections by confidence for visual analysis
+
+### M7 — Motion tracer visualization
+
+-   **Files:** `backend/src/pipeline/overlay.py` (add tracer functionality), `backend/src/pipeline/motion_tracer.py` (new file)
+-   **Acceptance:** Fading dots show path of selected joints (starting with center of mass), configurable persistence time, dots fade out over time
+-   **Test:** Upload climbing video, verify center of mass tracer creates smooth fading path on overlay
+-   **Dependencies:** Pose data from M3, overlay generation from M4
+-   **Implementation:** Track joint positions over time, draw fading dots with configurable fade duration
+-   **Scope:** Start with center of mass only, user-selectable joints deferred to future roadmap
+
+### M8 — Heuristic analysis & feedback
 
 -   **Files:** `backend/src/pipeline/analysis.py`
 -   **Acceptance:** Compute average joint angles and a stability score, produce 2–5 human-readable feedback items
 -   **Test:** `GET /api/results/:id` shows metrics and feedback, frontend displays analysis
 -   **Dependencies:** Pose data from M3, visual validation from M4, frontend from M5
 
-### M7 — LLM feedback and coaching
+### M9 — LLM feedback and coaching
 
 -   **Files:** `backend/src/pipeline/llm_analysis.py`, `backend/src/api/routes.py` (LLM endpoint)
 -   **Acceptance:** Generate contextual coaching feedback using LLM based on heuristic analysis results
@@ -394,6 +424,15 @@ bun run dev
 -   **Side-by-side comparison mode**: Compare multiple attempts of the same route or movement
 -   **Custom skeleton visualization**: Replace default MediaPipe skeleton with custom icons styling and animated effects
 -   **Frontend video controls**: Rotation controls, zoom, playback speed adjustment, frame-by-frame navigation
+
+### Advanced Pose Processing
+
+-   **Limb continuity logic**: Implement dependency chains for rendering (e.g., if upper arm is low confidence, don't render lower arm/hand)
+-   **Per-limb confidence thresholds**: Different confidence requirements for different body parts based on occlusion patterns
+-   **Pose smoothing**: Filter pose data to prevent limb teleporting and jumping artifacts
+-   **Hysteresis buffer**: Add small buffer to confidence thresholds to prevent flickering when landmarks oscillate around threshold
+-   **User-selectable motion tracers**: Allow users to choose which joints to track (feet, hands, hips, etc.)
+-   **Velocity-based tracer customization**: Adjust tracer appearance based on joint velocity and movement patterns
 
 ### Advanced Features
 
