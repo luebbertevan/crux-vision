@@ -82,64 +82,6 @@ def load_pose_data(analysis_id: str) -> Dict[str, Any]:
         raise
 
 
-def rotate_landmark_coordinates(landmarks_json: List[Dict], rotation: int, original_shape: Tuple[int, int], rotated_shape: Tuple[int, int]) -> List[Dict]:
-    """
-    Rotate landmark coordinates to match video rotation.
-    
-    Args:
-        landmarks_json: List of landmark data from JSON
-        rotation: Rotation angle in degrees (0, 90, 180, 270)
-        original_shape: Original video shape (height, width, channels)
-        rotated_shape: Rotated video shape (height, width, channels)
-        
-    Returns:
-        List of landmarks with rotated coordinates
-    """
-    if rotation == 0:
-        return landmarks_json
-    
-    orig_height, orig_width = original_shape[:2]
-    rot_height, rot_width = rotated_shape[:2]
-    rotated_landmarks = []
-    
-    for landmark in landmarks_json:
-        # Get normalized coordinates from original video
-        x_norm = float(landmark["x"])
-        y_norm = float(landmark["y"])
-        
-        # Convert to pixel coordinates in original video
-        x_pixel = x_norm * orig_width
-        y_pixel = y_norm * orig_height
-        
-        # Apply rotation transformation
-        if rotation == 90:
-            # 90° clockwise: (x, y) -> (orig_height - y, x)
-            new_x = orig_height - y_pixel
-            new_y = x_pixel
-        elif rotation == 180:
-            # 180°: (x, y) -> (orig_width - x, orig_height - y)
-            new_x = orig_width - x_pixel
-            new_y = orig_height - y_pixel
-        elif rotation == 270:
-            # 270° clockwise: (x, y) -> (y, orig_width - x)
-            new_x = y_pixel
-            new_y = orig_width - x_pixel
-        else:
-            # No rotation
-            new_x = x_pixel
-            new_y = y_pixel
-        
-        # Convert to normalized coordinates in rotated video
-        new_x_norm = new_x / rot_width
-        new_y_norm = new_y / rot_height
-        
-        # Create rotated landmark
-        rotated_landmark = landmark.copy()
-        rotated_landmark["x"] = new_x_norm
-        rotated_landmark["y"] = new_y_norm
-        rotated_landmarks.append(rotated_landmark)
-    
-    return rotated_landmarks
 
 
 def get_landmark_coords(landmarks_json: List[Dict], landmark_index: int, image_shape: Tuple[int, int]) -> Optional[Tuple[int, int]]:
@@ -247,7 +189,7 @@ def draw_skeleton_landmarks(image: cv2.Mat, landmarks_json: List[Dict], style: D
     return image
 
 
-def draw_skeleton_overlay(image: cv2.Mat, landmarks_json: List[Dict], style: Dict[str, Any] = None, rotation: int = 0, original_shape: Tuple[int, int] = None) -> cv2.Mat:
+def draw_skeleton_overlay(image: cv2.Mat, landmarks_json: List[Dict], style: Dict[str, Any] = None) -> cv2.Mat:
     """
     Draw complete skeleton overlay on an image.
     
@@ -255,8 +197,6 @@ def draw_skeleton_overlay(image: cv2.Mat, landmarks_json: List[Dict], style: Dic
         image: OpenCV image to draw on
         landmarks_json: List of landmark data from JSON
         style: Drawing style configuration
-        rotation: Rotation angle in degrees (0, 90, 180, 270)
-        original_shape: Original video shape (height, width) before rotation
         
     Returns:
         Image with complete skeleton overlay
@@ -272,10 +212,6 @@ def draw_skeleton_overlay(image: cv2.Mat, landmarks_json: List[Dict], style: Dic
     
     # Create a copy to avoid modifying the original
     annotated_image = image.copy()
-    
-    # Rotate landmark coordinates if needed
-    if rotation != 0 and original_shape is not None:
-        landmarks_json = rotate_landmark_coordinates(landmarks_json, rotation, original_shape, image.shape)
     
     # Draw connections first (so landmarks appear on top)
     annotated_image = draw_skeleton_connections(annotated_image, landmarks_json, style)
@@ -475,183 +411,11 @@ def find_original_video(analysis_id: str) -> str:
     raise FileNotFoundError(f"No video file found for analysis {analysis_id}")
 
 
-def detect_iphone_portrait_rotation(video_path: str) -> int:
-    """
-    Detect if an iPhone portrait video was encoded as landscape and needs rotation.
-    
-    Args:
-        video_path: Path to the video file
-        
-    Returns:
-        Rotation angle in degrees (0, 90, 180, 270)
-    """
-    try:
-        cap = cv2.VideoCapture(video_path)
-        
-        # Sample a few frames for analysis
-        orientations = {0: 0, 90: 0, 180: 0, 270: 0}
-        
-        for i in range(3):  # Sample 3 frames
-            ret, frame = cap.read()
-            if not ret:
-                break
-                
-            # Test each possible rotation
-            for angle in [0, 90, 180, 270]:
-                if angle == 0:
-                    test_frame = frame
-                elif angle == 90:
-                    test_frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-                elif angle == 180:
-                    test_frame = cv2.rotate(frame, cv2.ROTATE_180)
-                elif angle == 270:
-                    test_frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-                
-                # Analyze content distribution
-                gray = cv2.cvtColor(test_frame, cv2.COLOR_BGR2GRAY)
-                height, width = gray.shape
-                
-                # Check if content is more concentrated in center (typical for portrait videos)
-                center_h_start = height // 4
-                center_h_end = 3 * height // 4
-                center_w_start = width // 4
-                center_w_end = 3 * width // 4
-                
-                center_region = gray[center_h_start:center_h_end, center_w_start:center_w_end]
-                center_brightness = np.mean(center_region)
-                
-                # Check edge distribution
-                edges = cv2.Canny(gray, 50, 150)
-                center_edges = edges[center_h_start:center_h_end, center_w_start:center_w_end]
-                center_edge_density = np.mean(center_edges > 0)
-                
-                # Check aspect ratio preference (portrait videos have height > width)
-                aspect_ratio = width / height
-                
-                # Score based on center concentration and aspect ratio
-                score = center_edge_density * 1000
-                
-                # Strong bonus for portrait aspect ratio (height > width)
-                if aspect_ratio < 1:  # Portrait
-                    score *= 2.0
-                
-                # Bonus for higher center brightness (more content in center)
-                if center_brightness > 80:
-                    score *= 1.2
-                
-                orientations[angle] += score
-        
-        cap.release()
-        
-        # Find the orientation with highest score
-        best_orientation = max(orientations, key=orientations.get)
-        
-        # Only return non-zero rotation if there's a significant difference
-        max_score = orientations[best_orientation]
-        zero_score = orientations[0]
-        
-        if max_score > zero_score * 1.5:  # 50% better than no rotation
-            logger.info(f"iPhone portrait rotation detection: {best_orientation}° (scores: {orientations})")
-            return best_orientation
-        else:
-            logger.info(f"iPhone portrait rotation detection: 0° (no significant difference, scores: {orientations})")
-            return 0
-        
-    except Exception as e:
-        logger.warning(f"iPhone portrait rotation detection failed: {str(e)}, defaulting to 0")
-        return 0
-
-
-def detect_video_orientation_heuristic(video_path: str) -> int:
-    """
-    Detect video orientation using content analysis when metadata is missing.
-    
-    Args:
-        video_path: Path to the video file
-        
-    Returns:
-        Rotation angle in degrees (0, 90, 180, 270)
-    """
-    try:
-        cap = cv2.VideoCapture(video_path)
-        
-        # Sample a few frames for analysis
-        orientations = {0: 0, 90: 0, 180: 0, 270: 0}
-        
-        for i in range(3):  # Sample 3 frames
-            ret, frame = cap.read()
-            if not ret:
-                break
-                
-            # Analyze each possible orientation
-            for angle in [0, 90, 180, 270]:
-                if angle == 0:
-                    test_frame = frame
-                elif angle == 90:
-                    test_frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-                elif angle == 180:
-                    test_frame = cv2.rotate(frame, cv2.ROTATE_180)
-                elif angle == 270:
-                    test_frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-                
-                # Analyze content distribution
-                gray = cv2.cvtColor(test_frame, cv2.COLOR_BGR2GRAY)
-                height, width = gray.shape
-                
-                # Calculate edge density in different regions
-                edges = cv2.Canny(gray, 50, 150)
-                
-                # Check if content is more concentrated in center (typical for vertical videos)
-                center_h_start = height // 4
-                center_h_end = 3 * height // 4
-                center_w_start = width // 4
-                center_w_end = 3 * width // 4
-                
-                center_region = edges[center_h_start:center_h_end, center_w_start:center_w_end]
-                center_edge_density = np.mean(center_region > 0)
-                
-                # Check edge distribution - vertical videos should have more vertical edges
-                vertical_edges = np.sum(edges[:, :width//2]) + np.sum(edges[:, width//2:])
-                horizontal_edges = np.sum(edges[:height//2, :]) + np.sum(edges[height//2:, :])
-                
-                # Score based on center concentration and edge distribution
-                score = center_edge_density * 1000
-                
-                # Bonus for portrait aspect ratio (height > width)
-                aspect_ratio = width / height
-                if aspect_ratio < 1:  # Portrait
-                    score *= 1.2
-                
-                # Bonus for more vertical edge distribution
-                if vertical_edges > horizontal_edges * 1.1:
-                    score *= 1.1
-                
-                orientations[angle] += score
-        
-        cap.release()
-        
-        # Find the orientation with highest score
-        best_orientation = max(orientations, key=orientations.get)
-        
-        # Only return non-zero rotation if there's a significant difference
-        max_score = orientations[best_orientation]
-        zero_score = orientations[0]
-        
-        if max_score > zero_score * 1.3:  # 30% better than no rotation
-            logger.info(f"Heuristic orientation detection: {best_orientation}° (scores: {orientations})")
-            return best_orientation
-        else:
-            logger.info(f"Heuristic orientation detection: 0° (no significant difference, scores: {orientations})")
-            return 0
-        
-    except Exception as e:
-        logger.warning(f"Heuristic orientation detection failed: {str(e)}, defaulting to 0")
-        return 0
 
 
 def get_video_rotation(video_path: str) -> int:
     """
-    Get video rotation from metadata using PyAV.
+    Get video rotation from metadata using ffprobe.
     
     Args:
         video_path: Path to the video file
@@ -660,11 +424,29 @@ def get_video_rotation(video_path: str) -> int:
         Rotation angle in degrees (0, 90, 180, 270)
     """
     try:
-        import av
-        container = av.open(video_path)
-        stream = container.streams.video[0]
-        rotation = getattr(stream, 'rotation', 0)
-        container.close()
+        import subprocess
+        import json
+        
+        # Use ffprobe to get rotation metadata
+        cmd = [
+            'ffprobe', '-v', 'quiet', '-print_format', 'json', 
+            '-show_streams', video_path
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        data = json.loads(result.stdout)
+        
+        # Find video stream and check for rotation
+        rotation = 0
+        for stream in data.get('streams', []):
+            if stream.get('codec_type') == 'video':
+                # Check side_data for Display Matrix rotation
+                side_data_list = stream.get('side_data_list', [])
+                for side_data in side_data_list:
+                    if side_data.get('side_data_type') == 'Display Matrix':
+                        rotation = side_data.get('rotation', 0)
+                        break
+                break
         
         # Normalize rotation to 0, 90, 180, 270
         rotation = rotation % 360
@@ -672,26 +454,12 @@ def get_video_rotation(video_path: str) -> int:
             logger.warning(f"Unexpected rotation angle {rotation}, defaulting to 0")
             rotation = 0
             
-        # If metadata shows no rotation but video appears vertical, use iPhone-specific detection
-        if rotation == 0:
-            # First try iPhone-specific detection for portrait videos
-            iphone_rotation = detect_iphone_portrait_rotation(video_path)
-            if iphone_rotation != 0:
-                logger.info(f"Metadata shows 0° but iPhone detection suggests {iphone_rotation}°, using iPhone detection")
-                rotation = iphone_rotation
-            else:
-                # Fall back to general heuristic
-                heuristic_rotation = detect_video_orientation_heuristic(video_path)
-                if heuristic_rotation != 0:
-                    logger.info(f"Metadata shows 0° but heuristic suggests {heuristic_rotation}°, using heuristic")
-                    rotation = heuristic_rotation
-            
         logger.info(f"Video rotation detected: {rotation} degrees")
         return rotation
         
     except Exception as e:
-        logger.warning(f"Failed to detect video rotation: {str(e)}, trying heuristic detection")
-        return detect_video_orientation_heuristic(video_path)
+        logger.warning(f"Failed to detect video rotation with ffprobe: {str(e)}, defaulting to 0")
+        return 0
 
 
 def setup_video_writer(analysis_id: str, video_path: str) -> Tuple[cv2.VideoWriter, Dict[str, Any]]:
@@ -712,20 +480,19 @@ def setup_video_writer(analysis_id: str, video_path: str) -> Tuple[cv2.VideoWrit
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     cap.release()
     
-    # Get video rotation
+    # Check rotation to adjust output dimensions
     rotation = get_video_rotation(video_path)
-    
-    # Adjust dimensions if rotated
-    if rotation in [90, 270]:
-        width, height = height, width  # Swap dimensions for rotated videos
-        logger.info(f"Video rotated {rotation}°, adjusted dimensions: {width}x{height}")
+    if rotation in [90, 270, -90]:
+        # Swap width and height for portrait videos
+        width, height = height, width
+        logger.info(f"Rotation detected: {rotation}°, swapping dimensions to {width}x{height}")
     
     # Setup output video path with original filename
     original_filename = Path(video_path).stem  # Get filename without extension
     analysis_prefix = analysis_id[:8]  # First 8 characters of analysis ID
     output_path = f"backend/static/overlays/overlay_{original_filename}_{analysis_prefix}.mp4"
     
-    # Create video writer with same properties as original (adjusted for rotation)
+    # Create video writer with rotated dimensions
     fourcc = cv2.VideoWriter_fourcc(*'H264')
     video_writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
     
@@ -736,11 +503,12 @@ def setup_video_writer(analysis_id: str, video_path: str) -> Tuple[cv2.VideoWrit
         "fps": fps,
         "width": width,
         "height": height,
-        "rotation": rotation,
-        "output_path": output_path
+        "output_path": output_path,
+        "original_video_path": video_path,
+        "rotation": rotation
     }
     
-    logger.info(f"Video writer setup: {width}x{height} @ {fps}fps (rotation: {rotation}°) -> {output_path}")
+    logger.info(f"Video writer setup: {width}x{height} @ {fps}fps -> {output_path}")
     return video_writer, video_properties
 
 
@@ -769,57 +537,119 @@ def process_video_frames(video_path: str, pose_data: List[Dict], video_writer: c
         video_path: Path to the original video file
         pose_data: List of pose data dictionaries
         video_writer: OpenCV VideoWriter for output
-        rotation: Rotation angle in degrees (0, 90, 180, 270)
+        rotation: Rotation angle in degrees (0, 90, 180, 270, or -90)
     """
     cap = cv2.VideoCapture(video_path)
-    
+
     # Get original video dimensions
     original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    original_shape = (original_height, original_width)
-    
+
     frame_index = 0
     frames_processed = 0
     frames_with_overlay = 0
-    
-    logger.info(f"Starting video frame processing for {len(pose_data)} pose frames (rotation: {rotation}°)")
-    logger.info(f"Original video dimensions: {original_width}x{original_height}")
-    
+
+    logger.info(f"Starting video frame processing for {len(pose_data)} pose frames")
+    logger.info(f"Original video dimensions: {original_width}x{original_height}, rotation: {rotation}°")
+
     while True:
         ret, frame = cap.read()
         if not ret:
             break
-        
-        # Apply rotation if needed
-        if rotation != 0:
-            if rotation == 90:
-                frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-            elif rotation == 180:
-                frame = cv2.rotate(frame, cv2.ROTATE_180)
-            elif rotation == 270:
-                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        
+
         # Get pose data for this frame
         frame_pose_data = get_pose_for_frame(pose_data, frame_index)
-        
+
         if frame_pose_data and frame_pose_data.get("pose_detected", False):
             # Draw skeleton overlay
             landmarks = frame_pose_data.get("landmarks", [])
             if landmarks:
-                frame = draw_skeleton_overlay(frame, landmarks, rotation=rotation, original_shape=original_shape)
+                frame = draw_skeleton_overlay(frame, landmarks)
                 frames_with_overlay += 1
         # If no pose data, just use original frame
-        
+
+        # Rotate frame to compensate for original rotation
+        if rotation == 90:
+            frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        elif rotation == 180:
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
+        elif rotation == 270 or rotation == -90:
+            frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+
         video_writer.write(frame)
         frames_processed += 1
         frame_index += 1
-        
+
         # Log progress every 50 frames
         if frame_index % 50 == 0:
             logger.info(f"Processed frame {frame_index}, overlay applied to {frames_with_overlay} frames")
     
     cap.release()
     logger.info(f"Video processing completed: {frames_processed} frames processed, {frames_with_overlay} frames with overlay")
+
+
+def apply_video_rotation(original_video_path: str, overlay_video_path: str) -> None:
+    """
+    Apply video rotation to match original video orientation using ffmpeg.
+    
+    Args:
+        original_video_path: Path to the original video file
+        overlay_video_path: Path to the overlay video file
+    """
+    try:
+        import subprocess
+        import os
+        
+        # Convert to absolute paths
+        overlay_video_path = os.path.abspath(overlay_video_path)
+        original_video_path = os.path.abspath(original_video_path)
+        
+        logger.info(f"Applying rotation to {overlay_video_path}")
+        
+        # Get rotation from original video
+        rotation = get_video_rotation(original_video_path)
+        
+        if rotation == 0:
+            logger.info("No rotation needed for overlay video")
+            return
+        
+        # Determine transpose filter based on rotation
+        if rotation == 90:
+            transpose_filter = "transpose=1"  # 90 degrees clockwise
+        elif rotation == 180:
+            transpose_filter = "transpose=2,transpose=2"  # 180 degrees
+        elif rotation == 270 or rotation == -90:
+            transpose_filter = "transpose=2"  # 270 degrees clockwise (or -90)
+        else:
+            logger.warning(f"Unsupported rotation angle: {rotation}")
+            return
+        
+        # Use ffmpeg to rotate the video
+        cmd = [
+            'ffmpeg', '-i', overlay_video_path,
+            '-vf', transpose_filter,
+            '-c:v', 'libx264', '-c:a', 'aac',
+            '-y',  # Overwrite output file
+            overlay_video_path + '.tmp'
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        
+        # Replace the original file with the rotation-corrected version
+        import shutil
+        shutil.move(overlay_video_path + '.tmp', overlay_video_path)
+        
+        logger.info(f"Successfully rotated video ({rotation}°) for {overlay_video_path}")
+        
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to rotate video: {str(e)}, stderr: {e.stderr}")
+    except Exception as e:
+        logger.error(f"Failed to rotate video: {str(e)}")
+        # Clean up temp file if it exists
+        import os
+        temp_file = overlay_video_path + '.tmp'
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
 
 
 def cleanup_video_writer(video_writer: cv2.VideoWriter) -> None:
@@ -867,7 +697,7 @@ def generate_overlay_video(analysis_id: str) -> str:
         # Setup video writer
         video_writer, video_properties = setup_video_writer(analysis_id, video_path)
         
-        # Process video frames
+        # Process video frames with rotation
         rotation = video_properties.get("rotation", 0)
         process_video_frames(video_path, pose_data, video_writer, rotation)
         
@@ -875,6 +705,8 @@ def generate_overlay_video(analysis_id: str) -> str:
         cleanup_video_writer(video_writer)
         
         output_path = video_properties["output_path"]
+        original_video_path = video_properties["original_video_path"]
+        
         logger.info(f"Overlay video generation completed: {output_path}")
         return output_path
         
