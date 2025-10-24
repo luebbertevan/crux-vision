@@ -92,6 +92,14 @@ export const api = {
 			`/api/results/${analysisId}`
 		);
 
+		// Convert relative video URLs to absolute URLs
+		if (
+			response.data.video_url &&
+			response.data.video_url.startsWith("/")
+		) {
+			response.data.video_url = `http://localhost:8000${response.data.video_url}`;
+		}
+
 		return response.data;
 	},
 

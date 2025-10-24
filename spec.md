@@ -23,58 +23,10 @@
 -   **Backend:** Python 3.9+ + FastAPI (Note: Using Python 3.9.6 due to system availability)
 -   **Pose estimation:** MediaPipe (Python)
 -   **Video processing:** OpenCV (opencv-python-headless)
--   **Storage:** local filesystem (backend/static/uploads, backend/static/outputs)
+-   **Storage:** local filesystem (backend/static/originals, backend/static/overlays)
 -   **Video formats:** MP4, MOV, AVI (common formats)
 -   **File size limit:** 100MB max upload
 -   **Processing:** Async background tasks (FastAPI BackgroundTasks)
-
-## Project Structure
-
-```
-crux-vision/
-  frontend/
-    package.json
-    vite.config.ts
-    index.html
-    src/
-      main.tsx
-      App.tsx
-      routes/
-        index.tsx
-      pages/
-        UploadPage.tsx
-        ResultsPage.tsx
-      components/
-        Header.tsx
-        FileUpload.tsx
-        VideoPreview.tsx
-        FeedbackCard.tsx
-      styles/
-        tailwind.css
-  backend/
-    README.md
-    requirements.txt
-    main.py                # FastAPI entrypoint
-    src/
-      api/
-        routes.py            # /api/analyze, /api/results, /api/ping
-      pipeline/
-        upload.py            # Load & validate video
-        pose_detection.py    # MediaPipe + OpenCV wrapper
-        analysis.py          # Heuristics and metrics
-        overlay.py           # Annotated overlay renderer (optional)
-      models/
-        schema.py            # Pydantic models
-      utils/
-        file_utils.py        # File validation & cleanup
-        analysis_storage.py  # Analysis status tracking & storage
-    static/
-      uploads/
-      outputs/
-  README.md
-  LICENSE
-  spec.md
-```
 
 ## API Contract
 
@@ -109,7 +61,7 @@ crux-vision/
         "stability_score": number | null
       } | null,
       "feedback": ["string", ...] | null,
-      "video_url": "/static/outputs/output_<id>.mp4" | null,
+      "video_url": "/static/overlays/overlay_<filename>_<id>.mp4" | null,
       "error_message": string | null
     }
     ```
@@ -201,7 +153,7 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 -   **Performance:** ~6-9 seconds processing time for 12-second video with full frame sampling
 -   **API Integration:** Upload returns immediately (202), background processing, `/api/results/{id}` endpoint
 
-### M4 — Overlay video generation
+### ✅ M4 — Overlay video generation
 
 ## ✅ M4a — Basic overlay rendering
 
@@ -211,10 +163,10 @@ Each milestone is intentionally small and testable. M3 has been broken down into
 -   **Dependencies:** Pose data from M3 (full frame sampling), OpenCV drawing utilities
 -   **Scope:** Focus on getting the overlay rendering working correctly on frames using direct JSON-to-OpenCV drawing
 
-## M4b — Full video generation
+## ✅ M4b — Full video generation
 
 -   **Files:** `backend/src/pipeline/overlay.py` (video generation), `backend/src/pipeline/pose_detection.py` (integration)
--   **Acceptance:** Generate complete overlay video with smooth skeleton overlay, save to `static/outputs/`
+-   **Acceptance:** Generate complete overlay video with smooth skeleton overlay, save to `static/overlays/`
 -   **Test:** Full end-to-end video generation with continuous overlay (no flickering), API integration works
 -   **Dependencies:** M4a overlay rendering, video processing pipeline, OpenCV video writing
 -   **Scope:** Handle full video processing, frame synchronization, and API integration using custom skeleton rendering
@@ -253,25 +205,39 @@ POST /api/analyze
 -   **Error Handling:** Missing pose data → skip overlay for that frame, corrupted frames → log warning and continue
 -   **Code Reuse:** Leverages existing M4a functions (`load_pose_data`, `draw_skeleton_overlay`, `load_video_frame`)
 
-**Output:** `backend/static/outputs/overlay_{analysis_id}.mp4` with skeleton overlay matching original video properties
+**Video Processing Pipeline:**
+
+1. **Rotation Detection:** `get_video_rotation()` uses `ffprobe` to extract rotation metadata from original video
+2. **Dimension Setup:** `setup_video_writer()` swaps width/height for rotated videos (1920x1080 → 1080x1920)
+3. **Frame Processing:** `process_video_frames()` reads frames, applies pose overlay, then rotates frames to correct orientation
+4. **Output Generation:** Creates H264-encoded MP4 with correct dimensions for video player compatibility
+
+**Orientation Handling:**
+
+-   **Input:** Portrait videos with `-90°` rotation metadata (1920x1080 dimensions)
+-   **Processing:** MediaPipe detects poses on rotated frames, skeleton overlay applied
+-   **Output:** Videos generated in correct portrait orientation (1080x1920) without rotation metadata
+-   **Result:** Video players display videos correctly without needing to interpret rotation metadata
+
+**Output:** `backend/static/overlays/overlay_{filename}_{analysis_id}.mp4` with skeleton overlay and correct orientation
 
 ### M5 — Minimal frontend
 
-## M5a — Frontend project setup
+## ✅ M5a — Frontend project setup
 
 -   **Files:** `frontend/` (new directory), `frontend/package.json`, `frontend/vite.config.ts`, `frontend/index.html`, `frontend/src/main.tsx`, `frontend/src/App.tsx`
 -   **Acceptance:** React + TypeScript + Vite + Tailwind project boots successfully, basic "Hello World" renders with Tailwind styling
 -   **Test:** `bun run dev` starts frontend on localhost:5173, verify Tailwind CSS is working
 -   **Dependencies:** None (new frontend project)
 
-## M5b — File upload component
+## ✅ M5b — File upload component
 
 -   **Files:** `frontend/src/components/FileUpload.tsx`, `frontend/src/components/Header.tsx`
 -   **Acceptance:** File upload interface with file picker, file validation (size ≤100MB, formats: MP4/MOV/AVI), upload progress indicator, error handling for invalid files
 -   **Test:** Upload valid/invalid files, see validation errors, verify file size and format restrictions
 -   **Dependencies:** M5a frontend setup
 
-## M5c — API integration and status polling
+## ✅ M5c — API integration and status polling
 
 -   **Files:** `frontend/src/api/client.ts`, `frontend/src/hooks/useAnalysis.ts`, `frontend/src/utils/types.ts`
 -   **Acceptance:** Upload video to `/api/analyze`, receive analysis ID, poll `/api/results/{id}` for status updates, handle processing/complete/error states
@@ -279,13 +245,16 @@ POST /api/analyze
 -   **Dependencies:** M5b upload component, backend CORS configuration
 -   **Backend Changes:** Add CORS middleware to FastAPI for frontend requests
 
-## M5d — Processing UI and video display
+## ✅ M5d — Processing UI and video display
 
--   **Files:** `frontend/src/components/VideoPlayer.tsx`, `frontend/src/pages/ResultsPage.tsx`, `frontend/src/components/ProcessingSpinner.tsx`
--   **Acceptance:** Spinner during processing, overlay video player with play/pause/seek controls, responsive layout, error state display
+-   **Files:** `frontend/src/components/VideoPlayer.tsx`, `frontend/src/components/ProcessingSpinner.tsx`, `frontend/src/App.tsx` (single-page flow)
+-   **Acceptance:** Spinner during processing, overlay video player with play/pause/seek controls, responsive layout, error state display, basic analysis info display
 -   **Test:** End-to-end flow: upload → processing spinner → view overlay video, verify video controls work
 -   **Dependencies:** M5c API integration, backend overlay video generation from M4
--   **Video Rotation:** Handle video orientation in frontend using CSS transforms or canvas-based rotation for user control and optimal performance
+-   **Design:** Single-page flow (no routing) - upload, processing, and results all on one page
+-   **Results Display:** Basic analysis information below video player (analysis ID, completion status, minimal metrics)
+-   **Actions:** "Upload New Video" button only for now
+-   **Video Orientation Fix:** Portrait videos now display correctly (1080x1920) without rotation metadata
 
 ### M6 — Heuristic analysis & feedback
 
@@ -385,10 +354,10 @@ bun run dev
 
 1. ✅ Select 30-60s demo video via file input; server returns 202 with id
 2. ✅ After processing, `GET /api/results/:id` returns `status: complete`, `metrics`, and `feedback`
-3. M5a: Frontend project boots successfully with Tailwind styling
-4. M5b: File upload component validates files and shows progress
-5. M5c: API integration uploads video and polls for completion
-6. M5d: End-to-end web UI flow: upload → processing → view overlay video
+3. ✅ M5a: Frontend project boots successfully with Tailwind styling
+4. ✅ M5b: File upload component validates files and shows progress
+5. ✅ M5c: API integration uploads video and polls for completion
+6. M5d: End-to-end web UI flow: upload → processing → view overlay video (single-page flow)
 7. Visual validation of pose detection accuracy via skeleton overlay (M4)
 8. Heuristic analysis matches visual observations (M6)
 
@@ -401,11 +370,33 @@ bun run dev
 
 ## Future Roadmap (post-MVP)
 
+### Analysis Page & Results Display
+
+-   **Dedicated Analysis Page**: Separate route/page for viewing analysis results with enhanced layout and navigation
+-   **Enhanced Results Display**: Detailed metrics visualization, progress charts, pose confidence scores
+-   **Analysis History**: View previous analyses, compare results over time
+-   **Export Functionality**: Download analysis reports, share results via URL
+-   **Advanced Video Controls**: Frame-by-frame navigation, slow-motion playback, pose overlay toggle
+
+### Actions After Analysis
+
+-   **Save Analysis**: Bookmark favorite analyses for future reference
+-   **Share Results**: Generate shareable links to analysis results
+-   **Compare Analyses**: Side-by-side comparison of multiple attempts
+-   **Generate Drills**: AI-suggested training exercises based on analysis results
+-   **Export Data**: Download pose data, metrics, and feedback as JSON/CSV
+-   **Create Training Plan**: Generate personalized training recommendations
+
+### Enhanced Visualization
+
 -   **Movement visualization**: Center of balance heat maps, joint angles visualization, velocity vectors with toggle on/off functionality
 -   **Video timestamped LLM feedback**: Per-movement coaching feedback synchronized with video timestamps
 -   **Side-by-side comparison mode**: Compare multiple attempts of the same route or movement
 -   **Custom skeleton visualization**: Replace default MediaPipe skeleton with custom icons styling and animated effects
 -   **Frontend video controls**: Rotation controls, zoom, playback speed adjustment, frame-by-frame navigation
+
+### Advanced Features
+
 -   Stats on a route: angle/type of climbing, overhang, roof, slab. how many moves. dynamic
 -   staticPersistent storage and user accounts
 -   Session tracking and trend charts

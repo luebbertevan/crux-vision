@@ -100,11 +100,17 @@ async def get_results(analysis_id: str):
             "stability_score": None   # Will be calculated in M4
         }
     
-    # Prepare video URL (for future overlay functionality)
+    # Prepare video URL for overlay video
     video_url = None
     if analysis_record.get("status") == "complete":
-        # In M5, we'll add overlay video generation
-        video_url = None  # Will be added in M5
+        # Check if overlay video was generated
+        processing_info = analysis_record.get("processing_info", {})
+        overlay_file = processing_info.get("overlay_file")
+        if overlay_file:
+            # Extract filename from full path for URL
+            from pathlib import Path
+            filename = Path(overlay_file).name
+            video_url = f"/static/overlays/{filename}"
     
     # Return result
     return Result(
