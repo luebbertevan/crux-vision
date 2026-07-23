@@ -10,8 +10,8 @@ browser environment—not desktop Chrome with a narrow viewport.
 - Serve the built app from a trusted HTTPS origin. A local `http://` address is
   not sufficient because browser media APIs can require a secure context.
 - Keep the phone off Low Power Mode and record its approximate battery level.
-- Use a recent portrait gym video from Photos. The file never leaves the
-  browser unless the tester explicitly shares the downloaded diagnostic JSON.
+- Use a recent portrait gym video from Photos. The file and pose data stay in
+  the active browser session; R2A has no upload or export path.
 - Close unusually heavy background apps so the first run is comparable. The
   later sustained run should represent normal gym use.
 
@@ -22,10 +22,29 @@ short Lite analysis produces pose, the overlay aligns, interaction remains
 responsive, and the page does not crash or reload. Stop and revisit the
 architecture if this fails.
 
+Run this exact short handoff:
+
+1. Open the HTTPS-served production build in Chrome on the iPhone 15.
+2. Choose one portrait clip from Photos and confirm it begins playing upright.
+3. Pause near a visible climbing move, set a 3–5 second start/end range, and tap
+   **Analyze range**.
+4. During analysis, play/pause and scroll once. Confirm controls respond and the
+   page does not reload.
+5. Seek inside analyzed time and confirm the skeleton and wrist trails register
+   to the climber. A clean **Pose unavailable here** moment is acceptable; a
+   stale or jumping skeleton is not.
+6. Tap **Replace video**, choose another clip, and confirm the previous overlay
+   and progress do not return.
+
+Record pass/fail, Chrome and iOS versions, and only observed orientation,
+alignment, responsiveness, crash/reload, or unusual heat issues. Do not run the
+long model/delegate matrix at this gate.
+
 ## R2D short model matrix
 
-Choose a five-second interval where the full climber is visible. Set 15
-samples/sec and run:
+Choose a five-second interval where the full climber is visible. The product
+keeps model/delegate selection internal; use a development measurement harness
+only if the R2A phone result makes comparison necessary. Compare:
 
 1. MediaPipe Lite / CPU
 2. MediaPipe Lite / GPU
@@ -36,8 +55,7 @@ After every run:
 
 - scrub through the interval and check whether the skeleton stays aligned;
 - note whether scrolling, controls, or video playback become unresponsive;
-- download the diagnostic JSON using a name that identifies the model and
-  delegate;
+- record the model/delegate and timings in the R2D findings report;
 - note obvious wrist or ankle loss and any lines jumping across the image.
 
 ## R2D sustained run
@@ -58,4 +76,4 @@ crash; the skeleton is registered to the displayed video; and Lite processes at
 a practical rate on
 the reference phone. Full remains a candidate only if its visible quality gain
 justifies its latency and thermal cost. If neither local path is practical, the
-fallback decision must be documented before product UI work begins.
+fallback decision must be documented before R2B expands the interaction system.

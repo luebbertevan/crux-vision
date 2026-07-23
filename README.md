@@ -1,58 +1,66 @@
 # Crux Vision
 
-Crux Vision is being rebuilt as a local-first, mobile-capable movement-analysis
-workspace for climbers. The first useful release will combine precise video
-review with progressive on-device pose, a live skeleton, and selectable joint
-trails; confidence-aware analytics and comparison will build on that core.
+Crux Vision is a local-first movement-review workspace for climbers. R2A opens
+a local portrait or landscape video immediately, lets the user select a short
+range, and progressively renders timestamp-synchronized MediaPipe pose and
+confidence-aware wrist trails without uploading or re-encoding the source.
 
-R1's desktop media/pose spike is complete. See the standalone
-[`ROADMAP.md`](./ROADMAP.md), the [rebuild report](./docs/rebuild-report.md), and
-the [R1 spike report](./docs/r1-spike-report.md). R2's implementation contract is
-in [`docs/r2-product-spec.md`](./docs/r2-product-spec.md).
+Product delivery is tracked in [`ROADMAP.md`](./ROADMAP.md). The current R2
+contract is [`docs/r2-product-spec.md`](./docs/r2-product-spec.md), and R2A's
+implementation decisions live in
+[`docs/r2a-implementation-spec.md`](./docs/r2a-implementation-spec.md). R1
+evidence remains in [`docs/r1-spike-report.md`](./docs/r1-spike-report.md) and
+[`docs/r1-results`](./docs/r1-results).
 
-Physical-device validation is split between an early R2 smoke test and a later
-full evaluation in [`docs/iphone-test-guide.md`](./docs/iphone-test-guide.md).
+## Develop
 
-## Run the R1 diagnostic
+Requirements: Node.js 22.12 or newer and a current desktop Chrome installation.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open the local URL, choose a video, select a model/delegate and range, then run
-the benchmark. The video remains local. Automated checks and the repeatable
-desktop model matrix are:
+Open the printed local URL and choose a video. The app uses a local `blob:` URL;
+the file is not uploaded. MediaPipe's pinned WASM runtime and Lite model are
+downloaded when analysis starts, then inference runs in a module worker.
+
+## Verify
 
 ```bash
 npm test
+npm run build
 npm run test:e2e
-npm run benchmark:desktop
 ```
 
-The benchmark expects the legacy fixture folder at
-`/Users/evan/crux-vision-legacy/backend/static/originals`. Set
-`CRUX_FIXTURE_ROOT` to override it.
+Unit tests cover range math, timestamp lookup, confidence gaps, trail
+segmentation, session identity, and display transforms. Browser tests use the
+fixture manifest at [`tests/fixtures/fixture-manifest.json`](./tests/fixtures/fixture-manifest.json).
+By default, media fixtures are read from
+`/Users/evan/crux-vision-legacy/backend/static/originals`; set
+`CRUX_FIXTURE_ROOT` to use another local fixture directory.
 
-## Current decisions
+## Architecture invariants
 
-- Start with one-video analysis: a genuinely good player plus pose, skeleton,
-  and selectable joint trails in the first user-visible milestone.
-- Use an iPhone 15 running iOS 26.5 with Chrome as the primary gym reference
-  device; test the underlying iOS/WebKit behavior on that physical phone.
-- Add two-video comparison after the single-player core is proven.
-- Keep the source video separate from pose data and derived analysis.
-- Render overlays live so every layer can be toggled or restyled instantly.
-- Use display-oriented, timestamped coordinates; never infer orientation from
-  width and height.
-- Treat confidence and metric coverage as first-class data.
-- Keep v1 sessions local; defer accounts, cloud sync, and sharing.
-- Keep experimental climbing metrics clearly separated from reliable measures.
-- Do not add accounts, cloud storage, LLM coaching, or baked video export until
-  the core review loop is valuable.
+- Video remains the source; pose is raw timestamped data; overlays are live
+  Canvas views.
+- Pose is joined to playback by presentation timestamp, never only frame index.
+- Image landmarks are normalized in upright displayed-video space.
+- Video and every overlay share the same display transform.
+- Missing or low-confidence joints break skeletons and trails instead of being
+  silently connected.
+- Replacing a source cancels analysis and releases its worker, adapter, object
+  URL, media element, and stale results.
+- There is no upload, account, cloud persistence, baked overlay video, MoveNet,
+  or TensorFlow product path.
 
-## Historical implementation
+## Phone validation
 
-The archived fall 2025 implementation and its Git history live at
-`/Users/evan/crux-vision-legacy`. It is reference material, not a codebase to
-extend.
+Desktop responsive emulation is part of automated and visual R2A verification,
+but it does not replace the physical gate. After R2A, follow the short smoke
+test in [`docs/iphone-test-guide.md`](./docs/iphone-test-guide.md) on the iPhone
+15 using Chrome/iOS WebKit before beginning R2B.
+
+The archived 2025 implementation and private evaluation corpus remain at
+`/Users/evan/crux-vision-legacy`; they are references, not code to extend or
+media to copy into this repository.

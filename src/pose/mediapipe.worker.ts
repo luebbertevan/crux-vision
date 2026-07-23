@@ -9,13 +9,20 @@ const workerScope: DedicatedWorkerGlobalScope = self as DedicatedWorkerGlobalSco
 let landmarker: PoseLandmarker | null = null;
 
 const copyLandmarks = (
-  landmarks: Array<{ x: number; y: number; z: number; visibility?: number }>,
+  landmarks: Array<{
+    x: number;
+    y: number;
+    z: number;
+    visibility?: number;
+    presence?: number;
+  }>,
 ): PoseLandmark[] =>
   landmarks.map((landmark) => ({
     x: landmark.x,
     y: landmark.y,
     z: landmark.z,
     visibility: landmark.visibility ?? 0,
+    presence: landmark.presence ?? null,
   }));
 
 const respond = (response: PoseWorkerResponse): void => {

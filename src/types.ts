@@ -1,19 +1,27 @@
-export type PoseModelId = 'lite' | 'full' | 'heavy';
 export type Delegate = 'CPU' | 'GPU';
+export type PoseModelId = 'lite';
 
 export type SourceMetadata = {
   fileName: string;
   fileSizeBytes: number;
   mimeType: string;
   durationSeconds: number;
+  durationMicroseconds: number;
   codec: string | null;
   codedWidth: number;
   codedHeight: number;
   displayWidth: number;
   displayHeight: number;
   rotationDegreesClockwise: 0 | 90 | 180 | 270;
+  flipHorizontal: boolean;
+  flipVertical: boolean;
   averageFrameRate: number | null;
   browserCanDecode: boolean;
+};
+
+export type AnalysisRange = {
+  startMicroseconds: number;
+  endMicroseconds: number;
 };
 
 export type PoseLandmark = {
@@ -21,40 +29,15 @@ export type PoseLandmark = {
   y: number;
   z: number;
   visibility: number;
+  presence: number | null;
 };
 
-export type TimedPose = {
+export type RawPoseSample = {
+  requestedTimestampMicroseconds: number;
   timestampMicroseconds: number;
-  sourceTimestampSeconds: number;
+  model: PoseModelId;
+  delegate: Delegate;
   landmarks: PoseLandmark[];
   worldLandmarks: PoseLandmark[];
   inferenceMilliseconds: number;
-};
-
-export type BenchmarkSummary = {
-  engine: 'mediapipe' | 'movenet';
-  modelLabel: string;
-  executionContext: 'worker' | 'main-thread';
-  delegate: Delegate | 'WebGL';
-  sampleRate: number;
-  requestedSamples: number;
-  completedSamples: number;
-  detectedSamples: number;
-  firstDetectedTimestampSeconds: number | null;
-  lastDetectedTimestampSeconds: number | null;
-  loadMilliseconds: number;
-  extractionMilliseconds: number;
-  inferenceMilliseconds: number;
-  wallMilliseconds: number;
-  averageInferenceMilliseconds: number;
-  inferenceFramesPerSecond: number;
-  detectedCoverage: number;
-  jointQuality: Record<
-    string,
-    {
-      acceptedCoverage: number;
-      meanVisibility: number;
-      largeJumpCandidates: number;
-    }
-  >;
 };

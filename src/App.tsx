@@ -1,491 +1,547 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+} from 'react';
 
-import { BrowserMediaAdapter } from './media/mediaAdapter';
-import { containRect, drawPose, nearestPose } from './pose/drawPose';
-import { MediaPipeWorkerClient } from './pose/mediapipeClient';
-import { POSE_MODELS } from './pose/modelCatalog';
-import type {
-  BenchmarkSummary,
-  Delegate,
-  PoseModelId,
-  SourceMetadata,
-  TimedPose,
-} from './types';
+import { PoseAnalysisController } from './analysis/PoseAnalysisController';
+import {
+  analysisTimestamps,
+  defaultAnalysisRange,
+  microsecondsToSeconds,
+  secondsToMicroseconds,
+} from './analysis/range';
+import {
+  CloseIcon,
+  PauseIcon,
+  PlayIcon,
+  ShieldIcon,
+  SparkIcon,
+  UploadIcon,
+} from './components/Icons';
+import { OverlayCanvas, type StageFeedback } from './components/OverlayCanvas';
+import { formatTime, RangeSelector } from './components/RangeSelector';
+import type { BrowserMediaAdapter } from './media/mediaAdapter';
+import { PlayerController } from './player/PlayerController';
+import {
+  analysisReducer,
+  initialAnalysisState,
+  type AnalysisPhase,
+} from './state/analysisReducer';
+import type { AnalysisRange, SourceMetadata } from './types';
 
-type RunState = 'idle' | 'loading-model' | 'analyzing' | 'complete' | 'error';
-
-const formatNumber = (value: number, digits = 1) =>
-  new Intl.NumberFormat(undefined, { maximumFractionDigits: digits }).format(value);
-
-const formatBytes = (bytes: number) => `${formatNumber(bytes / 1_048_576)} MB`;
-
-const timestampsForRange = (start: number, end: number, sampleRate: number): number[] => {
-  const timestamps: number[] = [];
-  const interval = 1 / sampleRate;
-  for (let timestamp = start; timestamp <= end + interval / 2; timestamp += interval) {
-    timestamps.push(Number(timestamp.toFixed(6)));
-  }
-  return timestamps;
+type SourceSession = {
+  id: number;
+  url: string;
+  metadata: SourceMetadata;
 };
 
-const IMPORTANT_JOINTS: Record<string, number> = {
-  leftShoulder: 11,
-  rightShoulder: 12,
-  leftWrist: 15,
-  rightWrist: 16,
-  leftHip: 23,
-  rightHip: 24,
-  leftAnkle: 27,
-  rightAnkle: 28,
-};
+const isRunning = (phase: AnalysisPhase) =>
+  phase === 'analyzing' || phase === 'partial';
 
-const summarizeJointQuality = (poses: TimedPose[]) =>
-  Object.fromEntries(
-    Object.entries(IMPORTANT_JOINTS).map(([name, index]) => {
-      let accepted = 0;
-      let visibilityTotal = 0;
-      let largeJumpCandidates = 0;
-      let previous: TimedPose['landmarks'][number] | null = null;
+const isAbortError = (error: unknown) =>
+  error instanceof DOMException && error.name === 'AbortError';
 
-      for (const pose of poses) {
-        const landmark = pose.landmarks[index];
-        const visibility = landmark?.visibility ?? 0;
-        visibilityTotal += visibility;
-        if (!landmark || visibility < 0.5) {
-          previous = null;
-          continue;
-        }
-
-        accepted += 1;
-        if (previous) {
-          const displacement = Math.hypot(landmark.x - previous.x, landmark.y - previous.y);
-          if (displacement > 0.18) largeJumpCandidates += 1;
-        }
-        previous = landmark;
-      }
-
-      return [
-        name,
-        {
-          acceptedCoverage: poses.length > 0 ? accepted / poses.length : 0,
-          meanVisibility: poses.length > 0 ? visibilityTotal / poses.length : 0,
-          largeJumpCandidates,
-        },
-      ];
-    }),
+function FileButton({
+  compact,
+  label,
+  onFile,
+}: {
+  compact?: boolean;
+  label: string;
+  onFile: (file: File) => void;
+}) {
+  return (
+    <label className={compact ? 'file-button file-button-compact' : 'file-button'}>
+      <UploadIcon />
+      <span>{label}</span>
+      <input
+        data-testid="video-input"
+        type="file"
+        accept="video/*,.mov"
+        onChange={(event) => {
+          const file = event.currentTarget.files?.[0];
+          if (file) onFile(file);
+          event.currentTarget.value = '';
+        }}
+      />
+    </label>
   );
+}
 
 export function App() {
-  const [metadata, setMetadata] = useState<SourceMetadata | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [model, setModel] = useState<PoseModelId>('lite');
-  const [delegate, setDelegate] = useState<Delegate>('GPU');
-  const [sampleRate, setSampleRate] = useState(15);
-  const [rangeStart, setRangeStart] = useState(0);
-  const [rangeEnd, setRangeEnd] = useState(10);
-  const [poses, setPoses] = useState<TimedPose[]>([]);
-  const posesRef = useRef<TimedPose[]>([]);
-  const [runState, setRunState] = useState<RunState>('idle');
-  const [progress, setProgress] = useState({ completed: 0, total: 0 });
-  const [summary, setSummary] = useState<BenchmarkSummary | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [browserVideoSize, setBrowserVideoSize] = useState<string>('—');
+  const [source, setSource] = useState<SourceSession | null>(null);
+  const [range, setRange] = useState<AnalysisRange | null>(null);
+  const [analysis, dispatch] = useReducer(analysisReducer, undefined, () =>
+    initialAnalysisState(0),
+  );
+  const [opening, setOpening] = useState(false);
+  const [sourceError, setSourceError] = useState<string | null>(null);
+  const [overlaysVisible, setOverlaysVisible] = useState(true);
+  const [stageFeedback, setStageFeedback] = useState<StageFeedback>('none');
 
   const adapterRef = useRef<BrowserMediaAdapter | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const overlayRef = useRef<HTMLCanvasElement | null>(null);
-  const cancelRef = useRef(false);
+  const analysisControllerRef = useRef<PoseAnalysisController | null>(null);
+  const analysisRef = useRef(analysis);
+  const importGenerationRef = useRef(0);
+  const sessionSequenceRef = useRef(0);
+  const jobSequenceRef = useRef(0);
+  const autoplaySessionRef = useRef<number | null>(null);
+  analysisRef.current = analysis;
 
-  const aspectRatio = metadata
-    ? `${metadata.displayWidth} / ${metadata.displayHeight}`
-    : '16 / 9';
+  const player = useMemo(() => new PlayerController(), []);
+  const playerSnapshot = useSyncExternalStore(
+    player.subscribe,
+    player.getSnapshot,
+    player.getSnapshot,
+  );
 
-  const currentModelLabel = POSE_MODELS[model].label;
-  const isRunning = runState === 'loading-model' || runState === 'analyzing';
+  const attachVideo = useCallback(
+    (video: HTMLVideoElement | null) => {
+      videoRef.current = video;
+      player.attach(video);
+    },
+    [player],
+  );
 
-  const clearOverlay = useCallback(() => {
-    const canvas = overlayRef.current;
+  const cancelAnalysis = useCallback(() => {
+    analysisControllerRef.current?.cancel();
+    analysisControllerRef.current = null;
+    const current = analysisRef.current;
+    if (current.jobId !== null && isRunning(current.phase)) {
+      dispatch({
+        type: 'cancel',
+        sessionId: current.sessionId,
+        jobId: current.jobId,
+      });
+    }
+  }, []);
+
+  const clearCanvas = useCallback(() => {
+    const canvas = document.querySelector<HTMLCanvasElement>('[data-testid="overlay-canvas"]');
     const context = canvas?.getContext('2d');
     if (canvas && context) context.clearRect(0, 0, canvas.width, canvas.height);
   }, []);
 
-  const renderOverlay = useCallback(
-    (mediaTime: number) => {
-      const canvas = overlayRef.current;
-      if (!canvas) return;
-      const bounds = canvas.getBoundingClientRect();
-      const pixelRatio = window.devicePixelRatio || 1;
-      const width = Math.max(1, Math.round(bounds.width * pixelRatio));
-      const height = Math.max(1, Math.round(bounds.height * pixelRatio));
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
+  const openFile = useCallback(
+    async (file: File) => {
+      const candidateGeneration = ++importGenerationRef.current;
+      cancelAnalysis();
+      setOpening(true);
+      setSourceError(null);
+
+      let candidate: BrowserMediaAdapter | null = null;
+      try {
+        const { BrowserMediaAdapter } = await import('./media/mediaAdapter');
+        candidate = await BrowserMediaAdapter.open(file);
+        if (candidateGeneration !== importGenerationRef.current) {
+          candidate.dispose();
+          return;
+        }
+
+        const nextUrl = URL.createObjectURL(file);
+        const video = videoRef.current;
+        video?.pause();
+        if (video) {
+          video.removeAttribute('src');
+          video.load();
+        }
+        clearCanvas();
+        adapterRef.current?.dispose();
+        if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+
+        const sessionId = ++sessionSequenceRef.current;
+        adapterRef.current = candidate;
+        objectUrlRef.current = nextUrl;
+        setSource({ id: sessionId, url: nextUrl, metadata: candidate.metadata });
+        setRange(defaultAnalysisRange(candidate.metadata.durationMicroseconds));
+        setStageFeedback('none');
+        setOverlaysVisible(true);
+        autoplaySessionRef.current = null;
+        dispatch({ type: 'reset', sessionId });
+      } catch (error) {
+        candidate?.dispose();
+        if (candidateGeneration === importGenerationRef.current) {
+          setSourceError(
+            error instanceof Error ? error.message : 'The selected video could not be opened.',
+          );
+        }
+      } finally {
+        if (candidateGeneration === importGenerationRef.current) setOpening(false);
       }
-
-      const context = canvas.getContext('2d');
-      if (!context) return;
-      const pose = nearestPose(posesRef.current, mediaTime, 0.75 / sampleRate);
-      const video = videoRef.current;
-      const contentRect = containRect(
-        width,
-        height,
-        video?.videoWidth ?? metadata?.displayWidth ?? width,
-        video?.videoHeight ?? metadata?.displayHeight ?? height,
-      );
-      drawPose(context, pose?.landmarks ?? [], width, height, 0.5, contentRect);
     },
-    [metadata, sampleRate],
+    [cancelAnalysis, clearCanvas],
   );
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    let callbackId = 0;
-    const onFrame: VideoFrameRequestCallback = (_now, frame) => {
-      renderOverlay(frame.mediaTime);
-      callbackId = video.requestVideoFrameCallback(onFrame);
-    };
-    callbackId = video.requestVideoFrameCallback(onFrame);
-    return () => video.cancelVideoFrameCallback(callbackId);
-  }, [renderOverlay, videoUrl]);
 
   useEffect(
     () => () => {
+      importGenerationRef.current += 1;
+      analysisControllerRef.current?.cancel();
+      player.pause();
+      const video = videoRef.current;
+      if (video) {
+        video.removeAttribute('src');
+        video.load();
+      }
       adapterRef.current?.dispose();
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      player.destroy();
     },
-    [],
+    [player],
   );
 
-  useEffect(() => {
-    window.__CRUX_SPIKE__ = { metadata, summary };
-  }, [metadata, summary]);
-
-  const onFileSelected = async (file: File | undefined) => {
-    if (!file) return;
-    cancelRef.current = true;
-    setError(null);
-    setSummary(null);
-    setPoses([]);
-    posesRef.current = [];
-    clearOverlay();
-    setRunState('idle');
-
-    adapterRef.current?.dispose();
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-
-    try {
-      const adapter = await BrowserMediaAdapter.open(file);
-      adapterRef.current = adapter;
-      setMetadata(adapter.metadata);
-      setRangeStart(0);
-      setRangeEnd(Math.min(10, adapter.metadata.durationSeconds));
-
-      const objectUrl = URL.createObjectURL(file);
-      objectUrlRef.current = objectUrl;
-      setVideoUrl(objectUrl);
-    } catch (caught) {
-      const message = caught instanceof Error ? caught.message : String(caught);
-      setError(message);
-      setRunState('error');
-    }
-  };
-
-  const runBenchmark = async (engine: 'mediapipe' | 'movenet') => {
-    const adapter = adapterRef.current;
-    if (!adapter || !metadata) return;
-
-    cancelRef.current = false;
-    setError(null);
-    setSummary(null);
-    setRunState('loading-model');
-    setPoses([]);
-    posesRef.current = [];
-    clearOverlay();
-
-    const timestamps = timestampsForRange(
-      Math.max(0, rangeStart),
-      Math.min(metadata.durationSeconds, Math.max(rangeStart, rangeEnd)),
-      sampleRate,
-    );
-    setProgress({ completed: 0, total: timestamps.length });
-
-    const worker = engine === 'mediapipe' ? new MediaPipeWorkerClient() : null;
-    let moveNet: import('./pose/moveNetClient').MoveNetClient | null = null;
-    const wallStartedAt = performance.now();
-    let loadMilliseconds = 0;
-    let extractionMilliseconds = 0;
-    let inferenceMilliseconds = 0;
-    let completedSamples = 0;
-    let detectedSamples = 0;
-    const nextPoses: TimedPose[] = [];
-
-    try {
-      if (worker) {
-        loadMilliseconds = await worker.initialize(model, delegate);
-      } else {
-        const { MoveNetClient } = await import('./pose/moveNetClient');
-        moveNet = new MoveNetClient();
-        loadMilliseconds = await moveNet.initialize();
-      }
-      setRunState('analyzing');
-
-      let extractionStartedAt = performance.now();
-      for await (const wrapped of adapter.framesAt(timestamps)) {
-        extractionMilliseconds += performance.now() - extractionStartedAt;
-        if (cancelRef.current) break;
-
-        let pose: TimedPose;
-        if (worker) {
-          const bitmapStartedAt = performance.now();
-          const bitmap = await createImageBitmap(wrapped.canvas);
-          extractionMilliseconds += performance.now() - bitmapStartedAt;
-          pose = await worker.analyze(bitmap, wrapped.timestamp);
-        } else {
-          pose = await moveNet!.analyze(wrapped.canvas, wrapped.timestamp);
-        }
-        inferenceMilliseconds += pose.inferenceMilliseconds;
-        completedSamples += 1;
-        if (pose.landmarks.length > 0) detectedSamples += 1;
-        nextPoses.push(pose);
-        posesRef.current = nextPoses;
-
-        if (completedSamples % 5 === 0 || completedSamples === timestamps.length) {
-          setPoses([...nextPoses]);
-          setProgress({ completed: completedSamples, total: timestamps.length });
-        }
-        extractionStartedAt = performance.now();
-      }
-
-      const wallMilliseconds = performance.now() - wallStartedAt;
-      const finalSummary: BenchmarkSummary = {
-        engine,
-        modelLabel: engine === 'mediapipe' ? POSE_MODELS[model].label : 'MoveNet Lightning',
-        executionContext: engine === 'mediapipe' ? 'worker' : 'main-thread',
-        delegate: engine === 'mediapipe' ? delegate : 'WebGL',
-        sampleRate,
-        requestedSamples: timestamps.length,
-        completedSamples,
-        detectedSamples,
-        firstDetectedTimestampSeconds:
-          nextPoses.find((pose) => pose.landmarks.length > 0)?.sourceTimestampSeconds ?? null,
-        lastDetectedTimestampSeconds:
-          nextPoses.slice().reverse().find((pose) => pose.landmarks.length > 0)
-            ?.sourceTimestampSeconds ?? null,
-        loadMilliseconds,
-        extractionMilliseconds,
-        inferenceMilliseconds,
-        wallMilliseconds,
-        averageInferenceMilliseconds:
-          completedSamples > 0 ? inferenceMilliseconds / completedSamples : 0,
-        inferenceFramesPerSecond:
-          inferenceMilliseconds > 0 ? (completedSamples * 1_000) / inferenceMilliseconds : 0,
-        detectedCoverage: completedSamples > 0 ? detectedSamples / completedSamples : 0,
-        jointQuality: summarizeJointQuality(nextPoses),
-      };
-      setPoses([...nextPoses]);
-      setProgress({ completed: completedSamples, total: timestamps.length });
-      setSummary(finalSummary);
-      setRunState('complete');
-    } catch (caught) {
-      const message = caught instanceof Error ? caught.message : String(caught);
-      setError(message);
-      setRunState('error');
-    } finally {
-      await worker?.dispose().catch(() => undefined);
-      moveNet?.dispose();
-    }
-  };
-
-  const cancelBenchmark = () => {
-    cancelRef.current = true;
-  };
-
-  const downloadResult = () => {
-    if (!summary || !metadata) return;
-    const payload = {
-      generatedAt: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      secureContext: window.isSecureContext,
-      metadata,
-      summary,
-    };
-    const url = URL.createObjectURL(
-      new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: 'application/json' }),
-    );
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `crux-vision-${summary.engine}-${Date.now()}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const summaryRows = useMemo(
-    () =>
-      summary
-        ? [
-            ['Model', `${summary.modelLabel} · ${summary.delegate}`],
-            ['Execution', summary.executionContext],
-            ['Model load', `${formatNumber(summary.loadMilliseconds)} ms`],
-            ['Samples', `${summary.completedSamples} / ${summary.requestedSamples}`],
-            ['Pose coverage', `${formatNumber(summary.detectedCoverage * 100)}%`],
-            ['Average inference', `${formatNumber(summary.averageInferenceMilliseconds)} ms`],
-            ['Inference throughput', `${formatNumber(summary.inferenceFramesPerSecond)} fps`],
-            ['Frame extraction', `${formatNumber(summary.extractionMilliseconds)} ms`],
-            ['Total wall time', `${formatNumber(summary.wallMilliseconds)} ms`],
-          ]
-        : [],
-    [summary],
+  const changeRange = useCallback(
+    (nextRange: AnalysisRange) => {
+      cancelAnalysis();
+      setRange(nextRange);
+      setStageFeedback('none');
+      if (source) dispatch({ type: 'reset', sessionId: source.id });
+    },
+    [cancelAnalysis, source],
   );
+
+  const runAnalysis = useCallback(
+    (resume: boolean) => {
+      const adapter = adapterRef.current;
+      if (!adapter || !source || !range || !source.metadata.browserCanDecode) return;
+      if (isRunning(analysisRef.current.phase)) return;
+
+      const controller = new PoseAnalysisController();
+      analysisControllerRef.current = controller;
+      const jobId = ++jobSequenceRef.current;
+      const schedule = analysisTimestamps(range);
+      const current = analysisRef.current;
+      const canResume =
+        resume &&
+        current.range?.startMicroseconds === range.startMicroseconds &&
+        current.range?.endMicroseconds === range.endMicroseconds;
+
+      dispatch({
+        type: 'start',
+        sessionId: source.id,
+        jobId,
+        range,
+        total: schedule.length,
+        resume: canResume,
+      });
+
+      void controller
+        .run({
+          adapter,
+          range,
+          completedRequestMicroseconds: canResume
+            ? current.completedRequestMicroseconds
+            : [],
+          existingSamples: canResume ? current.samples : [],
+          onDelegate: (delegate) =>
+            dispatch({ type: 'delegate', sessionId: source.id, jobId, delegate }),
+          onAttempt: (attempt) =>
+            dispatch({
+              type: 'attempt',
+              sessionId: source.id,
+              jobId,
+              ...attempt,
+            }),
+        })
+        .then(() => {
+          dispatch({ type: 'complete', sessionId: source.id, jobId });
+        })
+        .catch((error) => {
+          if (isAbortError(error)) return;
+          dispatch({
+            type: 'fail',
+            sessionId: source.id,
+            jobId,
+            error: error instanceof Error ? error.message : 'Pose analysis failed.',
+          });
+        })
+        .finally(() => {
+          if (analysisControllerRef.current === controller) {
+            analysisControllerRef.current = null;
+          }
+        });
+    },
+    [range, source],
+  );
+
+  const progress = analysis.total > 0 ? analysis.completed / analysis.total : 0;
+  const playbackDuration = playerSnapshot.durationSeconds || source?.metadata.durationSeconds || 0;
+  const sourceReady = Boolean(source && range);
+
+  const analysisStatus = (() => {
+    if (!source?.metadata.browserCanDecode) return 'Pose analysis unavailable for this codec';
+    if (analysis.phase === 'analyzing') return 'Preparing pose…';
+    if (analysis.phase === 'partial') return `Analyzing ${Math.round(progress * 100)}%`;
+    if (analysis.phase === 'ready') return 'Analysis ready';
+    if (analysis.phase === 'cancelled') return `Analysis stopped at ${Math.round(progress * 100)}%`;
+    if (analysis.phase === 'error') return 'Analysis interrupted';
+    return 'Ready when you are';
+  })();
+
+  const feedbackLabel =
+    stageFeedback === 'pending'
+      ? 'Analyzing this moment…'
+      : stageFeedback === 'unavailable'
+        ? 'Pose unavailable here'
+        : stageFeedback === 'outside'
+          ? 'Outside analysis range'
+          : null;
 
   return (
-    <main className="app-shell">
-      <header className="app-header">
-        <div>
-          <p className="eyebrow">Crux Vision · R1</p>
-          <h1>Media and pose diagnostic</h1>
-          <p>
-            Local file, display-oriented samples, worker-isolated pose, live Canvas overlay.
-          </p>
+    <main
+      className={`app-shell ${source ? 'has-source' : 'is-empty'}`}
+      data-analysis-phase={analysis.phase}
+      data-sample-count={analysis.samples.length}
+    >
+      <header className="topbar">
+        <a className="brand" href="/" aria-label="Crux Vision home">
+          <span className="brand-mark" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+          <span>
+            <strong>Crux Vision</strong>
+            <small>Movement review</small>
+          </span>
+        </a>
+
+        <div className="topbar-actions">
+          <span className="local-status"><ShieldIcon /> Local only</span>
+          {source && <FileButton compact label="Replace video" onFile={(file) => void openFile(file)} />}
         </div>
-        <span className={`status status-${runState}`}>{runState.replace('-', ' ')}</span>
       </header>
 
-      <section className="import-panel">
-        <label className="file-picker">
-          <span>Choose a climbing video</span>
-          <input
-            data-testid="video-input"
-            type="file"
-            accept="video/*,.mov"
-            onChange={(event) => void onFileSelected(event.target.files?.[0])}
-          />
-        </label>
-        <p>The file stays on this device. The diagnostic does not upload it.</p>
-      </section>
+      {sourceError && (
+        <div className="notice notice-error" role="alert">
+          <span>{sourceError}</span>
+          <button type="button" aria-label="Dismiss error" onClick={() => setSourceError(null)}>
+            <CloseIcon />
+          </button>
+        </div>
+      )}
 
-      {error && <div className="error-card">{error}</div>}
-
-      <div className="workspace-grid">
-        <section className="stage-panel">
-          <div className="video-stage" style={{ aspectRatio }}>
-            {videoUrl ? (
-              <>
-                <video
-                  ref={videoRef}
-                  src={videoUrl}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  onLoadedMetadata={(event) => {
-                    const video = event.currentTarget;
-                    setBrowserVideoSize(`${video.videoWidth} × ${video.videoHeight}`);
-                    renderOverlay(video.currentTime);
-                  }}
-                  onSeeked={(event) => renderOverlay(event.currentTarget.currentTime)}
-                />
-                <canvas ref={overlayRef} className="pose-overlay" aria-hidden="true" />
-              </>
-            ) : (
-              <div className="empty-stage">Import a local portrait or landscape video.</div>
-            )}
+      {!source ? (
+        <section className="empty-workspace">
+          <div className="empty-copy">
+            <span className="eyebrow"><SparkIcon /> Find the move that matters</span>
+            <h1>See your climbing<br />in motion.</h1>
+            <p>
+              Open a video, isolate the crux, and follow your movement with a live
+              skeleton and wrist trails. Nothing leaves this device.
+            </p>
+            <FileButton
+              label={opening ? 'Opening video…' : 'Open a climbing video'}
+              onFile={(file) => void openFile(file)}
+            />
+            <span className="file-note">MOV, MP4, and common iPhone video · up to 20s per analysis</span>
+          </div>
+          <div className="empty-visual" aria-hidden="true">
+            <div className="route-line route-line-left" />
+            <div className="route-line route-line-right" />
+            <div className="empty-frame">
+              <div className="empty-frame-grid" />
+              <span className="empty-frame-label">YOUR CLIP</span>
+              <span className="empty-frame-time">00:00</span>
+              <div className="empty-frame-play"><PlayIcon size={28} /></div>
+            </div>
           </div>
         </section>
-
-        <aside className="diagnostic-panel">
-          <section>
-            <h2>Source contract</h2>
-            {metadata ? (
-              <dl data-testid="source-metadata" className="metadata-grid">
-                <dt>File</dt><dd>{metadata.fileName}</dd>
-                <dt>Size</dt><dd>{formatBytes(metadata.fileSizeBytes)}</dd>
-                <dt>Codec</dt><dd>{metadata.codec ?? 'unknown'}</dd>
-                <dt>Duration</dt><dd>{formatNumber(metadata.durationSeconds, 2)} s</dd>
-                <dt>Coded</dt><dd>{metadata.codedWidth} × {metadata.codedHeight}</dd>
-                <dt>Rotation</dt><dd data-testid="rotation">{metadata.rotationDegreesClockwise}° clockwise</dd>
-                <dt>Displayed</dt><dd data-testid="display-size">{metadata.displayWidth} × {metadata.displayHeight}</dd>
-                <dt>Browser reports</dt><dd>{browserVideoSize}</dd>
-                <dt>Approx. rate</dt><dd>{metadata.averageFrameRate ? `${formatNumber(metadata.averageFrameRate)} fps` : 'unknown'}</dd>
-                <dt>WebCodecs</dt><dd>{metadata.browserCanDecode ? 'decodable' : 'unsupported'}</dd>
-              </dl>
-            ) : (
-              <p className="muted">Waiting for a file.</p>
-            )}
-          </section>
-
-          <section>
-            <h2>Pose benchmark</h2>
-            <div className="form-grid">
-              <label>
-                Model
-                <select value={model} onChange={(event) => setModel(event.target.value as PoseModelId)}>
-                  {Object.entries(POSE_MODELS).map(([id, value]) => (
-                    <option key={id} value={id}>{value.label}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Delegate
-                <select value={delegate} onChange={(event) => setDelegate(event.target.value as Delegate)}>
-                  <option value="GPU">GPU</option>
-                  <option value="CPU">CPU</option>
-                </select>
-              </label>
-              <label>
-                Samples/sec
-                <select value={sampleRate} onChange={(event) => setSampleRate(Number(event.target.value))}>
-                  <option value="5">5</option>
-                  <option value="15">15</option>
-                  <option value="30">30</option>
-                </select>
-              </label>
-              <label>
-                Start (s)
-                <input type="number" min="0" step="0.1" value={rangeStart} onChange={(event) => setRangeStart(Number(event.target.value))} />
-              </label>
-              <label>
-                End (s)
-                <input type="number" min="0" step="0.1" value={rangeEnd} onChange={(event) => setRangeEnd(Number(event.target.value))} />
-              </label>
-            </div>
-
-            <div className="button-row">
-              <button type="button" disabled={!metadata || isRunning} onClick={() => void runBenchmark('mediapipe')}>
-                Run {currentModelLabel}
-              </button>
-              <button type="button" className="secondary" disabled={!metadata || isRunning} onClick={() => void runBenchmark('movenet')}>
-                Run MoveNet baseline
-              </button>
-              {isRunning && <button type="button" className="secondary" onClick={cancelBenchmark}>Cancel</button>}
-            </div>
-
-            {progress.total > 0 && (
-              <div className="progress-block">
-                <progress value={progress.completed} max={progress.total} />
-                <span>{progress.completed} / {progress.total} samples</span>
+      ) : (
+        <section className="review-workspace">
+          <div
+            className="review-main"
+            style={
+              {
+                '--stage-aspect': source.metadata.displayWidth / source.metadata.displayHeight,
+              } as CSSProperties
+            }
+          >
+            <div className="stage-heading">
+              <div>
+                <span className="eyebrow">Current session</span>
+                <h1 title={source.metadata.fileName}>{source.metadata.fileName}</h1>
               </div>
-            )}
-          </section>
+              <span className="source-duration">{formatTime(source.metadata.durationSeconds)}</span>
+            </div>
 
-          {summary && (
-            <section data-testid="benchmark-summary">
-              <h2>Run result</h2>
-              <dl className="metadata-grid">
-                {summaryRows.map(([label, value]) => (
-                  <div className="result-row" key={label}>
-                    <dt>{label}</dt><dd>{value}</dd>
-                  </div>
-                ))}
-              </dl>
-              <button type="button" className="secondary download-button" onClick={downloadResult}>
-                Download diagnostic JSON
+            <div
+              className="video-frame"
+              data-testid="video-stage"
+              data-display-width={source.metadata.displayWidth}
+              data-display-height={source.metadata.displayHeight}
+              data-rotation={source.metadata.rotationDegreesClockwise}
+              style={
+                {
+                  aspectRatio: `${source.metadata.displayWidth} / ${source.metadata.displayHeight}`,
+                } as CSSProperties
+              }
+              onClick={() => void player.togglePlayback().catch(() => undefined)}
+            >
+              <video
+                ref={attachVideo}
+                src={source.url}
+                playsInline
+                preload="auto"
+                onCanPlay={(event) => {
+                  if (autoplaySessionRef.current === source.id) return;
+                  autoplaySessionRef.current = source.id;
+                  void event.currentTarget.play().catch(() => undefined);
+                }}
+              />
+              <OverlayCanvas
+                videoRef={videoRef}
+                metadata={source.metadata}
+                analysis={analysis}
+                visible={overlaysVisible}
+                onFeedbackChange={setStageFeedback}
+              />
+              <div className="stage-topline" aria-hidden="true">
+                <span>REVIEW</span>
+                {analysis.phase !== 'idle' && <span className="pose-live-dot">POSE</span>}
+              </div>
+              {feedbackLabel && <div className="stage-feedback">{feedbackLabel}</div>}
+            </div>
+
+            <div className="transport" aria-label="Video controls">
+              <button
+                type="button"
+                className="play-button"
+                aria-label={playerSnapshot.playing ? 'Pause video' : 'Play video'}
+                onClick={() => void player.togglePlayback().catch(() => undefined)}
+              >
+                {playerSnapshot.playing ? <PauseIcon /> : <PlayIcon />}
               </button>
+              <span className="transport-time">
+                {formatTime(playerSnapshot.currentTimeSeconds)}
+              </span>
+              <label className="sr-only" htmlFor="playback-position">Video position</label>
+              <input
+                id="playback-position"
+                className="playback-slider"
+                type="range"
+                min={0}
+                max={playbackDuration || 1}
+                step={0.01}
+                value={Math.min(playerSnapshot.currentTimeSeconds, playbackDuration || 1)}
+                disabled={!playerSnapshot.ready}
+                onChange={(event) => player.seek(Number(event.currentTarget.value))}
+              />
+              <span className="transport-time transport-duration">
+                {formatTime(playbackDuration)}
+              </span>
+            </div>
+          </div>
+
+          <aside className="control-rail">
+            {range && (
+              <RangeSelector
+                range={range}
+                durationMicroseconds={source.metadata.durationMicroseconds}
+                playheadMicroseconds={secondsToMicroseconds(playerSnapshot.currentTimeSeconds)}
+                progress={progress}
+                disabled={opening}
+                onChange={changeRange}
+              />
+            )}
+
+            <section className="analysis-section" aria-labelledby="analysis-title">
+              <div className="section-heading analysis-heading">
+                <div>
+                  <span className="section-kicker">On-device pose</span>
+                  <h2 id="analysis-title">Movement overlay</h2>
+                </div>
+                <label className="switch-control">
+                  <input
+                    type="checkbox"
+                    checked={overlaysVisible}
+                    onChange={(event) => setOverlaysVisible(event.currentTarget.checked)}
+                  />
+                  <span aria-hidden="true" />
+                  <b>Overlays</b>
+                </label>
+              </div>
+
+              <div className="analysis-preview" aria-hidden="true">
+                <span className="trail-key trail-key-left"><i /> Left wrist</span>
+                <span className="trail-key trail-key-right"><i /> Right wrist</span>
+                <span className="trail-key trail-key-pose"><i /> Skeleton</span>
+              </div>
+
+              <div
+                className={`analysis-status analysis-status-${analysis.phase}`}
+                aria-live="polite"
+                data-testid="analysis-status"
+              >
+                <span className="status-icon"><SparkIcon /></span>
+                <span>
+                  <strong>{analysisStatus}</strong>
+                  <small>
+                    {analysis.delegate
+                      ? `MediaPipe Lite · ${analysis.delegate}`
+                      : 'MediaPipe Lite · 15 samples/sec'}
+                  </small>
+                </span>
+                {analysis.total > 0 && (
+                  <span className="status-percent">{Math.round(progress * 100)}%</span>
+                )}
+              </div>
+
+              {analysis.total > 0 && (
+                <div className="analysis-progress" aria-hidden="true">
+                  <span style={{ width: `${Math.min(100, progress * 100)}%` }} />
+                </div>
+              )}
+
+              {analysis.error && <p className="analysis-error" role="alert">{analysis.error}</p>}
+              {!source.metadata.browserCanDecode && (
+                <p className="analysis-error" role="alert">
+                  This browser can preview the clip, but cannot decode frames for local analysis.
+                </p>
+              )}
+
+              <div className="analysis-actions">
+                {isRunning(analysis.phase) ? (
+                  <button type="button" className="button-secondary" onClick={cancelAnalysis}>
+                    Cancel analysis
+                  </button>
+                ) : analysis.phase === 'cancelled' || analysis.phase === 'error' ? (
+                  <>
+                    <button
+                      type="button"
+                      className="button-primary"
+                      disabled={!source.metadata.browserCanDecode}
+                      onClick={() => runAnalysis(true)}
+                    >
+                      <SparkIcon /> Resume analysis
+                    </button>
+                    <button type="button" className="button-subtle" onClick={() => runAnalysis(false)}>
+                      Start over
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="button-primary"
+                    disabled={!sourceReady || !source.metadata.browserCanDecode}
+                    onClick={() => runAnalysis(false)}
+                  >
+                    <SparkIcon /> {analysis.phase === 'ready' ? 'Analyze again' : 'Analyze range'}
+                  </button>
+                )}
+              </div>
+              <p className="privacy-note"><ShieldIcon /> Video and pose stay on this device.</p>
             </section>
-          )}
-        </aside>
-      </div>
+          </aside>
+        </section>
+      )}
     </main>
   );
 }

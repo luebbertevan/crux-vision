@@ -41,7 +41,7 @@ app lacked. The overlay consumes the same normalized, upright coordinate space.
 ## Desktop benchmark
 
 The checked-in raw result is
-[`spike-results/desktop-chrome-m3.json`](./spike-results/desktop-chrome-m3.json).
+[`r1-results/desktop-chrome-m3.json`](./r1-results/desktop-chrome-m3.json).
 It used Chrome 150 headless, `lache-send.MOV`, seconds 7–12, and 15 requested
 samples per second. All 76 requested samples completed for every model.
 
@@ -89,7 +89,7 @@ headless Chrome also do not establish physical hardware performance.
    player rather than the portrait video's contained image rectangle. The
    renderer now maps landmarks through the same `object-fit: contain` rectangle
    as the video. The corrected evidence image is
-   [`spike-results/desktop-overlay-lite.png`](./spike-results/desktop-overlay-lite.png).
+   [`r1-results/desktop-overlay-lite.png`](./r1-results/desktop-overlay-lite.png).
 
 ## Limits of this evidence
 

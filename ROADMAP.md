@@ -50,6 +50,8 @@ R2 is split into feedback-ready slices. Its product contract is in
 
 ### R2A — Product shell and first analysis loop
 
+**Status:** Complete on the reference laptop; physical iPhone gate is next
+
 **Outcome:** A climber can import a local video, play it immediately, select a
 short climbing range, see pose arrive progressively, and review a synchronized
 skeleton plus an initial joint trail.
@@ -66,9 +68,26 @@ Build:
 
 **Exit:** The loop works on real climbing footage on the reference laptop.
 
+R2A delivered the real graphite/chalk product shell, local blob playback,
+accessible 0.5–20 second range selection, progressive MediaPipe Lite analysis
+at 15 requested samples/second in the module worker, a presentation-timestamped
+live skeleton, two-second left/right wrist trails, confidence-aware gaps,
+cancel/resume, and stale-safe source replacement. MediaPipe tries GPU first and
+falls back once to CPU; model/delegate controls are not exposed as product UI.
+
+The laptop exit is verified by 16 focused Vitest tests, eight Chrome Playwright
+tests against real portrait/landscape fixtures, a production build, and visual
+inspection at 1440×900, 393×852, and 852×393. The R1 MediaBunny/MediaPipe
+contracts and evidence remain; MoveNet, TensorFlow, and diagnostic-only UI and
+benchmark scripts have been removed. See
+[`docs/r2a-implementation-spec.md`](./docs/r2a-implementation-spec.md) for the
+implementation record.
+
 ### R2 phone gate — Minimal physical-device smoke test
 
 **Timing:** Immediately after R2A, before advanced controls or visual polish
+
+**Status:** Ready for user-assisted test; not yet run
 
 On the iPhone 15 using Chrome/iOS WebKit, prove only that:
 

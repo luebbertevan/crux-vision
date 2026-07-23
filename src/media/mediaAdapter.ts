@@ -9,6 +9,12 @@ import {
 
 import type { SourceMetadata } from '../types';
 
+export type TimedCanvas = {
+  requestedTimestampMicroseconds: number;
+  timestampMicroseconds: number | null;
+  canvas: HTMLCanvasElement | OffscreenCanvas | null;
+};
+
 export class BrowserMediaAdapter {
   readonly file: File;
   readonly input: Input<BlobSource>;
@@ -68,12 +74,18 @@ export class BrowserMediaAdapter {
         fileSizeBytes: file.size,
         mimeType,
         durationSeconds,
+        durationMicroseconds: Math.round(durationSeconds * 1_000_000),
         codec,
         codedWidth,
         codedHeight,
         displayWidth,
         displayHeight,
         rotationDegreesClockwise,
+        // MediaBunny 1.51 exposes track rotation but not independent reflection.
+        // Keep reflection explicit in the source contract; never infer it from
+        // dimensions or camera origin.
+        flipHorizontal: false,
+        flipVertical: false,
         averageFrameRate: packetStats?.averagePacketRate ?? null,
         browserCanDecode,
       });
@@ -91,12 +103,30 @@ export class BrowserMediaAdapter {
     });
   }
 
-  async *framesAt(timestampsSeconds: number[]): AsyncGenerator<WrappedCanvas> {
+  async *framesAt(
+    timestampsMicroseconds: readonly number[],
+    signal?: AbortSignal,
+  ): AsyncGenerator<TimedCanvas> {
     const sink = this.createSampleSink();
-    for await (const wrapped of sink.canvasesAtTimestamps(timestampsSeconds)) {
-      if (wrapped) {
-        yield wrapped;
+    const timestampsSeconds = timestampsMicroseconds.map(
+      (timestamp) => timestamp / 1_000_000,
+    );
+    const iterator = sink.canvasesAtTimestamps(timestampsSeconds)[Symbol.asyncIterator]();
+
+    try {
+      for (const requestedTimestampMicroseconds of timestampsMicroseconds) {
+        if (signal?.aborted) throw signal.reason;
+        const next = await iterator.next();
+        if (next.done) break;
+        const wrapped: WrappedCanvas | null = next.value;
+        yield {
+          requestedTimestampMicroseconds,
+          timestampMicroseconds: wrapped ? Math.round(wrapped.timestamp * 1_000_000) : null,
+          canvas: wrapped?.canvas ?? null,
+        };
       }
+    } finally {
+      await iterator.return?.();
     }
   }
 
