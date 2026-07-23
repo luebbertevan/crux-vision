@@ -1,6 +1,7 @@
 # Crux Vision rebuild agent instructions
 
-Read `docs/rebuild-report.md` before changing product scope or architecture.
+Read `ROADMAP.md` and `docs/rebuild-report.md` before changing product scope or
+architecture. During R2, also read `docs/r2-product-spec.md`.
 
 ## Project boundary
 
@@ -30,8 +31,9 @@ Read `docs/rebuild-report.md` before changing product scope or architecture.
 ## Product order
 
 1. Short internal media/pose risk spike on the reference laptop and iPhone.
-2. First useful vertical slice: single-video player, progressive pose, live
-   skeleton, and selectable joint trails.
+2. First useful product, split into R2A–R2D in `ROADMAP.md`: single-video
+   player, progressive pose, live skeleton, and selectable joint trails. Run the
+   minimal physical-iPhone smoke gate immediately after R2A.
 3. Confidence-aware overlays and analysis ranges.
 4. Trustworthy segment analytics.
 5. Two-video synchronized comparison.

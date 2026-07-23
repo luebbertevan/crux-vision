@@ -1,6 +1,6 @@
 # R1 media and pose spike
 
-**Status:** Desktop evidence collected; physical iPhone pass pending
+**Status:** Desktop spike complete; formal iPhone benchmark deferred to R2
 
 **Reference laptop:** Apple M3, 16 GB
 
@@ -105,23 +105,21 @@ headless Chrome also do not establish physical hardware performance.
   chunk is intentionally too large for production and should not ship with the
   product player.
 
-## Remaining R1 work
+## Deferred mobile validation
 
-1. Serve the harness from a trusted HTTPS origin and run it on the physical
-   iPhone 15 in Chrome.
-2. Import an actual recent gym video from the phone photo library.
-3. Run Lite/CPU, Lite/GPU, Full/CPU, and Full/GPU for a five-second range at
-   15 fps, then download each diagnostic JSON file.
-4. Repeat a longer 20–30 second Lite run to observe heat, battery, UI
-   responsiveness, and sustained throughput.
-5. Visually inspect skeleton alignment at portrait playback timestamps and note
-   wrist/ankle failures.
-6. Choose the default model/delegate and document the client-only/fallback exit
-   decision.
+The user chose to begin the useful product loop rather than spend more time
+benchmarking the diagnostic interface. The missing physical-iPhone evidence is
+an explicitly accepted risk, not evidence that the client-only path works on
+iOS.
 
-The repeatable checklist is in
-[`iphone-test-guide.md`](./iphone-test-guide.md).
+R2 now contains two device gates:
 
-R1 is not complete until the physical iPhone evidence exists. The desktop result
-is strong enough to continue the architecture, but not strong enough to claim
-mobile viability yet.
+1. Immediately after R2A, run a minimal smoke test for portrait import,
+   extraction, worker initialization, progressive pose, overlay alignment, and
+   responsiveness.
+2. During R2D, run the longer delegate/model, battery, heat, and sustained-load
+   evaluation using an interface worth testing at the gym.
+
+The original repeatable checklist remains in
+[`iphone-test-guide.md`](./iphone-test-guide.md), and the revised sequencing is
+maintained in [`../ROADMAP.md`](../ROADMAP.md).

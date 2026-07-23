@@ -1,9 +1,9 @@
-# R1 iPhone validation guide
+# iPhone validation guide
 
-The physical-device pass is the final R1 gate. Use the reference iPhone 15 on
-iOS 26.5 in Chrome. Chrome on iOS uses Apple's WebKit engine, so this test is
-evidence for the actual browser environment—not desktop Chrome with a narrow
-viewport.
+The physical-device work is now split between a minimal R2A smoke test and a
+more complete R2D evaluation. Use the reference iPhone 15 on iOS 26.5 in Chrome.
+Chrome on iOS uses Apple's WebKit engine, so this is evidence for the actual
+browser environment—not desktop Chrome with a narrow viewport.
 
 ## Before testing
 
@@ -15,7 +15,14 @@ viewport.
 - Close unusually heavy background apps so the first run is comparable. The
   later sustained run should represent normal gym use.
 
-## Short model matrix
+## R2A smoke test
+
+Before running a model matrix, prove that a portrait clip imports upright, a
+short Lite analysis produces pose, the overlay aligns, interaction remains
+responsive, and the page does not crash or reload. Stop and revisit the
+architecture if this fails.
+
+## R2D short model matrix
 
 Choose a five-second interval where the full climber is visible. Set 15
 samples/sec and run:
@@ -33,7 +40,7 @@ After every run:
   delegate;
 - note obvious wrist or ankle loss and any lines jumping across the image.
 
-## Sustained run
+## R2D sustained run
 
 Run Lite with the better delegate over 20–30 seconds at 15 samples/sec. Record:
 
@@ -43,11 +50,12 @@ Run Lite with the better delegate over 20–30 seconds at 15 samples/sec. Record
 - approximate battery percentage before and after;
 - whether importing another video and rerunning releases the previous session.
 
-## R1 exit decision
+## Mobile exit decision
 
-R1 passes if portrait import, display orientation, frame extraction, pose
-inference, and live overlay all work without a browser crash; the skeleton is
-registered to the displayed video; and Lite processes at a practical rate on
+The client-only mobile path passes if portrait import, display orientation,
+frame extraction, pose inference, and live overlay all work without a browser
+crash; the skeleton is registered to the displayed video; and Lite processes at
+a practical rate on
 the reference phone. Full remains a candidate only if its visible quality gain
 justifies its latency and thermal cost. If neither local path is practical, the
 fallback decision must be documented before product UI work begins.

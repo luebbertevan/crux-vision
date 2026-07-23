@@ -1,7 +1,7 @@
 # Crux Vision rebuild report
 
 **Date:** July 22, 2026
-**Status:** Product and technical recommendation; R1 feasibility spike in progress
+**Status:** Product and technical recommendation; roadmap maintained separately
 
 ## Executive recommendation
 
@@ -779,138 +779,11 @@ route-controlled data and expert labels would be required. Avoid injury claims
 and LLM-generated technique prescriptions until underlying events and metrics
 are validated.
 
-## Roadmap: small testable slices
+## Roadmap
 
-### R0 — Rebuild foundation (this report)
-
-**Outcome:** legacy is clearly separated; product contract, risks, and roadmap
-are documented.
-
-**Complete when:** the new repository contains only current planning and the
-legacy repository is visibly archived.
-
-### R1 — Pose/media risk spike (internal, not the product milestone)
-
-Run the smallest measured experiment needed to choose the foundation:
-
-- benchmark MediaPipe lite/full/heavy and a MoveNet speed baseline;
-- test MediaBunny timed sample extraction and display rotation handling;
-- test worker input/delegate paths in current Chrome on the reference laptop and
-  reference phone, with an early WebKit run if iPhone is in scope;
-- label representative frames from the legacy corpus;
-- record cold start, inference fps, memory, accepted joint coverage, slingshots,
-  hand/foot errors, battery use, and sustained/thermal behavior;
-- prove that an upright portrait source produces an upright video, pose, and
-  overlay in one coordinate system;
-- decide the client-only primary path and exact compatibility fallback.
-
-This spike may use an intentionally ugly harness and throwaway diagnostics. It is
-not presented as a feature release.
-
-**Exit decision:** choose and version the media/pose adapters. If worker-based
-browser inference cannot meet the budget on the target phone, preserve immediate
-local playback and evaluate a backend that returns timed pose data only—still no
-baked overlay.
-
-### R2 — First useful vertical slice: player + skeleton + trails
-
-The first user-visible milestone must contain the thing that makes Crux Vision
-distinctive:
-
-- local import and immediate playback;
-- reliable portrait/landscape metadata and orientation display;
-- custom play/pause, speed, fine scrub, frame step, zoom/pan, In/Out loop, and
-  named checkpoints;
-- progressive pose extraction over the selected climbing range;
-- live Canvas skeleton synchronized by presentation timestamp;
-- selectable joint trails, initially making wrist/ankle/hip/shoulder choices
-  easy instead of hardcoding two landmarks;
-- overlay master toggle plus skeleton/trail toggles;
-- compact “pose unavailable here” quality indication rather than slingshots;
-- keyboard desktop controls and the mobile Review/Inspect/Timeline interaction
-  model;
-- fixture-driven orientation, codec, touch, and overlay-alignment tests;
-- no generated overlay video.
-
-Engineering may implement transport before pose inside this slice, but the slice
-is not complete—and should not be evaluated as a product—until skeleton and
-trails work on real climbing footage.
-
-**Feedback question:** Can a climber import a phone clip at the gym, reach the
-interesting move quickly, and learn something from the skeleton or trails within
-one session?
-
-### R3 — Confidence-aware analysis workspace
-
-- per-joint quality presets and an advanced threshold inspector;
-- rejected-joint debug view and coverage timeline;
-- raw and filtered pose cache with local session reload;
-- multiple named ranges and checkpoints;
-- current limb angles and a small pose-quality/coverage readout;
-- adaptive phone analysis settings tested against the reference device.
-
-**Feedback question:** Do confidence controls remove distracting pose failures
-without hiding useful hand/foot motion, and can a normal user understand why a
-joint or metric is missing?
-
-### R4 — Ranges and trustworthy analytics
-
-- multiple named ranges/checkpoints;
-- angle charts and distributions;
-- movement/stillness, limb bouts, vertical progress, path length, and smoothness;
-- valid/imputed coverage for every metric;
-- JSON/session export;
-- side-by-side comparison of raw and filtered signals in a developer view.
-
-**Feedback question:** Which measurements change how the user reviews an
-attempt, and which are merely interesting?
-
-### R5 — Two-video comparison
-
-Deliver in this order:
-
-1. Side-by-side players with independent controls.
-2. Shared play/pause/seek/speed and visible sync origins.
-3. Frame nudge, shared loop, and drift tests.
-4. Opacity superposition for matched cameras.
-5. Skeleton A on B and aligned angle/time-series differences.
-6. User-assisted wall/hold alignment.
-
-**Feedback question:** Is synchronization fast enough to set up repeatedly, and
-which comparison view exposes differences best?
-
-### R6 — Climbing signals lab
-
-- manual hold map and editable contact timeline;
-- static–dynamic index;
-- straight-arm exposure;
-- contact sequence and move segmentation;
-- grip-readjustment and foot-slip candidates;
-- phase-normalized comparison;
-- metric-by-metric validation notes and user confirmation.
-
-Do not combine these into one “technique score.” Keep the components inspectable.
-
-### R7 — Persistence, capture, and sharing
-
-Local session persistence already exists by this point. Only after the local
-loop proves valuable, add:
-
-- durable project/session library;
-- optional video capture flow;
-- shareable review package or cloud project;
-- export snapshots, reports, clips, or a rendered presentation;
-- accounts/object storage/queue if truly required.
-
-### Later, contingent work
-
-- Automatic hold segmentation with manual correction.
-- Domain-specific pose evaluation or fine-tuning.
-- More than two simultaneous videos.
-- Mobile-native application or capture companion, only if the mobile web path
-  fails a demonstrated product requirement.
-- Sensor fusion with IMU, depth, or force/contact data.
-- LLM summaries limited to validated structured observations.
+The actively maintained roadmap now lives in [`../ROADMAP.md`](../ROADMAP.md).
+It splits R2 into small feedback-ready slices and places a minimal physical
+iPhone gate immediately after the first complete player/pose/overlay loop.
 
 ## Performance and quality budgets to establish in the spike
 

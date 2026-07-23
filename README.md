@@ -5,13 +5,13 @@ workspace for climbers. The first useful release will combine precise video
 review with progressive on-device pose, a live skeleton, and selectable joint
 trails; confidence-aware analytics and comparison will build on that core.
 
-R1 is underway as an internal media/pose diagnostic harness. It is not the
-production interface. See [the rebuild report](./docs/rebuild-report.md) for the
-product direction and [the R1 spike report](./docs/r1-spike-report.md) for current
-evidence and remaining iPhone validation.
+R1's desktop media/pose spike is complete. See the standalone
+[`ROADMAP.md`](./ROADMAP.md), the [rebuild report](./docs/rebuild-report.md), and
+the [R1 spike report](./docs/r1-spike-report.md). R2's implementation contract is
+in [`docs/r2-product-spec.md`](./docs/r2-product-spec.md).
 
-The final R1 gate is the physical-device checklist in
-[`docs/iphone-test-guide.md`](./docs/iphone-test-guide.md).
+Physical-device validation is split between an early R2 smoke test and a later
+full evaluation in [`docs/iphone-test-guide.md`](./docs/iphone-test-guide.md).
 
 ## Run the R1 diagnostic
 
