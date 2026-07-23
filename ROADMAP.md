@@ -71,11 +71,12 @@ Build:
 R2A delivered the real graphite/chalk product shell, local blob playback,
 accessible 0.5–20 second range selection, progressive MediaPipe Lite analysis
 at 15 requested samples/second in the module worker, a presentation-timestamped
-live skeleton, two-second left/right wrist trails, confidence-aware gaps,
-cancel/resume, and stale-safe source replacement. MediaPipe tries GPU first and
-falls back once to CPU; model/delegate controls are not exposed as product UI.
+live skeleton, three-second hip- and shoulder-midpoint trails, confidence-aware
+gaps, cancel/resume, and stale-safe source replacement. Direct wrist sources
+remain in the joint-agnostic trail contract. MediaPipe tries GPU first and falls
+back once to CPU; model/delegate controls are not exposed as product UI.
 
-The laptop exit is verified by 19 focused Vitest tests, eight Chrome Playwright
+The laptop exit is verified by 19 focused Vitest tests, ten Chrome Playwright
 tests against real portrait/landscape fixtures, a production build, and visual
 inspection at 1440×900, 393×852, and 852×393. The R1 MediaBunny/MediaPipe
 contracts and evidence remain; MoveNet, TensorFlow, and diagnostic-only UI and

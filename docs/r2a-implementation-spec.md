@@ -31,7 +31,7 @@ than restyling it.
 5. Continue playing or seeking while results arrive one sample at a time. A
    quiet progress line fills on the selected range; Cancel remains available.
 6. Within analyzed time, a live skeleton follows the presented media timestamp.
-   Hip- and shoulder-midpoint trails show the preceding two seconds by default.
+   Hip- and shoulder-midpoint trails show the preceding three seconds by default.
 7. If pose is missing or rejected at the presented moment, geometry disappears
    cleanly and a compact **Pose unavailable here** message appears. It is not an
    error and never bridges the gap.
@@ -249,7 +249,7 @@ destructive filtering or a claim of calibrated climbing accuracy.
   midpoint (11/12) are the current defaults; both wrists remain supported direct
   sources.
 - For presentation time `t` inside the selected range, each trail uses accepted
-  samples in `[max(range.in, t - 2,000,000 µs), t]`, with older points fading
+  samples in `[max(range.in, t - 3,000,000 µs), t]`, with older points fading
   and the current end emphasized. Seeking recomputes from timestamped data; no
   screen-space animation history is retained.
 - Segmentation is per source. A low-confidence/missing required landmark ends
@@ -387,8 +387,10 @@ video.
 - Skeleton segments require accepted endpoints in the same sample. Detailed
   face landmarks are hidden; one accepted nose anchor connects to the accepted
   shoulder midpoint. Hip and shoulder midpoint trails use independent
-  two-second timestamp windows and split on any rejected required source or gap
-  over 100 ms.
+  three-second timestamp windows and split on any rejected required source or gap
+  over 100 ms. Trail strokes use a minimum four-canvas-pixel width/radius and
+  fade from 0.38 to 0.98 alpha so their older history remains legible on varied
+  wall backgrounds.
 - Cancellation terminates the worker, aborts frame iteration, closes an
   untransferred bitmap, and preserves completed attempts for Resume. Source and
   job identities reject late results; source replacement tests cover active
