@@ -50,7 +50,7 @@ R2 is split into feedback-ready slices. Its product contract is in
 
 ### R2A — Product shell and first analysis loop
 
-**Status:** Complete on the reference laptop; R2A.1 stage sizing is next
+**Status:** Complete on the reference laptop, including R2A.1 stage sizing
 
 **Outcome:** A climber can import a local video, play it immediately, select a
 short climbing range, see pose arrive progressively, and review a synchronized
@@ -85,7 +85,7 @@ implementation record.
 
 ### R2A.1 — Single-video review scale
 
-**Status:** In progress from first product review
+**Status:** Complete on the reference laptop; physical phone gate is next
 
 **Timing:** Before the R2 phone gate
 
@@ -115,11 +115,23 @@ without cropping, overlap, or an awkward small island. At 393×852, the stage
 uses the available width and essential transport remains reachable. Landscape
 footage remains large and balanced at both viewports.
 
+R2A.1 now sizes the stage by fitting the upright display dimensions into the
+review column's measured width and the viewport height remaining below the
+actual stage top after transport and safe-area padding are reserved. At wide
+desktop widths, a portrait stage is centered in the full review surface while
+the 330 px control rail occupies otherwise unused side space; landscape keeps a
+flexible main column beside the rail. At narrow widths, the rail follows the
+stage and transport in document order. At the reference viewports, the
+portrait stage is 378.5×673 px at 1440×900 and 369×656 px at 393×852; desktop
+landscape is 1025×576.5 px. The 852×393 layout keeps both portrait and landscape
+media plus basic transport inside the viewport without horizontal overflow.
+Video and canvas still share identical bounds and `object-fit: contain`.
+
 ### R2 phone gate — Minimal physical-device smoke test
 
 **Timing:** Immediately after R2A.1, before advanced controls
 
-**Status:** Pending R2A.1, then ready for the user-assisted test
+**Status:** Ready for the user-assisted physical test
 
 On the iPhone 15 using Chrome/iOS WebKit, prove only that:
 

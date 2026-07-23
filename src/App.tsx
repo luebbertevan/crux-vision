@@ -26,6 +26,7 @@ import {
 } from './components/Icons';
 import { OverlayCanvas, type StageFeedback } from './components/OverlayCanvas';
 import { formatTime, RangeSelector } from './components/RangeSelector';
+import { useReviewStageSize } from './layout/useReviewStageSize';
 import type { BrowserMediaAdapter } from './media/mediaAdapter';
 import { PlayerController } from './player/PlayerController';
 import {
@@ -89,6 +90,9 @@ export function App() {
   const objectUrlRef = useRef<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const analysisControllerRef = useRef<PoseAnalysisController | null>(null);
+  const reviewMainRef = useRef<HTMLDivElement | null>(null);
+  const stageSlotRef = useRef<HTMLDivElement | null>(null);
+  const transportRef = useRef<HTMLDivElement | null>(null);
   const analysisRef = useRef(analysis);
   const importGenerationRef = useRef(0);
   const sessionSequenceRef = useRef(0);
@@ -102,6 +106,15 @@ export function App() {
     player.getSnapshot,
     player.getSnapshot,
   );
+  const stageSize = useReviewStageSize({
+    enabled: source !== null,
+    displayWidth: source?.metadata.displayWidth ?? 1,
+    displayHeight: source?.metadata.displayHeight ?? 1,
+    layoutKey: sourceError ?? '',
+    reviewMainRef,
+    stageSlotRef,
+    transportRef,
+  });
 
   const attachVideo = useCallback(
     (video: HTMLVideoElement | null) => {
@@ -355,12 +368,25 @@ export function App() {
           </div>
         </section>
       ) : (
-        <section className="review-workspace">
+        <section
+          className={`review-workspace ${
+            source.metadata.displayHeight > source.metadata.displayWidth
+              ? 'is-portrait'
+              : 'is-landscape'
+          }`}
+          data-video-orientation={
+            source.metadata.displayHeight > source.metadata.displayWidth
+              ? 'portrait'
+              : 'landscape'
+          }
+        >
           <div
+            ref={reviewMainRef}
             className="review-main"
             style={
               {
                 '--stage-aspect': source.metadata.displayWidth / source.metadata.displayHeight,
+                '--stage-width': stageSize ? `${stageSize.width}px` : '100%',
               } as CSSProperties
             }
           >
@@ -372,45 +398,55 @@ export function App() {
               <span className="source-duration">{formatTime(source.metadata.durationSeconds)}</span>
             </div>
 
-            <div
-              className="video-frame"
-              data-testid="video-stage"
-              data-display-width={source.metadata.displayWidth}
-              data-display-height={source.metadata.displayHeight}
-              data-rotation={source.metadata.rotationDegreesClockwise}
-              style={
-                {
-                  aspectRatio: `${source.metadata.displayWidth} / ${source.metadata.displayHeight}`,
-                } as CSSProperties
-              }
-              onClick={() => void player.togglePlayback().catch(() => undefined)}
-            >
-              <video
-                ref={attachVideo}
-                src={source.url}
-                playsInline
-                preload="auto"
-                onCanPlay={(event) => {
-                  if (autoplaySessionRef.current === source.id) return;
-                  autoplaySessionRef.current = source.id;
-                  void event.currentTarget.play().catch(() => undefined);
-                }}
-              />
-              <OverlayCanvas
-                videoRef={videoRef}
-                metadata={source.metadata}
-                analysis={analysis}
-                visible={overlaysVisible}
-                onFeedbackChange={setStageFeedback}
-              />
-              <div className="stage-topline" aria-hidden="true">
-                <span>REVIEW</span>
-                {analysis.phase !== 'idle' && <span className="pose-live-dot">POSE</span>}
+            <div ref={stageSlotRef} className="stage-slot">
+              <div
+                className="video-frame"
+                data-testid="video-stage"
+                data-display-width={source.metadata.displayWidth}
+                data-display-height={source.metadata.displayHeight}
+                data-rotation={source.metadata.rotationDegreesClockwise}
+                data-available-width={stageSize?.availableWidth}
+                data-available-height={stageSize?.availableHeight}
+                style={
+                  {
+                    aspectRatio: `${source.metadata.displayWidth} / ${source.metadata.displayHeight}`,
+                    width: stageSize?.width,
+                    height: stageSize?.height,
+                  } as CSSProperties
+                }
+                onClick={() => void player.togglePlayback().catch(() => undefined)}
+              >
+                <video
+                  ref={attachVideo}
+                  src={source.url}
+                  playsInline
+                  preload="auto"
+                  onCanPlay={(event) => {
+                    if (autoplaySessionRef.current === source.id) return;
+                    autoplaySessionRef.current = source.id;
+                    void event.currentTarget.play().catch(() => undefined);
+                  }}
+                />
+                <OverlayCanvas
+                  videoRef={videoRef}
+                  metadata={source.metadata}
+                  analysis={analysis}
+                  visible={overlaysVisible}
+                  onFeedbackChange={setStageFeedback}
+                />
+                <div className="stage-topline" aria-hidden="true">
+                  <span>REVIEW</span>
+                  {analysis.phase !== 'idle' && <span className="pose-live-dot">POSE</span>}
+                </div>
+                {feedbackLabel && <div className="stage-feedback">{feedbackLabel}</div>}
               </div>
-              {feedbackLabel && <div className="stage-feedback">{feedbackLabel}</div>}
             </div>
 
-            <div className="transport" aria-label="Video controls">
+            <div
+              ref={transportRef}
+              className="transport"
+              aria-label="Video controls"
+            >
               <button
                 type="button"
                 className="play-button"

@@ -30,9 +30,9 @@ Run this exact short handoff:
    **Analyze range**.
 4. During analysis, play/pause and scroll once. Confirm controls respond and the
    page does not reload.
-5. Seek inside analyzed time and confirm the skeleton and wrist trails register
-   to the climber. A clean **Pose unavailable here** moment is acceptable; a
-   stale or jumping skeleton is not.
+5. Seek inside analyzed time and confirm the skeleton plus hip- and
+   shoulder-midpoint trails register to the climber. A clean **Pose unavailable
+   here** moment is acceptable; a stale or jumping skeleton is not.
 6. Tap **Replace video**, choose another clip, and confirm the previous overlay
    and progress do not return.
 

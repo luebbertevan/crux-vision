@@ -1,8 +1,8 @@
 # R2A implementation spec: first analysis loop
 
-**Status:** Complete on the reference laptop — R2A.1 sizing follow-up next
+**Status:** R2A and R2A.1 complete on the reference laptop — phone gate next
 
-**Branch/base:** `codex/r2a-first-analysis-loop` from R1 commit `05ad504`
+**Branch/base:** `codex/r2a1-video-stage-scale` from R2A commit `2178bd9`
 
 **Outcome:** A climber can open a local clip, watch it immediately, mark a
 short range, start local analysis, and review progressively arriving,
@@ -70,12 +70,17 @@ pending-analysis, and application-error messages must remain distinct.
 
 - A compact top bar contains the Crux Vision mark, current file, local-only
   status, and Open/Replace action.
-- The video stage is the dominant surface in the left/main column. It uses the
-  source display aspect ratio inside a bounded dark stage; portrait media is
-  not artificially enlarged or cropped.
+- The video stage is the dominant surface. Its exact dimensions fit the upright
+  source aspect ratio into the measured review width and the viewport height
+  remaining below its actual top after transport and bottom safe padding are
+  reserved.
+- At 1200 px and wider, portrait media is centered in the full review surface
+  and the 330 px control rail uses free space at the right instead of shifting
+  or constraining the video. Landscape media keeps a flexible main column
+  beside the rail.
 - Minimal transport sits directly below the stage: play/pause, current/duration,
   and coarse seek.
-- A 320–360 px right rail contains, in order, selected range, Analyze/Cancel,
+- A 310–330 px right rail contains, in order, selected range, Analyze/Cancel,
   quiet progress, and one master **Overlays** switch. The rail is a review aid,
   not a metadata/benchmark dashboard.
 - At shorter desktop heights, the rail may scroll independently; stage and
@@ -84,6 +89,8 @@ pending-analysis, and application-error messages must remain distinct.
 ### iPhone/narrow (below 720 px)
 
 - Safe-area-aware compact header, then the widest possible stage.
+- Portrait media takes the full content width whenever width is the limiting
+  dimension; secondary range and analysis cards continue below transport.
 - Transport is a one-row dock immediately below the stage with 44 px minimum
   targets. Range controls follow in one compact card; Analyze is a full-width
   primary action.
@@ -393,16 +400,41 @@ video.
   diagnostic globals/downloads, benchmark scripts, and their dependencies are
   absent from the product build.
 
+### R2A.1 sizing completion
+
+- Fixed `70dvh`/`72dvh` stage caps were removed. A layout-only sizing hook
+  measures the review width, the stage's document position, the current visual
+  viewport, transport height and margin, and computed bottom safe padding. It
+  applies `min(available width / display width, available height / display
+  height)` to the upright display dimensions.
+- At 1440×900, the portrait fixture renders at 378.5×673 px, centered on the
+  overall review surface with the rail clear at the right. The landscape
+  fixture renders at 1025×576.5 px in the flexible main column.
+- At 393×852, the portrait fixture uses the full 369 px content width and is
+  656 px tall; transport ends at 821 px. At 852×393, portrait and landscape
+  fixtures reserve 206 px of stage height and keep a full-column transport dock
+  inside the viewport without horizontal overflow.
+- Source errors are included in the height measurement, so a retained valid
+  source scales down instead of pushing basic transport offscreen. Long file
+  names remain single-line and ellipsized. Analysis cards remain below the
+  stage on narrow portrait screens and independently scrollable in the
+  landscape-phone rail.
+- The stage retains the upright source aspect ratio and `object-fit: contain`.
+  Video and overlay canvas remain absolute siblings with identical CSS bounds;
+  the existing contained-content transform, DPR cap, timestamp lookup, raw pose
+  data, and renderer contracts are unchanged.
+
 ### Verification completed
 
 - `npm test`: 6 files, 19 tests passed after the derived-point follow-up.
 - `npm run build`: passed; product shell, lazy media adapter, and module worker
   emitted successfully with no large-chunk warning.
-- `npm run test:e2e`: 8 tests passed in desktop Chrome against real fixtures.
+- `npm run test:e2e`: 10 tests passed in desktop Chrome against real fixtures.
 - Visual inspection passed at 1440×900 desktop, 393×852 iPhone portrait, and
-  852×393 iPhone landscape. Empty, imported, ready, unavailable-pose,
-  cancellation, replacement, and error behavior were exercised by visual or
-  browser acceptance paths.
+  852×393 iPhone landscape for both portrait and landscape imports. Empty,
+  imported, long-filename, retained-source error, ready, unavailable-pose,
+  cancellation, replacement, and overlay-alignment behavior were exercised by
+  visual or browser acceptance paths.
 - The physical iPhone 15 / Chrome-iOS gate has not been run, per the user's
   instruction to wait for phone interaction.
 
@@ -422,10 +454,10 @@ The first review approved the visual design and confirmed that the shell reads
 as the product rather than the R1 diagnostic. It also exposed two important
 follow-ups:
 
-1. The single-video stage is too conservative, especially for portrait footage.
-   R2A.1 will let the video use nearly all available review space without
-   changing the approved visual language or solving the separate multi-video
-   layout problem.
+1. The single-video stage was too conservative, especially for portrait
+   footage. R2A.1 now lets the video use the measured available review space
+   without changing the approved visual language or solving the separate
+   multi-video layout problem.
 2. The current `0.5` visibility/presence acceptance rule creates honest gaps but
    does not catch every wrong, swapped, or slingshotting landmark. Pose-quality
    calibration is now an explicit gate after the physical phone check and
