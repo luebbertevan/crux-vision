@@ -1,5 +1,10 @@
 import { DEFAULT_SAMPLE_RATE, SECOND_MICROSECONDS } from '../analysis/range';
-import { buildSkeletonSegments, isLandmarkAccepted } from '../pose/poseView';
+import {
+  buildSkeletonSegments,
+  isSkeletonLandmarkVisible,
+  resolvePosePoint,
+  type PosePointSource,
+} from '../pose/poseView';
 import { buildTrailSegments } from '../pose/trail';
 import type { RawPoseSample } from '../types';
 import type { DisplayTransform } from './displayTransform';
@@ -11,9 +16,23 @@ export const TRAIL_MAXIMUM_GAP_MICROSECONDS = Math.round(
 );
 
 const TRAILS = [
-  { jointIndex: 15, color: '244, 170, 74' },
-  { jointIndex: 16, color: '72, 205, 225' },
-] as const;
+  {
+    source: {
+      kind: 'midpoint',
+      firstLandmarkIndex: 23,
+      secondLandmarkIndex: 24,
+    },
+    color: '244, 170, 74',
+  },
+  {
+    source: {
+      kind: 'midpoint',
+      firstLandmarkIndex: 11,
+      secondLandmarkIndex: 12,
+    },
+    color: '72, 205, 225',
+  },
+] satisfies ReadonlyArray<{ source: PosePointSource; color: string }>;
 
 export type OverlayRenderResult = {
   currentPoseAvailable: boolean;
@@ -35,7 +54,7 @@ export function renderOverlay(
   let trailSegmentCount = 0;
   for (const trail of TRAILS) {
     const segments = buildTrailSegments(samples, presentationTimestampMicroseconds, {
-      jointIndex: trail.jointIndex,
+      source: trail.source,
       durationMicroseconds: TRAIL_DURATION_MICROSECONDS,
       maximumGapMicroseconds: TRAIL_MAXIMUM_GAP_MICROSECONDS,
     });
@@ -85,9 +104,10 @@ export function renderOverlay(
   }
 
   context.shadowBlur = 0;
-  const acceptedLandmarks = currentSample?.landmarks.filter((landmark) =>
-    isLandmarkAccepted(landmark),
-  ) ?? [];
+  const acceptedLandmarks =
+    currentSample?.landmarks.filter((landmark, landmarkIndex) =>
+      isSkeletonLandmarkVisible(landmarkIndex, landmark),
+    ) ?? [];
   const radius = Math.max(2.2, width / 260);
   for (const landmark of acceptedLandmarks) {
     const point = mapNormalizedPoint(transform, landmark);
@@ -100,12 +120,12 @@ export function renderOverlay(
     context.stroke();
   }
 
-  const currentWristAvailable = [15, 16].some((index) =>
-    isLandmarkAccepted(currentSample?.landmarks[index]),
+  const currentTrailAvailable = TRAILS.some((trail) =>
+    Boolean(resolvePosePoint(currentSample, trail.source)),
   );
 
   return {
-    currentPoseAvailable: skeleton.length > 0 || currentWristAvailable,
+    currentPoseAvailable: skeleton.length > 0 || currentTrailAvailable,
     skeletonSegmentCount: skeleton.length,
     trailSegmentCount,
   };

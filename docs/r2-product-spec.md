@@ -56,6 +56,11 @@ range, progressive worker pose, a live skeleton, and an initial trail. The
 initial trail may default to one useful joint, but its data and renderer must be
 joint-agnostic so R2C does not repeat the legacy hardcoding.
 
+After first review, hip and shoulder midpoints replace wrists as the
+proof-of-concept defaults. Wrist trails remain supported sources. Detailed face
+points are hidden in ordinary review; the skeleton uses one accepted head anchor
+and a single connection from the accepted shoulder midpoint.
+
 Perform the minimal physical-iPhone gate immediately after the R2A.1 sizing
 correction.
 
@@ -138,6 +143,8 @@ product. Reuse the tested adapters and contracts, not the diagnostic layout.
 - Keep raw model results separate from rendered/accepted views.
 - Draw the skeleton against the currently presented timestamp.
 - Draw trails from timed accepted joint samples, not frame numbers.
+- Allow a trail source to be a raw joint or an explicitly defined derived point.
+  A midpoint is accepted only when both source joints are accepted.
 - Make wrist, ankle, hip, and shoulder selection convenient by R2C.
 - Hide invalid segments instead of joining across long or low-confidence gaps.
 - Resolve confidence policy with `joint > body group > global` precedence.
@@ -146,6 +153,8 @@ product. Reuse the tested adapters and contracts, not the diagnostic layout.
 - Smooth only within accepted contiguous segments and reset at gaps.
 - Keep display and analytics acceptance policies separate and report usable
   coverage for analytics.
+- Treat offsets or custom anchors as versioned derived views with provenance;
+  never overwrite or relabel raw MediaPipe landmarks.
 - Toggle all overlays, skeleton, and trails independently.
 
 ### Mobile interaction

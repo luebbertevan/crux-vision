@@ -43,6 +43,8 @@ test('iPhone-sized empty and imported shell visual acceptance', async ({ page },
 
   await page.getByTestId('video-input').setInputFiles(portraitFixture);
   await expect(page.getByTestId('video-stage')).toBeVisible();
+  await expect(page.getByText('Hip midpoint')).toBeVisible();
+  await expect(page.getByText('Shoulder midpoint')).toBeVisible();
   await expect
     .poll(() =>
       page.locator('video').evaluate((element) => (element as HTMLVideoElement).readyState),

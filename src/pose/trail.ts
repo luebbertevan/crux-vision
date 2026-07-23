@@ -1,5 +1,5 @@
 import type { RawPoseSample } from '../types';
-import { isLandmarkAccepted } from './poseView';
+import { resolvePosePoint, type PosePointSource } from './poseView';
 
 export type TrailPoint = {
   x: number;
@@ -11,7 +11,7 @@ export type TrailPoint = {
 export type TrailSegment = TrailPoint[];
 
 export type TrailConfig = {
-  jointIndex: number;
+  source: PosePointSource;
   durationMicroseconds: number;
   maximumGapMicroseconds: number;
 };
@@ -31,13 +31,13 @@ export function buildTrailSegments(
     if (sample.timestampMicroseconds < windowStart) continue;
     if (sample.timestampMicroseconds > presentationTimestampMicroseconds) break;
 
-    const landmark = sample.landmarks[config.jointIndex];
+    const point = resolvePosePoint(sample, config.source);
     const hasLargeGap =
       previousRawTimestamp !== null &&
       sample.timestampMicroseconds - previousRawTimestamp > config.maximumGapMicroseconds;
     previousRawTimestamp = sample.timestampMicroseconds;
 
-    if (!isLandmarkAccepted(landmark)) {
+    if (!point) {
       current = null;
       continue;
     }
@@ -47,8 +47,8 @@ export function buildTrailSegments(
       segments.push(current);
     }
     current.push({
-      x: landmark.x,
-      y: landmark.y,
+      x: point.x,
+      y: point.y,
       timestampMicroseconds: sample.timestampMicroseconds,
       ageRatio: Math.max(
         0,

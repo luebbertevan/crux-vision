@@ -3,6 +3,14 @@ import type { PoseLandmark, RawPoseSample } from '../types';
 export const DEFAULT_VISIBILITY_THRESHOLD = 0.5;
 export const DEFAULT_PRESENCE_THRESHOLD = 0.5;
 
+export type PosePointSource =
+  | { kind: 'landmark'; landmarkIndex: number }
+  | {
+      kind: 'midpoint';
+      firstLandmarkIndex: number;
+      secondLandmarkIndex: number;
+    };
+
 export const POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
   [11, 12],
   [11, 13],
@@ -53,9 +61,42 @@ export function isLandmarkAccepted(
 export type SkeletonSegment = {
   start: PoseLandmark;
   end: PoseLandmark;
-  startIndex: number;
-  endIndex: number;
+  startIndex: number | 'shoulder-midpoint';
+  endIndex: number | 'shoulder-midpoint';
 };
+
+export function resolvePosePoint(
+  sample: RawPoseSample | null,
+  source: PosePointSource,
+): PoseLandmark | null {
+  if (!sample) return null;
+  if (source.kind === 'landmark') {
+    const landmark = sample.landmarks[source.landmarkIndex];
+    return isLandmarkAccepted(landmark) ? landmark : null;
+  }
+
+  const first = sample.landmarks[source.firstLandmarkIndex];
+  const second = sample.landmarks[source.secondLandmarkIndex];
+  if (!isLandmarkAccepted(first) || !isLandmarkAccepted(second)) return null;
+
+  return {
+    x: (first.x + second.x) / 2,
+    y: (first.y + second.y) / 2,
+    z: (first.z + second.z) / 2,
+    visibility: Math.min(first.visibility, second.visibility),
+    presence:
+      first.presence === null && second.presence === null
+        ? null
+        : Math.min(first.presence ?? 1, second.presence ?? 1),
+  };
+}
+
+export function isSkeletonLandmarkVisible(
+  landmarkIndex: number,
+  landmark: PoseLandmark | undefined,
+): landmark is PoseLandmark {
+  return (landmarkIndex === 0 || landmarkIndex >= 11) && isLandmarkAccepted(landmark);
+}
 
 export function buildSkeletonSegments(sample: RawPoseSample | null): SkeletonSegment[] {
   if (!sample) return [];
@@ -66,5 +107,21 @@ export function buildSkeletonSegments(sample: RawPoseSample | null): SkeletonSeg
     if (!isLandmarkAccepted(start) || !isLandmarkAccepted(end)) continue;
     segments.push({ start, end, startIndex, endIndex });
   }
+
+  const nose = sample.landmarks[0];
+  const shoulderMidpoint = resolvePosePoint(sample, {
+    kind: 'midpoint',
+    firstLandmarkIndex: 11,
+    secondLandmarkIndex: 12,
+  });
+  if (isLandmarkAccepted(nose) && shoulderMidpoint) {
+    segments.push({
+      start: shoulderMidpoint,
+      end: nose,
+      startIndex: 'shoulder-midpoint',
+      endIndex: 0,
+    });
+  }
+
   return segments;
 }

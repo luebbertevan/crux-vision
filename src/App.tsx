@@ -335,7 +335,7 @@ export function App() {
             <h1>See your climbing<br />in motion.</h1>
             <p>
               Open a video, isolate the crux, and follow your movement with a live
-              skeleton and wrist trails. Nothing leaves this device.
+              skeleton and body-center trails. Nothing leaves this device.
             </p>
             <FileButton
               label={opening ? 'Opening video…' : 'Open a climbing video'}
@@ -470,8 +470,8 @@ export function App() {
               </div>
 
               <div className="analysis-preview" aria-hidden="true">
-                <span className="trail-key trail-key-left"><i /> Left wrist</span>
-                <span className="trail-key trail-key-right"><i /> Right wrist</span>
+                <span className="trail-key trail-key-hip"><i /> Hip midpoint</span>
+                <span className="trail-key trail-key-shoulder"><i /> Shoulder midpoint</span>
                 <span className="trail-key trail-key-pose"><i /> Skeleton</span>
               </div>
 

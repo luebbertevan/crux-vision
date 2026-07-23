@@ -493,8 +493,8 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 .analysis-preview { display: flex; flex-wrap: wrap; gap: 7px 12px; margin: 20px 0 15px; padding: 12px; border: 1px solid #2e332c; border-radius: 9px; background: #111411; }
 .trail-key { display: inline-flex; align-items: center; gap: 6px; color: #8b9087; font-size: .6rem; }
 .trail-key i { width: 13px; height: 2px; border-radius: 99px; }
-.trail-key-left i { background: var(--amber); }
-.trail-key-right i { background: var(--cyan); }
+.trail-key-hip i { background: var(--amber); }
+.trail-key-shoulder i { background: var(--cyan); }
 .trail-key-pose i { background: var(--lime); }
 
 .analysis-status { min-height: 58px; display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 9px; padding: 9px; border-radius: 9px; background: #1a1e19; }

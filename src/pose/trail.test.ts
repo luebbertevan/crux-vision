@@ -29,7 +29,11 @@ describe('trail segmentation', () => {
     const segments = buildTrailSegments(
       [sample(0), sample(60_000), sample(120_000, 0.2), sample(180_000), sample(240_000)],
       240_000,
-      { jointIndex: 15, durationMicroseconds: 1_000_000, maximumGapMicroseconds: 100_000 },
+      {
+        source: { kind: 'landmark', landmarkIndex: 15 },
+        durationMicroseconds: 1_000_000,
+        maximumGapMicroseconds: 100_000,
+      },
     );
     expect(segments.map((segment) => segment.length)).toEqual([2, 2]);
   });
@@ -38,7 +42,11 @@ describe('trail segmentation', () => {
     const segments = buildTrailSegments(
       [sample(0), sample(60_000), sample(250_000)],
       250_000,
-      { jointIndex: 15, durationMicroseconds: 1_000_000, maximumGapMicroseconds: 100_000 },
+      {
+        source: { kind: 'landmark', landmarkIndex: 15 },
+        durationMicroseconds: 1_000_000,
+        maximumGapMicroseconds: 100_000,
+      },
     );
     expect(segments.map((segment) => segment.length)).toEqual([2, 1]);
   });
@@ -47,8 +55,35 @@ describe('trail segmentation', () => {
     const segments = buildTrailSegments(
       [sample(0), sample(500_000), sample(1_000_000)],
       1_000_000,
-      { jointIndex: 15, durationMicroseconds: 600_000, maximumGapMicroseconds: 600_000 },
+      {
+        source: { kind: 'landmark', landmarkIndex: 15 },
+        durationMicroseconds: 600_000,
+        maximumGapMicroseconds: 600_000,
+      },
     );
     expect(segments.flat().map((point) => point.timestampMicroseconds)).toEqual([500_000, 1_000_000]);
+  });
+
+  it('supports confidence-aware derived midpoint trails', () => {
+    const first = sample(0);
+    const second = sample(60_000);
+    first.landmarks[23] = { ...first.landmarks[15], x: 0.2 };
+    first.landmarks[24] = { ...first.landmarks[15], x: 0.6 };
+    second.landmarks[23] = { ...second.landmarks[15], x: 0.3 };
+    second.landmarks[24] = { ...second.landmarks[15], x: 0.7, visibility: 0.2 };
+
+    const segments = buildTrailSegments([first, second], 60_000, {
+      source: {
+        kind: 'midpoint',
+        firstLandmarkIndex: 23,
+        secondLandmarkIndex: 24,
+      },
+      durationMicroseconds: 1_000_000,
+      maximumGapMicroseconds: 100_000,
+    });
+
+    expect(segments).toHaveLength(1);
+    expect(segments[0]).toHaveLength(1);
+    expect(segments[0][0].x).toBeCloseTo(0.4);
   });
 });

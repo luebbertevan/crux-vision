@@ -3,7 +3,8 @@
 Crux Vision is a local-first movement-review workspace for climbers. R2A opens
 a local portrait or landscape video immediately, lets the user select a short
 range, and progressively renders timestamp-synchronized MediaPipe pose and
-confidence-aware wrist trails without uploading or re-encoding the source.
+confidence-aware hip and shoulder midpoint trails without uploading or
+re-encoding the source.
 
 Product delivery is tracked in [`ROADMAP.md`](./ROADMAP.md). The current R2
 contract is [`docs/r2-product-spec.md`](./docs/r2-product-spec.md), and R2A's

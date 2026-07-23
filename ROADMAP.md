@@ -75,7 +75,7 @@ live skeleton, two-second left/right wrist trails, confidence-aware gaps,
 cancel/resume, and stale-safe source replacement. MediaPipe tries GPU first and
 falls back once to CPU; model/delegate controls are not exposed as product UI.
 
-The laptop exit is verified by 16 focused Vitest tests, eight Chrome Playwright
+The laptop exit is verified by 19 focused Vitest tests, eight Chrome Playwright
 tests against real portrait/landscape fixtures, a production build, and visual
 inspection at 1440×900, 393×852, and 852×393. The R1 MediaBunny/MediaPipe
 contracts and evidence remain; MoveNet, TensorFlow, and diagnostic-only UI and
@@ -85,7 +85,7 @@ implementation record.
 
 ### R2A.1 — Single-video review scale
 
-**Status:** Planned from first product review
+**Status:** In progress from first product review
 
 **Timing:** Before the R2 phone gate
 
@@ -102,6 +102,11 @@ Build:
   below it instead of shrinking the video;
 - preserve contain behavior, shared video/overlay transforms, and the approved
   visual language;
+- make hip and shoulder midpoints the proof-of-concept trail defaults while
+  retaining direct wrist and other joint sources in the joint-agnostic trail
+  contract;
+- replace detailed face landmarks with one accepted head anchor and a
+  shoulder-midpoint-to-head connection;
 - keep multi-video comparison and its substantially different layout problem
   out of scope.
 
@@ -188,6 +193,8 @@ Build:
   default settings surface;
 - body-group and joint confidence overrides, rejected-sample inspection,
   smoothing, and coverage detail under Pose quality → Advanced;
+- a versioned derived-point contract for deterministic midpoints and any later
+  validated, body-relative visual or analytic anchors;
 - overlay alignment and timestamp tests for portrait and landscape fixtures.
 
 ### R2D — Mobile refinement and feedback release

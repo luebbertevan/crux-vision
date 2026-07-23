@@ -6,8 +6,8 @@
 
 **Outcome:** A climber can open a local clip, watch it immediately, mark a
 short range, start local analysis, and review progressively arriving,
-timestamp-synchronized skeleton and wrist trails in a polished desktop or phone
-shell.
+timestamp-synchronized skeleton and body-center trails in a polished desktop or
+phone shell.
 
 This slice preserves R1's media, orientation, timestamp, normalized-coordinate,
 and module-worker contracts. It replaces the diagnostic product surface rather
@@ -31,7 +31,7 @@ than restyling it.
 5. Continue playing or seeking while results arrive one sample at a time. A
    quiet progress line fills on the selected range; Cancel remains available.
 6. Within analyzed time, a live skeleton follows the presented media timestamp.
-   Left- and right-wrist trails show the preceding two seconds by default.
+   Hip- and shoulder-midpoint trails show the preceding two seconds by default.
 7. If pose is missing or rejected at the presented moment, geometry disappears
    cleanly and a compact **Pose unavailable here** message appears. It is not an
    error and never bridges the gap.
@@ -237,18 +237,20 @@ destructive filtering or a claim of calibrated climbing accuracy.
 
 ### Trail renderer
 
-- The renderer is joint-agnostic: configuration supplies any list of landmark
-  IDs and styles. R2A configures both wrists (15 and 16) by default.
+- The renderer is source-agnostic: configuration supplies direct landmark or
+  derived-point definitions and styles. Hip midpoint (23/24) and shoulder
+  midpoint (11/12) are the current defaults; both wrists remain supported direct
+  sources.
 - For presentation time `t` inside the selected range, each trail uses accepted
   samples in `[max(range.in, t - 2,000,000 µs), t]`, with older points fading
   and the current end emphasized. Seeking recomputes from timestamped data; no
   screen-space animation history is retained.
-- Segmentation is per joint. A low-confidence/missing sample ends the current
-  polyline. A new segment also starts when adjacent raw timestamps differ by
-  more than 1.5 requested intervals (100 ms at 15 Hz). Single accepted points
-  may render as dots; no interpolation is added.
+- Segmentation is per source. A low-confidence/missing required landmark ends
+  the current polyline. A new segment also starts when adjacent raw timestamps
+  differ by more than 1.5 requested intervals (100 ms at 15 Hz). Single
+  accepted points may render as dots; no interpolation is added.
 - Progressive holes, cancellations, and true pose loss therefore create clean
-  gaps. Left and right wrists never share a continuity decision.
+  gaps. Hip and shoulder midpoint sources never share a continuity decision.
 
 ## Responsive, accessibility, and performance requirements
 
@@ -375,9 +377,11 @@ video.
 - The product uses only MediaPipe Lite at 15 requested samples/second. It tries
   GPU first and retries CPU once. Raw samples include actual integer
   presentation timestamps, model/delegate identity, visibility, and presence.
-- Skeleton segments require two accepted endpoints in the same sample. Both
-  wrist trails use independent two-second timestamp windows and split on any
-  rejected sample or gap over 100 ms.
+- Skeleton segments require accepted endpoints in the same sample. Detailed
+  face landmarks are hidden; one accepted nose anchor connects to the accepted
+  shoulder midpoint. Hip and shoulder midpoint trails use independent
+  two-second timestamp windows and split on any rejected required source or gap
+  over 100 ms.
 - Cancellation terminates the worker, aborts frame iteration, closes an
   untransferred bitmap, and preserves completed attempts for Resume. Source and
   job identities reject late results; source replacement tests cover active
@@ -391,7 +395,7 @@ video.
 
 ### Verification completed
 
-- `npm test`: 6 files, 16 tests passed.
+- `npm test`: 6 files, 19 tests passed after the derived-point follow-up.
 - `npm run build`: passed; product shell, lazy media adapter, and module worker
   emitted successfully with no large-chunk warning.
 - `npm run test:e2e`: 8 tests passed in desktop Chrome against real fixtures.
@@ -426,6 +430,12 @@ follow-ups:
    does not catch every wrong, swapped, or slingshotting landmark. Pose-quality
    calibration is now an explicit gate after the physical phone check and
    before R2B.
+
+The first overlay-semantic follow-up is implemented: hip and shoulder midpoints
+are now the default trails, while the generic trail source still supports
+wrists and other direct joints. A midpoint is missing whenever either source
+joint is rejected. Face detail is hidden; one accepted head anchor connects to
+the derived shoulder midpoint.
 
 The calibration work will tune global, body-group, and joint overrides over
 cached raw poses, then evaluate hysteresis, timestamp-based temporal rejection,

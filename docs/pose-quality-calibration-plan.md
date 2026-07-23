@@ -29,6 +29,31 @@ timestamped data instead of copying those values.
   to catch high-confidence slingshots and likely left/right swaps.
 - Trustworthy filtering is a core feature, not a premium feature.
 
+## Derived points and custom positions
+
+Crux Vision is not limited to drawing every raw landmark exactly as MediaPipe
+names it, but derived geometry must remain inspectable:
+
+- A deterministic midpoint or anchor records its source landmarks and is valid
+  only when all required sources are accepted.
+- Derived points never replace raw landmarks and never inherit more confidence
+  than their weakest required source.
+- Display-only geometry, such as a simplified head, may omit distracting raw
+  points without discarding them from the raw pose.
+- Any calibrated offset must be versioned and reversible. Prefer body-relative
+  vectors and scales over fixed screen-pixel or normalized-image offsets, which
+  do not generalize across framing and body size.
+- A derived point used by analytics needs separate validation and provenance.
+  A visually pleasing anchor is not automatically a biomechanical quantity.
+- Offsets cannot reconstruct an occluded joint or bridge an otherwise rejected
+  interval.
+
+The immediate proof of concept uses only two conservative derived sources: the
+accepted hip midpoint and accepted shoulder midpoint. It also renders one head
+anchor from the accepted nose and a single neck connection from the shoulder
+midpoint. Broader offsets remain part of calibration only if a repeated,
+measurable model bias justifies them.
+
 ## Acceptance pipeline
 
 The first calibrated policy will apply these stages in order:
@@ -141,6 +166,8 @@ filtering and honest uncertainty remain available to every user.
 - Unit tests cover threshold precedence, independent visibility/presence
   handling, hysteresis, temporal rejection, smoothing reset at gaps, and
   display-versus-analytics policy separation.
+- Unit tests cover derived-point provenance and rejection when any required
+  source joint is unavailable.
 - Browser tests prove that changing calibration controls recomputes cached
   results without rerunning inference and cannot resurrect stale source data.
 - Visual tests cover accepted, rejected, unavailable, and reacquired joints on
