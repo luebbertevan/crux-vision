@@ -1,6 +1,6 @@
 # R2A implementation spec: first analysis loop
 
-**Status:** Complete on the reference laptop — physical iPhone gate next
+**Status:** Complete on the reference laptop — R2A.1 sizing follow-up next
 
 **Branch/base:** `codex/r2a-first-analysis-loop` from R1 commit `05ad504`
 
@@ -411,3 +411,24 @@ running, play/pause and scroll once; confirm no reload or lockup. Finally choose
 Replace video and confirm the old overlay disappears. Record only pass/fail,
 browser/iOS version, and any orientation, alignment, responsiveness, crash, or
 heat issue. Do not begin the longer R2D matrix at this gate.
+
+## First product-review follow-ups
+
+The first review approved the visual design and confirmed that the shell reads
+as the product rather than the R1 diagnostic. It also exposed two important
+follow-ups:
+
+1. The single-video stage is too conservative, especially for portrait footage.
+   R2A.1 will let the video use nearly all available review space without
+   changing the approved visual language or solving the separate multi-video
+   layout problem.
+2. The current `0.5` visibility/presence acceptance rule creates honest gaps but
+   does not catch every wrong, swapped, or slingshotting landmark. Pose-quality
+   calibration is now an explicit gate after the physical phone check and
+   before R2B.
+
+The calibration work will tune global, body-group, and joint overrides over
+cached raw poses, then evaluate hysteresis, timestamp-based temporal rejection,
+and segment-local smoothing. The product will expose a simple quality preset by
+default and reserve detailed controls for Pose quality → Advanced. See
+[`pose-quality-calibration-plan.md`](./pose-quality-calibration-plan.md).

@@ -50,7 +50,7 @@ R2 is split into feedback-ready slices. Its product contract is in
 
 ### R2A — Product shell and first analysis loop
 
-**Status:** Complete on the reference laptop; physical iPhone gate is next
+**Status:** Complete on the reference laptop; R2A.1 stage sizing is next
 
 **Outcome:** A climber can import a local video, play it immediately, select a
 short climbing range, see pose arrive progressively, and review a synchronized
@@ -83,11 +83,38 @@ benchmark scripts have been removed. See
 [`docs/r2a-implementation-spec.md`](./docs/r2a-implementation-spec.md) for the
 implementation record.
 
+### R2A.1 — Single-video review scale
+
+**Status:** Planned from first product review
+
+**Timing:** Before the R2 phone gate
+
+**Outcome:** The imported video—not surrounding chrome—is unmistakably the
+focus on desktop and mobile, including portrait footage.
+
+Build:
+
+- let a single video use nearly all available viewport height and width after
+  essential header and transport controls;
+- size the stage from the video's upright display aspect ratio and the remaining
+  viewport, rather than allowing the desktop information rail to constrain it;
+- on narrow phones, prefer a full-width stage and move secondary information
+  below it instead of shrinking the video;
+- preserve contain behavior, shared video/overlay transforms, and the approved
+  visual language;
+- keep multi-video comparison and its substantially different layout problem
+  out of scope.
+
+**Exit:** At 1440×900, portrait footage uses nearly all available review height
+without cropping, overlap, or an awkward small island. At 393×852, the stage
+uses the available width and essential transport remains reachable. Landscape
+footage remains large and balanced at both viewports.
+
 ### R2 phone gate — Minimal physical-device smoke test
 
-**Timing:** Immediately after R2A, before advanced controls or visual polish
+**Timing:** Immediately after R2A.1, before advanced controls
 
-**Status:** Ready for user-assisted test; not yet run
+**Status:** Pending R2A.1, then ready for the user-assisted test
 
 On the iPhone 15 using Chrome/iOS WebKit, prove only that:
 
@@ -100,6 +127,36 @@ On the iPhone 15 using Chrome/iOS WebKit, prove only that:
 This is intentionally smaller than the original R1 benchmark plan. If it fails,
 decide the compatibility or pose-data-only server fallback before expanding R2.
 The longer thermal, battery, and model/delegate matrix moves to R2D.
+
+### R2 pose-quality calibration gate
+
+**Status:** Planned
+
+**Timing:** After the phone gate and before R2B
+
+**Outcome:** Crux Vision has evidence-based pose acceptance and smoothing
+defaults before expanding pose-derived analysis.
+
+Build:
+
+- add a temporary advanced calibration workspace over cached raw poses;
+- tune global, body-group, and optional per-joint confidence thresholds with
+  explicit precedence;
+- evaluate confidence hysteresis, timestamp-based temporal plausibility, and
+  smoothing that resets at honest gaps;
+- preview raw, accepted, rejected, and smoothed samples without rerunning
+  inference;
+- measure usable coverage, false-visible samples, flicker, gap duration, and
+  smoothing lag on representative climbing ranges;
+- publish Balanced v1 plus documented Strict and Permissive alternatives.
+
+**Exit:** The selected policy materially reduces visible slingshots and false
+limb geometry without hiding most useful movement. Display and analytics
+policies remain separate and coverage-aware, the automated acceptance suite
+passes, and remaining MediaPipe limitations are documented.
+
+See
+[`docs/pose-quality-calibration-plan.md`](./docs/pose-quality-calibration-plan.md).
 
 ### R2B — Precision review controls
 
@@ -127,6 +184,10 @@ Build:
 - master overlay, skeleton, and trail toggles;
 - compact confidence-aware pose-unavailable behavior rather than slingshots;
 - zoom, pan, fit, and reset using the same video/overlay transform;
+- calibrated Strict, Balanced, and Permissive pose-quality choices in a simple
+  default settings surface;
+- body-group and joint confidence overrides, rejected-sample inspection,
+  smoothing, and coverage detail under Pose quality → Advanced;
 - overlay alignment and timestamp tests for portrait and landscape fixtures.
 
 ### R2D — Mobile refinement and feedback release
@@ -147,10 +208,12 @@ Build and validate:
 interesting move quickly, and learn something from the skeleton or trails in
 one session?
 
-## R3 — Confidence-aware analysis workspace
+## R3 — Confidence-aware analysis workspace and local presets
 
-- Per-joint quality presets and an advanced threshold inspector.
-- Rejected-joint debug view and coverage timeline.
+- User-named local settings presets, including pose-quality, trail, and view
+  choices.
+- Per-range or per-joint overrides for specialist review.
+- Coverage timeline and quality summaries.
 - Raw and filtered pose cache with local session reload.
 - Multiple named ranges and checkpoints.
 - Current limb angles and a small pose-quality/coverage readout.
@@ -207,7 +270,12 @@ Only after the local loop proves valuable:
 - optional video capture flow;
 - shareable review package or cloud project;
 - export snapshots, reports, clips, or a rendered presentation;
+- optional cross-device sync and sharing for user-created settings presets;
 - accounts, object storage, and a worker queue if actually required.
+
+Commercial packaging of preset libraries, sync, and organization-managed
+profiles is a later product decision. Core confidence filtering and honest
+uncertainty are not paywalled.
 
 ## Later, contingent work
 

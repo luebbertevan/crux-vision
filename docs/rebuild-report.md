@@ -603,6 +603,11 @@ remain authoritative; automatic alignment can match the wrong moves.
 Confidence is not a single global slider and not a reason to silently invent
 coordinates.
 
+The active R2 execution plan is now documented in
+[`pose-quality-calibration-plan.md`](./pose-quality-calibration-plan.md). It
+turns the findings below into a manual calibration gate with explicit display
+and analytics policies.
+
 ### Preserve three layers
 
 1. **Raw:** exactly what the model produced.

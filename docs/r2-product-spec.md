@@ -1,6 +1,6 @@
 # R2 product spec: first useful Crux Vision
 
-**Status:** Ready for implementation
+**Status:** R2A complete; updated from first product review
 
 **Purpose:** Establish enough product and technical direction to start a fast
 feedback loop without freezing the interface before it has been used.
@@ -32,6 +32,9 @@ first complete analysis loop, not after every R2 feature is finished.
 ## Experience principles
 
 - **Video first:** importing never waits for pose analysis before playback.
+- **The video owns the review surface:** for one source, portrait and landscape
+  footage should consume nearly all usable space after essential transport.
+  Secondary information yields before the video does.
 - **The interesting move is central:** range, scrub, loop, speed, and checkpoint
   interactions should make a short movement quick to revisit.
 - **Analysis stays optional:** overlays can be hidden instantly and never alter
@@ -53,7 +56,23 @@ range, progressive worker pose, a live skeleton, and an initial trail. The
 initial trail may default to one useful joint, but its data and renderer must be
 joint-agnostic so R2C does not repeat the legacy hardcoding.
 
-Perform the minimal physical-iPhone gate immediately after this slice.
+Perform the minimal physical-iPhone gate immediately after the R2A.1 sizing
+correction.
+
+### R2A.1 — Single-video review scale
+
+Correct the stage sizing after the first product review so portrait and
+landscape footage use the available viewport naturally while preserving the
+approved shell and shared overlay transform. Multi-video comparison remains a
+separate layout problem.
+
+### Pose-quality calibration gate
+
+After the phone check and before R2B, calibrate confidence acceptance,
+hysteresis, temporal rejection, and segment-local smoothing on representative
+climbing footage. Establish Balanced, Strict, and Permissive defaults while
+keeping raw data immutable and uncertainty inspectable. See
+[`pose-quality-calibration-plan.md`](./pose-quality-calibration-plan.md).
 
 ### R2B — Precision review
 
@@ -121,6 +140,12 @@ product. Reuse the tested adapters and contracts, not the diagnostic layout.
 - Draw trails from timed accepted joint samples, not frame numbers.
 - Make wrist, ankle, hip, and shoulder selection convenient by R2C.
 - Hide invalid segments instead of joining across long or low-confidence gaps.
+- Resolve confidence policy with `joint > body group > global` precedence.
+- Use timestamp-based temporal plausibility to detect high-confidence
+  slingshots that a cutoff alone cannot catch.
+- Smooth only within accepted contiguous segments and reset at gaps.
+- Keep display and analytics acceptance policies separate and report usable
+  coverage for analytics.
 - Toggle all overlays, skeleton, and trails independently.
 
 ### Mobile interaction
@@ -128,6 +153,8 @@ product. Reuse the tested adapters and contracts, not the diagnostic layout.
 - Respect device safe areas and portrait orientation.
 - Keep primary transport usable with one hand and without tiny hit targets.
 - Keep the video large enough to inspect while making the timeline reachable.
+- Prefer a full-width single-video stage and move secondary information below it
+  when necessary.
 - Avoid simultaneous dense desktop panels; use explicit Review, Inspect, and
   Timeline states or an equivalent interaction discovered during implementation.
 - Preserve analysis state when moving between those views.
@@ -147,17 +174,33 @@ Implementation names can change, but responsibilities must remain separable:
 R2 should remain compatible with a future second `PlayerController`, but it
 must not implement synchronized comparison yet.
 
+## Settings hierarchy
+
+The ordinary review surface exposes only the overlay master control, a
+Balanced/Strict/Permissive pose-quality choice, and selected trails. Settings
+are grouped into Pose quality, Trails, Playback, and View. Group and joint
+thresholds, raw/rejected overlays, smoothing, and coverage diagnostics live
+under Pose quality → Advanced.
+
+Built-in calibrated quality choices are core product behavior. User-named
+presets may first be local; accounts are needed only for later sync, sharing, or
+organization-managed profiles.
+
 ## Acceptance criteria
 
 R2 is complete when:
 
 - a real iPhone portrait clip imports and plays immediately on laptop and phone;
 - video, extracted samples, skeleton, and trails remain upright and aligned;
+- portrait and landscape clips use nearly all appropriate single-video review
+  space on desktop and narrow phone viewports;
 - analysis appears progressively over a user-selected range;
 - the UI stays usable while inference runs;
 - the user can slow, scrub, frame-step, loop, zoom, and return to checkpoints;
 - wrist, ankle, hip, and shoulder trails can be selected without code changes;
 - low-confidence gaps do not create prominent false connections;
+- bad-but-confident samples can be rejected by a documented temporal policy,
+  and smoothing cannot cross a rejected gap;
 - essential desktop keyboard and phone touch paths work;
 - relevant unit and Playwright tests pass;
 - one gym-session test answers the R2 feedback question in the roadmap.
@@ -178,11 +221,14 @@ R2 is complete when:
 
 - Exact navigation and placement of Review, Inspect, and Timeline on the phone.
 - Whether the timeline is always visible or expands on demand.
-- The default selected trail joint and trail duration.
 - Whether checkpoints appear directly on the main timeline or in a secondary
   lane.
 - How much pose progress detail normal users should see.
 - Whether Full provides enough visible quality improvement to be user-selectable.
+- Exact Balanced v1 joint/group thresholds, hysteresis, and smoothing values
+  until the calibration gate is complete.
+- The future layout and interaction model for comparing multiple videos.
+- Commercial packaging for synced or shared preset libraries.
 
 These choices should be made against a running interface and real climbing
 footage rather than settled through a longer speculative specification.
