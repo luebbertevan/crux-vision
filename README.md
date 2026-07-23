@@ -5,9 +5,34 @@ workspace for climbers. The first useful release will combine precise video
 review with progressive on-device pose, a live skeleton, and selectable joint
 trails; confidence-aware analytics and comparison will build on that core.
 
-No application code has been written in this repository yet. The product and
-technical direction is documented in
-[the rebuild report](./docs/rebuild-report.md).
+R1 is underway as an internal media/pose diagnostic harness. It is not the
+production interface. See [the rebuild report](./docs/rebuild-report.md) for the
+product direction and [the R1 spike report](./docs/r1-spike-report.md) for current
+evidence and remaining iPhone validation.
+
+The final R1 gate is the physical-device checklist in
+[`docs/iphone-test-guide.md`](./docs/iphone-test-guide.md).
+
+## Run the R1 diagnostic
+
+```bash
+npm install
+npm run dev
+```
+
+Open the local URL, choose a video, select a model/delegate and range, then run
+the benchmark. The video remains local. Automated checks and the repeatable
+desktop model matrix are:
+
+```bash
+npm test
+npm run test:e2e
+npm run benchmark:desktop
+```
+
+The benchmark expects the legacy fixture folder at
+`/Users/evan/crux-vision-legacy/backend/static/originals`. Set
+`CRUX_FIXTURE_ROOT` to override it.
 
 ## Current decisions
 

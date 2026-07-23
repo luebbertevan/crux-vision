@@ -1,7 +1,7 @@
 # Crux Vision rebuild report
 
 **Date:** July 22, 2026
-**Status:** Product and technical recommendation; no application code yet
+**Status:** Product and technical recommendation; R1 feasibility spike in progress
 
 ## Executive recommendation
 
