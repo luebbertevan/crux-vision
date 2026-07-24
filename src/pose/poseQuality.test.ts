@@ -8,6 +8,7 @@ import {
   POSE_QUALITY_PROFILES,
   resolveConfidenceThreshold,
 } from './poseQuality';
+import { PRODUCT_POSE_LANDMARK_INDICES } from './poseView';
 
 const point = (
   x: number,
@@ -40,6 +41,28 @@ const sample = (
     worldLandmarks: [],
     inferenceMilliseconds: 1,
   };
+};
+
+const decisionAt = (
+  evaluation: ReturnType<typeof evaluatePoseQuality>,
+  sampleIndex: number,
+  landmarkIndex: number,
+) => evaluation.samples[sampleIndex].decisions[landmarkIndex]!;
+
+const completeSample = (
+  timestampMicroseconds: number,
+  missingLandmarkIndex: number | null = null,
+) => {
+  const result = sample(timestampMicroseconds, point(0.4));
+  for (const landmarkIndex of PRODUCT_POSE_LANDMARK_INDICES) {
+    if (landmarkIndex !== missingLandmarkIndex && !result.landmarks[landmarkIndex]) {
+      result.landmarks[landmarkIndex] = point(0.4);
+    }
+  }
+  if (missingLandmarkIndex !== null) {
+    delete result.landmarks[missingLandmarkIndex];
+  }
+  return result;
 };
 
 describe('pose-quality policy', () => {
@@ -84,10 +107,10 @@ describe('pose-quality policy', () => {
       policy,
     );
 
-    expect(evaluation.samples[0].decisions[15].reasons).toContain('visibility');
-    expect(evaluation.samples[0].decisions[15].reasons).not.toContain('presence');
-    expect(evaluation.samples[1].decisions[15].reasons).toContain('presence');
-    expect(evaluation.samples[1].decisions[15].reasons).not.toContain('visibility');
+    expect(decisionAt(evaluation, 0, 15).reasons).toContain('visibility');
+    expect(decisionAt(evaluation, 0, 15).reasons).not.toContain('presence');
+    expect(decisionAt(evaluation, 1, 15).reasons).toContain('presence');
+    expect(decisionAt(evaluation, 1, 15).reasons).not.toContain('visibility');
   });
 
   it('uses acquire/keep hysteresis without bridging a rejected gap', () => {
@@ -107,7 +130,7 @@ describe('pose-quality policy', () => {
 
     expect(
       evaluation.samples.map((entry) =>
-        Boolean(entry.decisions[15].accepted),
+        Boolean(entry.decisions[15]!.accepted),
       ),
     ).toEqual([true, true, false, false, true]);
   });
@@ -125,8 +148,8 @@ describe('pose-quality policy', () => {
       policy,
     );
 
-    expect(evaluation.samples[1].decisions[15].accepted).toBeNull();
-    expect(evaluation.samples[1].decisions[15].reasons).toContain(
+    expect(decisionAt(evaluation, 1, 15).accepted).toBeNull();
+    expect(decisionAt(evaluation, 1, 15).reasons).toContain(
       'isolated-jump',
     );
     expect(evaluation.metrics.temporalRejectedJointSlots).toBeGreaterThan(0);
@@ -141,7 +164,7 @@ describe('pose-quality policy', () => {
       policy,
     );
 
-    expect(evaluation.samples[1].decisions[15].reasons).toContain('velocity');
+    expect(decisionAt(evaluation, 1, 15).reasons).toContain('velocity');
   });
 
   it('compares distal segment length with the previous parent sample', () => {
@@ -158,7 +181,7 @@ describe('pose-quality policy', () => {
 
     const evaluation = evaluatePoseQuality([first, second], policy);
 
-    expect(evaluation.samples[1].decisions[15].reasons).toContain(
+    expect(decisionAt(evaluation, 1, 15).reasons).toContain(
       'segment-length',
     );
   });
@@ -177,9 +200,9 @@ describe('pose-quality policy', () => {
       policy,
     );
 
-    expect(evaluation.samples[1].decisions[15].smoothed?.x).not.toBe(0.4);
-    expect(evaluation.samples[2].decisions[15].smoothed).toBeNull();
-    expect(evaluation.samples[3].decisions[15].smoothed?.x).toBe(0.8);
+    expect(decisionAt(evaluation, 1, 15).smoothed?.x).not.toBe(0.4);
+    expect(decisionAt(evaluation, 2, 15).smoothed).toBeNull();
+    expect(decisionAt(evaluation, 3, 15).smoothed?.x).toBe(0.8);
   });
 
   it('keeps the Balanced smoother responsive during sustained fast motion', () => {
@@ -193,7 +216,7 @@ describe('pose-quality policy', () => {
       ),
       policy,
     );
-    const final = evaluation.samples.at(-1)!.decisions[15];
+    const final = evaluation.samples.at(-1)!.decisions[15]!;
     const lagFrames = (final.accepted!.x - final.smoothed!.x) / step;
 
     expect(lagFrames).toBeLessThan(1);
@@ -211,7 +234,7 @@ describe('pose-quality policy', () => {
     );
     const evaluation = evaluatePoseQuality(raw, policy);
     const smoothed = evaluation.samples.map(
-      (entry) => entry.decisions[15].smoothed!.x,
+      (entry) => entry.decisions[15]!.smoothed!.x,
     );
     let rawAcceleration = 0;
     let smoothedAcceleration = 0;
@@ -240,8 +263,54 @@ describe('pose-quality policy', () => {
       policy,
     );
 
-    expect(evaluation.metrics.longestGapMicroseconds).toBe(66_666);
+    expect(evaluation.metrics.longestJointGapMicroseconds).toBe(66_666);
     expect(evaluation.metrics.reacquisitionCount).toBe(0);
+  });
+
+  it('limits quality decisions and metrics to product-used landmarks', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.temporal.enabled = false;
+    const raw = completeSample(0);
+    raw.landmarks[1] = point(0.5, 0, 0);
+
+    const evaluation = evaluatePoseQuality([raw], policy);
+
+    expect(evaluation.samples[0].decisions[1]).toBeNull();
+    expect(evaluation.metrics.totalJointSlots).toBe(
+      PRODUCT_POSE_LANDMARK_INDICES.length,
+    );
+    expect(evaluation.metrics.confidenceRejectedJointSlots).toBe(0);
+    expect(
+      evaluateCalibrationLabels(
+        [{
+          sessionId: 1,
+          timestampMicroseconds: 0,
+          landmarkIndex: 1,
+          label: 'usable',
+        }],
+        evaluation,
+      ).total,
+    ).toBe(0);
+  });
+
+  it('identifies the product joint behind the longest gap separately from whole-pose gaps', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.temporal.enabled = false;
+    const evaluation = evaluatePoseQuality(
+      [
+        completeSample(0),
+        completeSample(33_333, 15),
+        completeSample(66_666, 15),
+        completeSample(99_999),
+      ],
+      policy,
+    );
+
+    expect(evaluation.metrics.longestJointGapMicroseconds).toBe(66_666);
+    expect(evaluation.metrics.longestJointGapLandmarkIndex).toBe(15);
+    expect(evaluation.metrics.longestWholePoseGapMicroseconds).toBe(0);
   });
 
   it('keeps display and analytics acceptance policies separate', () => {
@@ -255,9 +324,9 @@ describe('pose-quality policy', () => {
     analytics.temporal.enabled = false;
     const raw = [sample(0, point(0.2, 0.62, 0.62))];
 
-    expect(evaluatePoseQuality(raw, display).samples[0].decisions[15].accepted)
+    expect(evaluatePoseQuality(raw, display).samples[0].decisions[15]!.accepted)
       .not.toBeNull();
-    expect(evaluatePoseQuality(raw, analytics).samples[0].decisions[15].accepted)
+    expect(evaluatePoseQuality(raw, analytics).samples[0].decisions[15]!.accepted)
       .toBeNull();
   });
 

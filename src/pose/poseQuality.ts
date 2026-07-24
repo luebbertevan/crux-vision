@@ -1,6 +1,8 @@
 import type { PoseLandmark, RawPoseSample } from '../types';
+import { PRODUCT_POSE_LANDMARK_INDICES } from './poseView';
 
-export const POSE_QUALITY_POLICY_VERSION = 'balanced-v2-2026-07-24';
+export const POSE_QUALITY_POLICY_VERSION =
+  'balanced-v2.1-product-landmarks-2026-07-24';
 export const POSE_LANDMARK_COUNT = 33;
 
 export type PoseQualityPresetId = 'strict' | 'balanced' | 'permissive';
@@ -199,7 +201,7 @@ export type QualityPoseSample = {
   requestedTimestampMicroseconds: number;
   timestampMicroseconds: number;
   rawSample: RawPoseSample;
-  decisions: PoseLandmarkDecision[];
+  decisions: Array<PoseLandmarkDecision | null>;
 };
 
 export type PoseQualityMetrics = {
@@ -215,7 +217,9 @@ export type PoseQualityMetrics = {
   rejectionCounts: Partial<Record<LandmarkRejectionReason, number>>;
   flickerCount: number;
   reacquisitionCount: number;
-  longestGapMicroseconds: number;
+  longestJointGapMicroseconds: number;
+  longestJointGapLandmarkIndex: number | null;
+  longestWholePoseGapMicroseconds: number;
   meanReacquisitionMicroseconds: number;
   meanRequestedTimestampErrorMicroseconds: number;
   meanSmoothingDisplacement: number;
@@ -602,6 +606,7 @@ const applySmoothing = (
 
   for (const sample of samples) {
     for (const decision of sample.decisions) {
+      if (!decision) continue;
       const accepted = decision.accepted;
       const previous = states[decision.landmarkIndex];
       if (!accepted || !policy.smoothing.enabled) {
@@ -672,6 +677,7 @@ const buildMetrics = (
 
   for (const sample of samples) {
     for (const decision of sample.decisions) {
+      if (!decision) continue;
       groupTotals[decision.bodyGroup] += 1;
       if (decision.raw && !decision.reasons.some((reason) =>
         reason === 'missing' || reason === 'non-finite' || reason === 'out-of-bounds'
@@ -707,9 +713,16 @@ const buildMetrics = (
 
   let flickerCount = 0;
   let reacquisitionCount = 0;
-  let longestGapMicroseconds = 0;
+  let longestJointGapMicroseconds = 0;
+  let longestJointGapLandmarkIndex: number | null = null;
   let reacquisitionTotal = 0;
-  for (let landmarkIndex = 0; landmarkIndex < POSE_LANDMARK_COUNT; landmarkIndex += 1) {
+  const recordJointGap = (landmarkIndex: number, duration: number) => {
+    if (duration > longestJointGapMicroseconds) {
+      longestJointGapMicroseconds = duration;
+      longestJointGapLandmarkIndex = landmarkIndex;
+    }
+  };
+  for (const landmarkIndex of PRODUCT_POSE_LANDMARK_INDICES) {
     let hadAccepted = false;
     let gapStart: number | null = null;
     let rejectedIntervals = 0;
@@ -718,7 +731,7 @@ const buildMetrics = (
       if (accepted) {
         if (gapStart !== null) {
           const duration = sample.timestampMicroseconds - gapStart;
-          longestGapMicroseconds = Math.max(longestGapMicroseconds, duration);
+          recordJointGap(landmarkIndex, duration);
           if (hadAccepted) {
             reacquisitionCount += 1;
             reacquisitionTotal += duration;
@@ -739,14 +752,40 @@ const buildMetrics = (
       }
     }
     if (gapStart !== null && samples.length) {
-      longestGapMicroseconds = Math.max(
-        longestGapMicroseconds,
+      recordJointGap(
+        landmarkIndex,
         samples[samples.length - 1].timestampMicroseconds - gapStart,
       );
     }
   }
 
-  const totalJointSlots = samples.length * POSE_LANDMARK_COUNT;
+  let longestWholePoseGapMicroseconds = 0;
+  let wholePoseGapStart: number | null = null;
+  for (const sample of samples) {
+    const poseAccepted = PRODUCT_POSE_LANDMARK_INDICES.some((landmarkIndex) =>
+      Boolean(sample.decisions[landmarkIndex]?.accepted),
+    );
+    if (poseAccepted) {
+      if (wholePoseGapStart !== null) {
+        longestWholePoseGapMicroseconds = Math.max(
+          longestWholePoseGapMicroseconds,
+          sample.timestampMicroseconds - wholePoseGapStart,
+        );
+      }
+      wholePoseGapStart = null;
+    } else if (wholePoseGapStart === null) {
+      wholePoseGapStart = sample.timestampMicroseconds;
+    }
+  }
+  if (wholePoseGapStart !== null && samples.length) {
+    longestWholePoseGapMicroseconds = Math.max(
+      longestWholePoseGapMicroseconds,
+      samples[samples.length - 1].timestampMicroseconds - wholePoseGapStart,
+    );
+  }
+
+  const totalJointSlots =
+    samples.length * PRODUCT_POSE_LANDMARK_INDICES.length;
   const timestampErrorTotal = samples.reduce(
     (total, sample) =>
       total +
@@ -784,7 +823,9 @@ const buildMetrics = (
     rejectionCounts,
     flickerCount,
     reacquisitionCount,
-    longestGapMicroseconds,
+    longestJointGapMicroseconds,
+    longestJointGapLandmarkIndex,
+    longestWholePoseGapMicroseconds,
     meanReacquisitionMicroseconds: reacquisitionCount
       ? reacquisitionTotal / reacquisitionCount
       : 0,
@@ -822,13 +863,12 @@ export function evaluatePoseQuality(
     const scale = bodyScale(sample, previousBodyScale);
     previousBodyScale = scale;
     const previousMotion = [...motion];
-    const decisions: PoseLandmarkDecision[] = [];
+    const decisions: Array<PoseLandmarkDecision | null> = Array.from(
+      { length: POSE_LANDMARK_COUNT },
+      () => null,
+    );
 
-    for (
-      let landmarkIndex = 0;
-      landmarkIndex < POSE_LANDMARK_COUNT;
-      landmarkIndex += 1
-    ) {
+    for (const landmarkIndex of PRODUCT_POSE_LANDMARK_INDICES) {
       const raw = sample.landmarks[landmarkIndex];
       const reasons = structuralReasons(raw);
       const baseThreshold = resolveConfidenceThreshold(policy, landmarkIndex);
@@ -950,7 +990,7 @@ export function evaluatePoseQuality(
       }
       trackAccepted[landmarkIndex] = Boolean(accepted);
       if (!accepted) motion[landmarkIndex] = null;
-      decisions.push({
+      decisions[landmarkIndex] = {
         landmarkIndex,
         bodyGroup: getLandmarkBodyGroup(landmarkIndex),
         raw: raw ?? null,
@@ -963,7 +1003,7 @@ export function evaluatePoseQuality(
             ? 'missing'
             : 'rejected',
         reasons,
-      });
+      };
     }
 
     qualitySamples.push({
@@ -986,11 +1026,12 @@ export function landmarksForPreview(
   sample: QualityPoseSample,
   preview: PosePreviewMode,
 ): Array<PoseLandmark | null> {
-  if (preview === 'raw') return sample.decisions.map((decision) => decision.raw);
-  if (preview === 'smoothed') {
-    return sample.decisions.map((decision) => decision.smoothed);
-  }
-  return sample.decisions.map((decision) => decision.accepted);
+  return sample.decisions.map((decision) => {
+    if (!decision) return null;
+    if (preview === 'raw') return decision.raw;
+    if (preview === 'smoothed') return decision.smoothed;
+    return decision.accepted;
+  });
 }
 
 export function landmarkForPreview(
@@ -1018,6 +1059,7 @@ export function evaluateCalibrationLabels(
   let falseVisible = 0;
 
   for (const label of labels) {
+    if (!PRODUCT_POSE_LANDMARK_INDICES.includes(label.landmarkIndex)) continue;
     const decision =
       sampleByTimestamp.get(label.timestampMicroseconds)?.decisions[label.landmarkIndex];
     if (!decision) continue;

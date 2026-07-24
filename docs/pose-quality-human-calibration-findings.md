@@ -194,6 +194,12 @@ temporal and smoothing controls no longer have artificial upper limits.
 Non-finite or out-of-domain input is ignored, and product preset defaults are
 unchanged.
 
+Quality evaluation is now limited to the 23 landmarks the product consumes:
+nose plus landmarks 11–32. The 10 unused MediaPipe face-detail landmarks remain
+only in immutable raw provenance and are unavailable for overrides or labels.
+The former ambiguous longest-gap readout is replaced by an attributed longest
+product-joint gap and a separate longest whole-pose gap.
+
 ## Comparison-tool recommendation
 
 A full pair of synchronized video players is not the first calibration tool to

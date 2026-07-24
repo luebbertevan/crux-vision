@@ -51,7 +51,16 @@ const collectEvidence = async (page: Page, wallMilliseconds: number) =>
         ),
         p95InferenceMilliseconds: Number(root.dataset.analysisP95InferenceMs),
         flickerCount: Number(root.dataset.qualityFlicker),
-        longestGapMicroseconds: Number(root.dataset.qualityLongestGapUs),
+        longestJointGapMicroseconds: Number(
+          root.dataset.qualityLongestJointGapUs,
+        ),
+        longestJointGapLandmarkIndex:
+          root.dataset.qualityLongestJointGapLandmark === ''
+            ? null
+            : Number(root.dataset.qualityLongestJointGapLandmark),
+        longestWholePoseGapMicroseconds: Number(
+          root.dataset.qualityLongestWholePoseGapUs,
+        ),
         meanReacquisitionMicroseconds: Number(
           root.dataset.qualityMeanReacquisitionUs,
         ),
@@ -390,6 +399,26 @@ test('exposes full effective and unbounded safe developer calibration ranges', a
   }
   await page.getByLabel('Speed coefficient').fill('1000');
   await expect(page.getByLabel('Speed coefficient')).toHaveValue('1000');
+});
+
+test('limits calibration controls and gap summaries to product-used landmarks', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await importVideo(page, portraitFixture);
+  await page.getByText('Pose quality calibration').click();
+
+  await expect(page.getByText('Longest product-joint gap')).toBeVisible();
+  await expect(page.getByText('Longest whole-pose gap')).toBeVisible();
+
+  await page.getByText('Joint override and inspection', { exact: true }).click();
+  const joint = page.getByTestId('calibration-joint');
+  await expect(joint.locator('option')).toHaveCount(23);
+  await expect(joint.locator('option[value="0"]')).toContainText('Nose');
+  await expect(joint.locator('option[value="1"]')).toHaveCount(0);
+  await expect(joint.locator('option[value="11"]')).toContainText(
+    'Left shoulder',
+  );
 });
 
 test('keeps the advanced calibration workspace usable at iPhone width', async ({

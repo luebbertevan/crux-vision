@@ -1,6 +1,7 @@
 import { DEFAULT_SAMPLE_RATE, SECOND_MICROSECONDS } from '../analysis/range';
 import {
   buildSkeletonSegmentsFromGetter,
+  PRODUCT_POSE_LANDMARK_INDICES,
   resolvePosePointFromGetter,
   type PosePointSource,
 } from '../pose/poseView';
@@ -145,13 +146,11 @@ export function renderOverlay(
 
   context.shadowBlur = 0;
   const acceptedLandmarks =
-    currentSample?.decisions
-      .map((_decision, landmarkIndex) =>
-        landmarkIndex === 0 || landmarkIndex >= 11
-          ? getPreviewLandmark(currentSample, landmarkIndex)
-          : null,
-      )
-      .filter((landmark): landmark is PoseLandmark => Boolean(landmark)) ?? [];
+    currentSample
+      ? PRODUCT_POSE_LANDMARK_INDICES.map((landmarkIndex) =>
+          getPreviewLandmark(currentSample, landmarkIndex),
+        ).filter((landmark): landmark is PoseLandmark => Boolean(landmark))
+      : [];
   const radius = Math.max(2.2, width / 260);
   for (const landmark of acceptedLandmarks) {
     const point = mapNormalizedPoint(transform, landmark);
@@ -167,6 +166,7 @@ export function renderOverlay(
   if (previewMode === 'rejected' && currentSample) {
     const rejectedRadius = Math.max(3.2, width / 220);
     for (const decision of currentSample.decisions) {
+      if (!decision) continue;
       if (decision.status !== 'rejected' || !decision.raw) continue;
       if (!Number.isFinite(decision.raw.x) || !Number.isFinite(decision.raw.y)) continue;
       const point = mapNormalizedPoint(transform, decision.raw);

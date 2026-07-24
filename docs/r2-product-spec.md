@@ -84,7 +84,10 @@ remains open. Calibration policy edits and manual calibration seeks support
 standard undo/redo shortcuts, advanced setting families are independently
 collapsible, Smoothed preview is unavailable when its filter is disabled, and
 developer-only controls expose full safe diagnostic ranges without changing
-product defaults. See the
+product defaults. Quality decisions and calibration operate only on the 23
+landmarks used by the product; unused face details remain raw provenance.
+Per-joint gap attribution and a separate whole-pose gap prevent one persistently
+missing joint from being described as a pose-wide outage. See the
 [`calibration plan`](./pose-quality-calibration-plan.md) and
 [`calibration report`](./pose-quality-calibration-report.md).
 

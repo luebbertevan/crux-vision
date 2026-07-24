@@ -51,6 +51,15 @@ export const POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
   [28, 32],
 ];
 
+export const PRODUCT_POSE_LANDMARK_INDICES: readonly number[] = [
+  0,
+  ...new Set(POSE_CONNECTIONS.flat()),
+].sort((first, second) => first - second);
+
+const PRODUCT_POSE_LANDMARK_INDEX_SET = new Set(
+  PRODUCT_POSE_LANDMARK_INDICES,
+);
+
 export function isLandmarkAccepted(
   landmark: PoseLandmark | undefined,
   visibilityThreshold = DEFAULT_VISIBILITY_THRESHOLD,
@@ -141,7 +150,10 @@ export function isSkeletonLandmarkVisible(
   landmarkIndex: number,
   landmark: PoseLandmark | undefined,
 ): landmark is PoseLandmark {
-  return (landmarkIndex === 0 || landmarkIndex >= 11) && isLandmarkAccepted(landmark);
+  return (
+    PRODUCT_POSE_LANDMARK_INDEX_SET.has(landmarkIndex) &&
+    isLandmarkAccepted(landmark)
+  );
 }
 
 export function buildSkeletonSegments(sample: RawPoseSample | null): SkeletonSegment[] {

@@ -15,6 +15,7 @@ import {
   type PoseQualityPresetId,
   type QualityPoseSample,
 } from '../pose/poseQuality';
+import { PRODUCT_POSE_LANDMARK_INDICES } from '../pose/poseView';
 import { POSE_MODELS } from '../pose/modelCatalog';
 import type { PoseModelId } from '../types';
 
@@ -170,6 +171,10 @@ export function PoseQualityPanel({
   const jointOverrideEnabled = Boolean(policy.joints[selectedJoint]);
   const currentDecision = currentSample?.decisions[selectedJoint] ?? null;
   const metrics = evaluation.metrics;
+  const longestGapJoint =
+    metrics.longestJointGapLandmarkIndex === null
+      ? '—'
+      : POSE_LANDMARK_NAMES[metrics.longestJointGapLandmarkIndex];
   const [calibrationFrameDraft, setCalibrationFrameDraft] = useState('');
 
   useEffect(() => {
@@ -472,8 +477,13 @@ export function PoseQualityPanel({
               <strong>{metrics.flickerCount}</strong>
             </span>
             <span>
-              <small>Longest gap</small>
-              <strong>{milliseconds(metrics.longestGapMicroseconds)}</strong>
+              <small>Longest product-joint gap</small>
+              <strong>{milliseconds(metrics.longestJointGapMicroseconds)}</strong>
+              <small>{longestGapJoint}</small>
+            </span>
+            <span>
+              <small>Longest whole-pose gap</small>
+              <strong>{milliseconds(metrics.longestWholePoseGapMicroseconds)}</strong>
             </span>
             <span>
               <small>Mean smoothing shift</small>
@@ -591,9 +601,9 @@ export function PoseQualityPanel({
                 value={selectedJoint}
                 onChange={(event) => setSelectedJoint(Number(event.currentTarget.value))}
               >
-                {POSE_LANDMARK_NAMES.map((name, index) => (
-                  <option key={name} value={index}>
-                    {index} · {name}
+                {PRODUCT_POSE_LANDMARK_INDICES.map((index) => (
+                  <option key={index} value={index}>
+                    {index} · {POSE_LANDMARK_NAMES[index]}
                   </option>
                 ))}
               </select>

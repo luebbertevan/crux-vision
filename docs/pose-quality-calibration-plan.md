@@ -109,8 +109,9 @@ Controls:
 Readouts:
 
 - Current score and acceptance reason for the selected joint.
-- Accepted coverage, rejection counts, longest gap, and reacquisition delay by
-  joint and body group.
+- Accepted coverage and rejection counts over product-used landmarks only,
+  attributed longest product-joint gap, separate whole-pose gap, and
+  reacquisition delay by joint and body group.
 - Whether the visible point is raw, smoothed, or interpolated.
 - Requested versus actual presentation timestamps, duplicate-frame suppression,
   raw model-empty samples, and confidence-rejected samples.
@@ -217,8 +218,9 @@ still found one objectionable frame of lag. Exact analyzed-frame navigation now
 supports the centered/offline smoother decision before final display sign-off.
 
 Three five-second real climbing ranges were calibrated on the reference laptop.
-Balanced accepted 55.1%, 93.5%, and 92.5% of all scheduled joint slots in the
-dynamic portrait, portrait overhang/occlusion, and landscape ranges. The first
+Balanced accepted 49.7%, 90.7%, and 89.2% of the 23 scheduled product-joint
+slots in the dynamic portrait, portrait overhang/occlusion, and landscape
+ranges. The first
 range's low result is dominated by 49 raw model-empty samples out of 151, which
 remain honest gaps. Strict rejected more uncertain points and introduced more
 short reacquisitions; Permissive retained more marginal distal points.
@@ -231,8 +233,8 @@ visual tuning verified that plausible fast limbs are not broadly removed.
 Manual labels remain available for later, larger corpus work.
 
 MediaPipe Full was evaluated as a bounded challenger before any default change.
-On the difficult dynamic portrait range it accepted 54.5% of all scheduled
-joint slots versus Lite's 55.1%. Repeated short warm-cache laptop timings
+On the difficult dynamic portrait range it accepted 48.9% of scheduled
+product-joint slots versus Lite's 49.7%. Repeated short warm-cache laptop timings
 changed order, so they are not used as device-performance evidence. With no
 visible or coverage gain, Lite remains the product default. The longer physical
 phone thermal, battery, delegate, and model matrix remains explicitly deferred

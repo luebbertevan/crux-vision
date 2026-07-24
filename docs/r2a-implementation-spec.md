@@ -531,6 +531,13 @@ wrists and other direct joints. A midpoint is missing whenever either source
 joint is rejected. Face detail is hidden; one accepted head anchor connects to
 the derived shoulder midpoint.
 
+The quality layer now shares that same product-landmark contract: nose plus
+landmarks 11–32, for 23 scheduled product joints. The other 10 MediaPipe face
+details remain preserved only in immutable raw samples and are excluded from
+policy decisions, overrides, labels, smoothing, rejection counts, coverage, and
+gap metrics. Longest gap is split into an attributed product-joint interval and
+a separate whole-pose interval.
+
 The calibration implementation is complete. Balanced v2 is the ordinary
 default, with Strict and Permissive alternatives; its focused human re-smoke
 still found one objectionable frame of lag, so the zero-lag display decision

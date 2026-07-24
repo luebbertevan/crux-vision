@@ -714,7 +714,7 @@ export function App() {
   const exportCalibration = useCallback(() => {
     if (!source) return;
     const payload = {
-      schemaVersion: 'crux-pose-calibration-v1',
+      schemaVersion: 'crux-pose-calibration-v2',
       exportedAt: new Date().toISOString(),
       source: {
         sessionId: source.id,
@@ -744,15 +744,19 @@ export function App() {
       qualitySamples: qualityEvaluation.samples.map((sample) => ({
         requestedTimestampMicroseconds: sample.requestedTimestampMicroseconds,
         timestampMicroseconds: sample.timestampMicroseconds,
-        decisions: sample.decisions.map((decision) => ({
-          landmarkIndex: decision.landmarkIndex,
-          bodyGroup: decision.bodyGroup,
-          status: decision.status,
-          reasons: decision.reasons,
-          threshold: decision.threshold,
-          accepted: decision.accepted,
-          smoothed: decision.smoothed,
-        })),
+        decisions: sample.decisions.flatMap((decision) =>
+          decision
+            ? [{
+                landmarkIndex: decision.landmarkIndex,
+                bodyGroup: decision.bodyGroup,
+                status: decision.status,
+                reasons: decision.reasons,
+                threshold: decision.threshold,
+                accepted: decision.accepted,
+                smoothed: decision.smoothed,
+              }]
+            : [],
+        ),
       })),
     };
     const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], {
@@ -847,8 +851,14 @@ export function App() {
         qualityEvaluation.metrics.p95InferenceMilliseconds
       }
       data-quality-flicker={qualityEvaluation.metrics.flickerCount}
-      data-quality-longest-gap-us={
-        qualityEvaluation.metrics.longestGapMicroseconds
+      data-quality-longest-joint-gap-us={
+        qualityEvaluation.metrics.longestJointGapMicroseconds
+      }
+      data-quality-longest-joint-gap-landmark={
+        qualityEvaluation.metrics.longestJointGapLandmarkIndex ?? ''
+      }
+      data-quality-longest-whole-pose-gap-us={
+        qualityEvaluation.metrics.longestWholePoseGapMicroseconds
       }
       data-quality-mean-reacquisition-us={
         qualityEvaluation.metrics.meanReacquisitionMicroseconds

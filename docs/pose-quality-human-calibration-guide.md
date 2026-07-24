@@ -52,6 +52,10 @@ failed motion-plausibility checks.
 ### Confidence controls
 
 MediaPipe confidence is a clue, not proof that a point is correct.
+Calibration covers the 23 landmarks Crux Vision actually draws or uses for
+derived trails: the nose plus shoulders through feet. The 10 additional
+MediaPipe eye, ear, and mouth landmarks remain in raw provenance only and do not
+affect controls or metrics.
 
 | Control | What increasing it does | Use it when |
 |---|---|---|
@@ -102,12 +106,13 @@ useful responsiveness.
 
 | Measurement | Meaning | How to use it |
 |---|---|---|
-| Accepted coverage | Accepted joint slots divided by every scheduled joint slot, including model-empty moments. | Context only. Higher can mean more useful motion or more bad points. |
+| Accepted coverage | Accepted product-joint slots divided by all 23 scheduled product-joint slots, including model-empty moments. | Context only. Higher can mean more useful motion or more bad points. |
 | Group coverage | Accepted coverage for each body group. | Find groups being removed much more than others. |
 | Confidence rejects | Joint slots removed by visibility or presence. | Expect this to rise when confidence thresholds rise. |
 | Temporal rejects | Joint slots removed for isolated jumps, velocity, acceleration, or segment-length change. | Inspect visually; a small count can be useful, but every rejected valid fast limb matters. |
 | Flicker events | Short per-joint loss followed by reacquisition. | Lower is generally better, but this is not the previously reported whole-pose flicker diagnostic. |
-| Longest gap | Longest time any joint remained unavailable. | Use with the selected joint and group coverage; one permanently hidden joint can dominate it. |
+| Longest product-joint gap | Longest rejected interval for one used joint, with the responsible joint named. | Shows persistent loss of a specific useful joint; it does not mean the whole pose vanished. |
+| Longest whole-pose gap | Longest interval with no accepted product joint. | Use this to distinguish a true pose-wide outage from one missing limb. |
 | Mean smoothing shift | Average normalized distance between accepted raw and smoothed points. | Compare iterations. A larger value usually means more smoothing/lag, not necessarily worse output. |
 | Mean inference | Model computation time per stored sample. | Performance information, not a calibration target. |
 | Mean timestamp error | Difference between requested and actual video presentation time. | Timing-health information, not a confidence-setting target. |

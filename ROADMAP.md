@@ -217,8 +217,9 @@ three presets; model, policy target, thresholds, joint overrides, debug views,
 metrics, labels, and JSON export remain under **Pose quality calibration**.
 
 The bounded laptop corpus covered dynamic portrait movement, portrait
-overhang/occlusion, and extended landscape movement. Balanced accepted 55.1%,
-93.5%, and 92.5% of all scheduled joint slots in those ranges respectively.
+overhang/occlusion, and extended landscape movement. Balanced accepted 49.7%,
+90.7%, and 89.2% of the 23 scheduled product-joint slots in those ranges
+respectively.
 The difficult lache range included 49 model-empty samples out of 151; filtering
 does not conceal or reconstruct them. Visual review found no repeatable major
 raw slingshot in the selected moments, while synthetic high-confidence
@@ -226,8 +227,8 @@ slingshots are rejected and the tuned temporal limits retain plausible fast
 limbs. This is a first display-policy calibration, not motion-capture accuracy
 validation.
 
-A bounded Full-model challenger on the difficult range accepted 54.5% versus
-Lite's 55.1%. Repeated short warm-cache laptop timing changed order and was not
+A bounded Full-model challenger on the difficult range accepted 48.9% versus
+Lite's 49.7%. Repeated short warm-cache laptop timing changed order and was not
 treated as device-performance evidence. With no visible or coverage gain, the
 result does not justify changing the product default from Lite.
 The phone thermal/battery and delegate/model matrix remains R2D work and was not
@@ -271,6 +272,12 @@ task can stay in focus.
 Developer calibration controls expose full effective confidence/hysteresis
 domains and remove artificial maxima from finite nonnegative temporal and
 smoothing inputs. Product preset defaults remain unchanged.
+
+Quality decisions, settings, labels, smoothing, rejection counts, coverage, and
+gap metrics now use only the 23 landmarks consumed by the product overlay.
+Unused MediaPipe face-detail landmarks remain in immutable raw provenance only.
+Gap diagnostics separately name the longest-lost product joint and report the
+longest interval with no accepted product joint.
 
 ### R2B — Precision review controls
 

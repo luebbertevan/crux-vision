@@ -3,7 +3,7 @@
 **Status:** Balanced v2 remains one frame late in human review; exact-frame
 calibration navigation implemented
 
-**Policy version:** `balanced-v2-2026-07-24`
+**Policy version:** `balanced-v2.1-product-landmarks-2026-07-24`
 
 **Date:** July 24, 2026
 
@@ -128,20 +128,30 @@ JSON export.
 ## Calibration corpus and evidence
 
 Each range requested 151 samples at 30 samples/second. Coverage below is
-accepted joint slots divided by all scheduled joint slots, including honest
-model-empty and unavailable slots. It is not accuracy against ground truth.
+accepted slots divided by the 23 scheduled product-used landmarks (nose and
+body landmarks 11–32), including honest model-empty and unavailable slots. The
+10 unused MediaPipe face-detail landmarks remain raw provenance and do not
+affect decisions, controls, labels, smoothing, or metrics. Coverage is not
+accuracy against ground truth.
+Calibration JSON schema `crux-pose-calibration-v2` preserves all raw landmarks
+but emits derived quality decisions only for those 23 product landmarks.
 
 | Fixture and range | Purpose | Strict | Balanced | Permissive | Balanced confidence / temporal rejects |
 |---|---|---:|---:|---:|---:|
-| `lache-send.MOV`, 7–12 s | Portrait dynamic reach | 52.5% | 55.1% | 59.3% | 616 / 5 |
-| `overhang-orange.MOV`, 7–12 s | Portrait overhang and occlusion | 89.3% | 93.5% | 98.7% | 317 / 6 |
-| `landscape-climb.MOV`, 15–20 s | Landscape extended movement | 85.5% | 92.5% | 96.2% | 367 / 9 |
+| `lache-send.MOV`, 7–12 s | Portrait dynamic reach | 46.0% | 49.7% | 55.7% | 616 / 5 |
+| `overhang-orange.MOV`, 7–12 s | Portrait overhang and occlusion | 84.7% | 90.7% | 98.1% | 317 / 6 |
+| `landscape-climb.MOV`, 15–20 s | Landscape extended movement | 79.2% | 89.2% | 94.5% | 367 / 9 |
 
 The lache range contains 49 raw model-empty samples; all three policies preserve
-those gaps. Balanced recorded 18 short per-joint reacquisition events across the
-three ranges, versus 33 for Strict and nine for Permissive. With Balanced v2,
-mean smoothing displacement was 0.0075, 0.0037, and 0.0054 normalized image
+those gaps. Balanced recorded 18 short per-joint flicker events across the three
+ranges, versus 33 for Strict and nine for Permissive. With Balanced v2.1,
+mean smoothing displacement was 0.0088, 0.0038, and 0.0059 normalized image
 units for the three ranges.
+
+On the lache range, the longest product-joint gap is 5,005 ms for the right
+elbow, while the longest whole-pose gap is 1,635 ms. This explicit attribution
+prevents one persistently rejected joint from being mistaken for a pose-wide
+data outage.
 
 Visual comparison used raw, reason-colored rejected, accepted, and smoothed
 overlays on the three ranges plus additional spot checks of fast and occluded
@@ -184,8 +194,8 @@ display policy on the same reference laptop:
 
 | Model | Scheduled samples | Model-empty samples | Accepted coverage | Confidence rejects | Temporal rejects | Mean inference across two short runs |
 |---|---:|---:|---:|---:|---:|---:|
-| Lite | 151 | 49 | 55.1% | 616 | 5 | 11.9–14.1 ms |
-| Full | 151 | 49 | 54.5% | 649 | 0 | 12.2–13.6 ms |
+| Lite | 151 | 49 | 49.7% | 616 | 5 | 11.9–14.1 ms |
+| Full | 151 | 49 | 48.9% | 649 | 0 | 12.2–13.6 ms |
 
 This single bounded challenger is enough to avoid changing the product default:
 Full showed no accepted-coverage gain. The short warm-cache timings changed
@@ -197,16 +207,17 @@ costs.
 
 ## Verification and limitations
 
-Automated coverage includes threshold precedence, independent visibility and
-presence, hysteresis, synthetic slingshot and velocity rejection, segment-local
-smoothing reset, honest leading gaps, display/analytics separation, immutable
-raw recomputation, manual-label metrics, and derived-point provenance. Browser
+Automated coverage includes product-landmark scoping, threshold precedence,
+independent visibility and presence, hysteresis, synthetic slingshot and
+velocity rejection, segment-local smoothing reset, attributed per-joint and
+whole-pose gaps, display/analytics separation, immutable raw recomputation,
+manual-label metrics, and derived-point provenance. Browser
 coverage proves cached-policy recomputation, model-change invalidation,
 source-replacement cleanup, the three-range preset sweep, bounded Lite/Full
 comparison, full-domain developer calibration controls, and mobile-width
 advanced-control sizing.
 
-The final production build, all 45 unit tests, and all 19 Chrome Playwright
+The final production build, all 47 unit tests, and all 20 Chrome Playwright
 tests passed before publication.
 
 Remaining limitations:
