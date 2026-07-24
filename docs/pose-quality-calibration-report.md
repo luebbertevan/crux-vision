@@ -67,10 +67,16 @@ recompute cached samples without rerunning
 inference; a model change deliberately clears raw results and requires a new
 analysis.
 
-The calibration-setting history holds up to 100 steps and coalesces rapid
-changes to one control. Standard Mac and Windows/Linux undo/redo shortcuts work
-while the workspace is open. Model changes, labels, and frame navigation are
-excluded because they are not reversible policy edits.
+The calibration history holds up to 100 steps and coalesces rapid changes to one
+control or transport drag. Standard Mac and Windows/Linux undo/redo shortcuts
+work while the workspace is open. Exact-frame seeks are individual history
+steps. Model changes and labels remain excluded; importing a source or changing
+the model clears history.
+
+The UI prevents a Smoothed preview when the active policy has smoothing
+disabled and falls back to Accepted raw if smoothing is turned off. Accepted
+raw remains available while smoothing is enabled as an intentional comparison
+that bypasses, but does not modify, the calibrated filter.
 
 Derived hip and shoulder midpoints retain versioned source provenance and exist
 only when both required source joints are accepted. The simplified head remains
@@ -199,7 +205,7 @@ coverage proves cached-policy recomputation, model-change invalidation,
 source-replacement cleanup, the three-range preset sweep, bounded Lite/Full
 comparison, and mobile-width advanced-control sizing.
 
-The final production build, all 43 unit tests, and all 17 Chrome Playwright
+The final production build, all 45 unit tests, and all 18 Chrome Playwright
 tests passed before publication.
 
 Remaining limitations:

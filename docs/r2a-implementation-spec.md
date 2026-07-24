@@ -551,9 +551,15 @@ the stored presentation timestamp. Frame numbering is only a calibration
 address over timestamped pose samples; timestamps remain the identity and
 source frames above the analysis density are not implied.
 
-Calibration policy edits have a bounded 100-step undo/redo history. Rapid
-changes to the same control coalesce, visible Undo/Redo buttons expose state,
-and the standard Mac and Windows/Linux shortcuts work while the calibration
-workspace is open. Inference-model changes, manual labels, and frame navigation
-are excluded from policy history. The five advanced setting families are native
-independent disclosures and start collapsed.
+Calibration changes have a bounded 100-step undo/redo history. Rapid changes to
+the same control or transport drag coalesce, exact analyzed-frame seeks remain
+individual steps, visible Undo/Redo buttons expose state, and the standard Mac
+and Windows/Linux shortcuts work while the calibration workspace is open.
+Inference-model changes and manual labels are excluded; source import or model
+change clears history. The five advanced setting families are native independent
+disclosures and start collapsed.
+
+Smoothed preview is unavailable when the active policy has smoothing disabled.
+Turning smoothing off while Smoothed is selected falls back to Accepted raw.
+Accepted raw remains selectable with smoothing enabled so it can serve as the
+unfiltered comparison without altering filter calibration.

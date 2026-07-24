@@ -35,12 +35,16 @@ change the Analytics policy unless the Display policy is already satisfactory.
 | Policy target | Display favors a stable, useful overlay. Analytics is stricter and unsmoothed for future measurements. | Calibrate Display first. Leave Analytics unchanged for now. |
 | Overlay preview | Raw model shows everything; Accepted raw shows retained points before smoothing; Rejected adds rejected points; Smoothed shows the final display. | Compare all four views at the same moment. |
 | Exact analyzed frames | Previous/next steps between stored pose presentation timestamps; direct entry seeks a numbered analyzed sample. | Use this for repeatable Accepted raw versus Smoothed checks. It is exact for analyzed pose frames, not unanalyzed source frames. |
-| Undo / redo setting | Reverts or reapplies the last calibration-setting change. Quick slider movement is grouped into one history step. | Use the buttons or `Cmd/Ctrl+Z`; redo with `Cmd/Ctrl+Shift+Z` or `Ctrl+Y`. Model changes, labels, and frame navigation are excluded. |
+| Undo / redo change | Reverts or reapplies the last calibration-setting change or manual seek made while the workspace is open. Quick slider and timeline movement is grouped into one history step; exact-frame steps remain individual. | Use the buttons or `Cmd/Ctrl+Z`; redo with `Cmd/Ctrl+Shift+Z` or `Ctrl+Y`. Model changes and labels are excluded. |
 
 The advanced setting families—Global confidence, Body-group override, Joint
 override and inspection, Continuity and plausibility, and Segment-local
 smoothing—are independently collapsible. Keep only the family currently being
 tested open.
+
+The Smoothed preview is unavailable whenever One Euro display smoothing is off.
+Accepted raw deliberately bypasses an enabled filter so you can compare the
+same policy with and without filtered coordinates.
 
 In the Rejected preview, amber points failed confidence checks and pink points
 failed motion-plausibility checks.

@@ -330,21 +330,29 @@ export function PoseQualityPanel({
                   onPreviewModeChange(event.currentTarget.value as PosePreviewMode)
                 }
               >
-                <option value="smoothed">Smoothed</option>
+                <option value="smoothed" disabled={!policy.smoothing.enabled}>
+                  Smoothed
+                  {policy.smoothing.enabled ? '' : ' · filter disabled'}
+                </option>
                 <option value="accepted">Accepted raw</option>
                 <option value="rejected">Accepted + rejected</option>
                 <option value="raw">Raw model</option>
               </select>
+              <small>
+                {policy.smoothing.enabled
+                  ? 'Accepted raw bypasses the enabled filter without changing its calibration.'
+                  : 'Enable the filter below to make the Smoothed preview available.'}
+              </small>
             </label>
           </div>
 
           <div className="calibration-history-actions">
             <button type="button" disabled={!canUndo} onClick={onUndo}>
-              <span>Undo setting</span>
+              <span>Undo change</span>
               <kbd>⌘/Ctrl Z</kbd>
             </button>
             <button type="button" disabled={!canRedo} onClick={onRedo}>
-              <span>Redo setting</span>
+              <span>Redo change</span>
               <kbd>⌘/Ctrl ⇧Z</kbd>
             </button>
           </div>
@@ -397,7 +405,6 @@ export function PoseQualityPanel({
                   max={Math.max(1, calibrationFrameCount)}
                   step={1}
                   inputMode="numeric"
-                  data-calibration-history-ignore="true"
                   value={calibrationFrameDraft}
                   disabled={calibrationFrameCount === 0}
                   onChange={(event) =>

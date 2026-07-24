@@ -6,7 +6,7 @@ type HistoryEntry<T> = {
 
 export class CalibrationHistory<T> {
   private readonly past: HistoryEntry<T>[] = [];
-  private readonly future: T[] = [];
+  private readonly future: HistoryEntry<T>[] = [];
 
   constructor(
     private readonly maximumEntries = 100,
@@ -19,6 +19,11 @@ export class CalibrationHistory<T> {
 
   get canRedo(): boolean {
     return this.future.length > 0;
+  }
+
+  clear(): void {
+    this.past.length = 0;
+    this.future.length = 0;
   }
 
   record(valueBeforeChange: T, changeKey: string, changedAt: number): void {
@@ -36,21 +41,24 @@ export class CalibrationHistory<T> {
     this.future.length = 0;
   }
 
-  undo(currentValue: T): T | null {
+  undo(currentValueFor: (valueBeingRestored: T) => T): T | null {
     const entry = this.past.pop();
     if (!entry) return null;
-    this.future.push(currentValue);
+    this.future.push({
+      ...entry,
+      value: currentValueFor(entry.value),
+    });
     return entry.value;
   }
 
-  redo(currentValue: T): T | null {
-    if (this.future.length === 0) return null;
-    const value = this.future.pop()!;
+  redo(currentValueFor: (valueBeingRestored: T) => T): T | null {
+    const entry = this.future.pop();
+    if (!entry) return null;
     this.past.push({
-      value: currentValue,
-      changeKey: 'redo-boundary',
+      ...entry,
+      value: currentValueFor(entry.value),
       changedAt: Number.NEGATIVE_INFINITY,
     });
-    return value;
+    return entry.value;
   }
 }

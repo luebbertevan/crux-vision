@@ -80,8 +80,9 @@ expose documented coverage/continuity tradeoffs, while detailed policy controls
 and reason-coded debug views remain under the advanced disclosure. A focused
 human re-smoke still found one visible frame of lag, so the gate now includes
 exact analyzed-presentation-frame navigation and the zero-lag display decision
-remains open. Calibration policy edits support standard undo/redo shortcuts,
-and advanced setting families are independently collapsible. See the
+remains open. Calibration policy edits and manual calibration seeks support
+standard undo/redo shortcuts, advanced setting families are independently
+collapsible, and Smoothed preview is unavailable when its filter is disabled. See the
 [`calibration plan`](./pose-quality-calibration-plan.md) and
 [`calibration report`](./pose-quality-calibration-report.md).
 

@@ -269,6 +269,11 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
   await page.getByRole('button', { name: 'Previous analyzed frame' }).click();
   await expect(navigator).toHaveAttribute('data-frame-index', '9');
   await expect(page.getByLabel('Exact analyzed frame')).toHaveValue('10');
+
+  await page.getByRole('button', { name: 'Undo change' }).click();
+  await expect(navigator).toHaveAttribute('data-frame-index', '10');
+  await page.getByRole('button', { name: 'Redo change' }).click();
+  await expect(navigator).toHaveAttribute('data-frame-index', '9');
 });
 
 test('undoes and redoes calibration settings with standard shortcuts and collapsible groups', async ({
@@ -288,10 +293,10 @@ test('undoes and redoes calibration settings with standard shortcuts and collaps
   const minimumCutoff = page.getByLabel('Minimum cutoff');
   await expect(minimumCutoff).toHaveValue('2');
   await minimumCutoff.fill('3');
-  await expect(page.getByRole('button', { name: 'Undo setting' })).toBeEnabled();
-  await page.getByRole('button', { name: 'Undo setting' }).click();
+  await expect(page.getByRole('button', { name: 'Undo change' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Undo change' }).click();
   await expect(minimumCutoff).toHaveValue('2');
-  await page.getByRole('button', { name: 'Redo setting' }).click();
+  await page.getByRole('button', { name: 'Redo change' }).click();
   await expect(minimumCutoff).toHaveValue('3');
 
   await minimumCutoff.fill('4');
@@ -306,6 +311,31 @@ test('undoes and redoes calibration settings with standard shortcuts and collaps
 
   await smoothingSection.getByText('Segment-local smoothing', { exact: true }).click();
   await expect(smoothingSection).not.toHaveAttribute('open', '');
+});
+
+test('prevents a misleading smoothed preview when its filter is disabled', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await importVideo(page, portraitFixture);
+  await page.getByText('Pose quality calibration').click();
+
+  const preview = page.getByTestId('pose-preview-mode');
+  await expect(preview).toHaveValue('smoothed');
+  await page.getByTestId('policy-target').selectOption('analytics');
+  await expect(preview).toHaveValue('accepted');
+  await expect(preview.locator('option[value="smoothed"]')).toHaveAttribute(
+    'disabled',
+    '',
+  );
+
+  const smoothingSection = page
+    .locator('details.calibration-fieldset')
+    .filter({ hasText: 'Segment-local smoothing' });
+  await smoothingSection.getByText('Segment-local smoothing', { exact: true }).click();
+  await expect(
+    page.getByRole('checkbox', { name: 'One Euro display smoothing' }),
+  ).not.toBeChecked();
 });
 
 test('keeps the advanced calibration workspace usable at iPhone width', async ({

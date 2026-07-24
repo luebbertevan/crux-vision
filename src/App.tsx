@@ -72,6 +72,16 @@ type CalibrationSettingsSnapshot = {
   previewMode: PosePreviewMode;
 };
 
+type CalibrationHistorySnapshot =
+  | {
+      kind: 'settings';
+      settings: CalibrationSettingsSnapshot;
+    }
+  | {
+      kind: 'playhead';
+      timeSeconds: number;
+    };
+
 const cloneCalibrationSettings = (
   snapshot: CalibrationSettingsSnapshot,
 ): CalibrationSettingsSnapshot => ({
@@ -149,8 +159,9 @@ export function App() {
   const sessionSequenceRef = useRef(0);
   const jobSequenceRef = useRef(0);
   const autoplaySessionRef = useRef<number | null>(null);
+  const calibrationSeekSequenceRef = useRef(0);
   const calibrationHistoryRef = useRef(
-    new CalibrationHistory<CalibrationSettingsSnapshot>(),
+    new CalibrationHistory<CalibrationHistorySnapshot>(),
   );
   const calibrationSettingsRef = useRef<CalibrationSettingsSnapshot>({
     presetId: qualityPresetId,
@@ -253,6 +264,8 @@ export function App() {
         setStageFeedback('none');
         setOverlaysVisible(true);
         setCalibrationLabels([]);
+        calibrationHistoryRef.current.clear();
+        setCalibrationHistoryRevision((revision) => revision + 1);
         autoplaySessionRef.current = null;
         dispatch({ type: 'reset', sessionId });
       } catch (error) {
@@ -432,6 +445,9 @@ export function App() {
   const applyCalibrationSettings = useCallback(
     (snapshot: CalibrationSettingsSnapshot) => {
       const cloned = cloneCalibrationSettings(snapshot);
+      if (!cloned.policy.smoothing.enabled && cloned.previewMode === 'smoothed') {
+        cloned.previewMode = 'accepted';
+      }
       calibrationSettingsRef.current = cloned;
       setQualityPresetId(cloned.presetId);
       setPolicyTarget(cloned.policyTarget);
@@ -441,13 +457,44 @@ export function App() {
     [],
   );
 
+  const currentHistorySnapshotFor = useCallback(
+    (
+      valueBeingRestored: CalibrationHistorySnapshot,
+    ): CalibrationHistorySnapshot =>
+      valueBeingRestored.kind === 'settings'
+        ? {
+            kind: 'settings',
+            settings: cloneCalibrationSettings(calibrationSettingsRef.current),
+          }
+        : {
+            kind: 'playhead',
+            timeSeconds: player.getSnapshot().currentTimeSeconds,
+          },
+    [player],
+  );
+
+  const applyHistorySnapshot = useCallback(
+    (snapshot: CalibrationHistorySnapshot) => {
+      if (snapshot.kind === 'settings') {
+        applyCalibrationSettings(snapshot.settings);
+        return;
+      }
+      player.pause();
+      player.seek(snapshot.timeSeconds);
+    },
+    [applyCalibrationSettings, player],
+  );
+
   const changeCalibrationSettings = useCallback(
     (
       next: CalibrationSettingsSnapshot,
       changeKey: string,
     ) => {
       calibrationHistoryRef.current.record(
-        cloneCalibrationSettings(calibrationSettingsRef.current),
+        {
+          kind: 'settings',
+          settings: cloneCalibrationSettings(calibrationSettingsRef.current),
+        },
         changeKey,
         performance.now(),
       );
@@ -458,31 +505,60 @@ export function App() {
   );
 
   const undoCalibrationSetting = useCallback(() => {
-    const previous = calibrationHistoryRef.current.undo(
-      cloneCalibrationSettings(calibrationSettingsRef.current),
-    );
+    const previous = calibrationHistoryRef.current.undo(currentHistorySnapshotFor);
     if (!previous) return;
-    applyCalibrationSettings(previous);
+    applyHistorySnapshot(previous);
     setCalibrationHistoryRevision((revision) => revision + 1);
-  }, [applyCalibrationSettings]);
+  }, [applyHistorySnapshot, currentHistorySnapshotFor]);
 
   const redoCalibrationSetting = useCallback(() => {
-    const next = calibrationHistoryRef.current.redo(
-      cloneCalibrationSettings(calibrationSettingsRef.current),
-    );
+    const next = calibrationHistoryRef.current.redo(currentHistorySnapshotFor);
     if (!next) return;
-    applyCalibrationSettings(next);
+    applyHistorySnapshot(next);
     setCalibrationHistoryRevision((revision) => revision + 1);
-  }, [applyCalibrationSettings]);
+  }, [applyHistorySnapshot, currentHistorySnapshotFor]);
+
+  const recordCalibrationSeek = useCallback(
+    (timeSeconds: number, changeKey: string) => {
+      const currentTimeSeconds = player.getSnapshot().currentTimeSeconds;
+      if (Math.abs(currentTimeSeconds - timeSeconds) < 0.000_001) return;
+      calibrationHistoryRef.current.record(
+        {
+          kind: 'playhead',
+          timeSeconds: currentTimeSeconds,
+        },
+        changeKey,
+        performance.now(),
+      );
+      setCalibrationHistoryRevision((revision) => revision + 1);
+      player.pause();
+      player.seek(timeSeconds);
+    },
+    [player],
+  );
 
   const seekToCalibrationFrame = useCallback(
     (frameIndex: number) => {
       const sample = qualityEvaluation.samples[frameIndex];
       if (!sample) return;
-      player.pause();
-      player.seek(microsecondsToSeconds(sample.timestampMicroseconds));
+      calibrationSeekSequenceRef.current += 1;
+      recordCalibrationSeek(
+        microsecondsToSeconds(sample.timestampMicroseconds),
+        `exact-frame-seek-${calibrationSeekSequenceRef.current}`,
+      );
     },
-    [player, qualityEvaluation.samples],
+    [qualityEvaluation.samples, recordCalibrationSeek],
+  );
+
+  const seekFromTransport = useCallback(
+    (timeSeconds: number) => {
+      if (!calibrationWorkspaceOpen) {
+        player.seek(timeSeconds);
+        return;
+      }
+      recordCalibrationSeek(timeSeconds, 'transport-seek');
+    },
+    [calibrationWorkspaceOpen, player, recordCalibrationSeek],
   );
 
   const changeQualityPreset = useCallback(
@@ -547,6 +623,12 @@ export function App() {
 
   const changePreviewMode = useCallback(
     (nextPreviewMode: PosePreviewMode) => {
+      if (
+        nextPreviewMode === 'smoothed' &&
+        !calibrationSettingsRef.current.policy.smoothing.enabled
+      ) {
+        return;
+      }
       changeCalibrationSettings(
         {
           ...calibrationSettingsRef.current,
@@ -594,6 +676,8 @@ export function App() {
       cancelAnalysis();
       setSelectedModel(model);
       setCalibrationLabels([]);
+      calibrationHistoryRef.current.clear();
+      setCalibrationHistoryRevision((revision) => revision + 1);
       setStageFeedback('none');
       if (source) dispatch({ type: 'reset', sessionId: source.id });
     },
@@ -950,7 +1034,9 @@ export function App() {
                   step={0.01}
                   value={Math.min(playerSnapshot.currentTimeSeconds, playbackDuration || 1)}
                   disabled={!playerSnapshot.ready}
-                  onChange={(event) => player.seek(Number(event.currentTarget.value))}
+                  onChange={(event) =>
+                    seekFromTransport(Number(event.currentTarget.value))
+                  }
                 />
               </div>
               <span className="transport-time transport-duration">

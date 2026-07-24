@@ -260,10 +260,11 @@ analyzed. Use the exact-frame evidence to evaluate a gap-bounded
 centered/offline smoother before resuming broader calibration; do not begin the
 rest of R2B in this gate.
 
-The calibration workspace also now supports bounded, coalescing setting
-undo/redo through visible controls and standard `Cmd/Ctrl+Z`,
-`Cmd/Ctrl+Shift+Z`, and `Ctrl+Y` shortcuts. Model changes, labels, and frame
-navigation remain outside policy history. Global, group, joint, continuity, and
+The calibration workspace also now supports bounded, coalescing undo/redo
+through visible controls and standard `Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`, and
+`Ctrl+Y` shortcuts. Manual seeking while the workspace is open is included,
+with exact analyzed-frame seeks preserved as individual steps. Model changes
+and labels remain outside history. Global, group, joint, continuity, and
 smoothing setting families are independently collapsible so one calibration
 task can stay in focus.
 

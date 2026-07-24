@@ -173,9 +173,17 @@ workspace is open the normal shortcuts are supported:
 - `Ctrl+Y` redo.
 
 History covers the preset, display/analytics target, preview mode, thresholds,
-hysteresis, temporal limits, smoothing values, overrides, and preset reset.
-Inference-model changes are excluded because they clear raw analysis; manual
-labels and exact-frame navigation are also separate evidence/navigation actions.
+hysteresis, temporal limits, smoothing values, overrides, preset reset, and
+manual seeking while the workspace is open. Exact analyzed-frame steps remain
+separate history entries; rapid transport-slider events coalesce.
+Inference-model changes are excluded because they clear raw analysis, and manual
+labels remain separate evidence. Importing a source or changing the model clears
+history.
+
+The Smoothed preview is disabled when the active policy has smoothing disabled.
+Turning smoothing off while Smoothed is visible falls back to Accepted raw.
+Accepted raw may still be selected while smoothing is enabled because it is the
+intentional unfiltered comparison view; it does not change the calibrated filter.
 
 The five advanced setting families are independently collapsible and start
 closed so the current calibration task can remain visually focused.
