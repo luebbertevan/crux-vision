@@ -27,6 +27,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
+  touch-action: pan-x pan-y;
   background:
     linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px),
@@ -649,6 +650,18 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
       max(18px, env(safe-area-inset-bottom))
       max(12px, env(safe-area-inset-left));
   }
+  .has-source.app-shell {
+    padding-right: 0;
+    padding-left: 0;
+  }
+  .has-source .topbar {
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+  .has-source .notice {
+    margin-right: max(12px, env(safe-area-inset-right));
+    margin-left: max(12px, env(safe-area-inset-left));
+  }
   .topbar,
   .has-source .topbar { min-height: 46px; margin-bottom: 10px; }
   .brand-mark { width: 34px; height: 34px; }
@@ -677,12 +690,29 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .empty-visual { display: none; }
 
   .review-workspace { display: flex; flex-direction: column; gap: 14px; }
-  .review-main, .control-rail { width: 100%; }
-  .stage-heading { margin-bottom: 8px; }
-  .stage-heading h1 { max-width: 72vw; font-size: 1.05rem; }
-  .video-frame { border-radius: 11px; }
-  .transport { min-height: 56px; margin-top: 9px; }
-  .control-rail { position: static; max-height: none; overflow: visible; gap: 10px; }
+  .review-main { width: 100%; }
+  .stage-heading { display: none; }
+  .video-frame {
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+  .transport {
+    min-height: 56px;
+    margin-top: 0;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+  .control-rail {
+    position: static;
+    width: auto;
+    max-height: none;
+    margin-right: max(12px, env(safe-area-inset-right));
+    margin-left: max(12px, env(safe-area-inset-left));
+    overflow: visible;
+    gap: 10px;
+  }
   .range-section, .analysis-section { padding: 16px; border-radius: 12px; }
   .range-readout { margin-block: 17px 13px; }
   .analysis-preview { margin-top: 16px; }

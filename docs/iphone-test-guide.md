@@ -34,13 +34,14 @@ each GPU/CPU attempt. A failed GPU attempt is terminated before CPU starts in a
 fresh worker, avoiding contaminated MediaPipe loader/WebGL state. The build
 retains the copyable diagnostics if another failure appears.
 
-For the next retry, fully close the existing Crux Vision tab, reopen the HTTPS
-production URL, import a portrait clip, and run a 3–5 second analysis. If it
-still fails, expand **Diagnostic details**, tap **Copy diagnostics**, and paste
+The explicit-canvas retry succeeded on the reference phone. Initialization is
+noticeably slower than desktop but remains acceptable. The portrait stage is
+now edge-to-edge at narrow widths, page-level pinch zoom is disabled, and
+secondary controls remain padded below it. Continue the smoke test with
+alignment, responsiveness, reload/crash, and heat observations. If analysis
+fails again, expand **Diagnostic details**, tap **Copy diagnostics**, and paste
 the complete report into the Codex task. The report contains browser/runtime
-data and error stacks, not video pixels or pose samples. If the clipboard
-button is unavailable, press and hold inside the report to select/copy it, or
-send screenshots covering the complete report.
+data and error stacks, not video pixels or pose samples.
 
 Chrome for iOS also has a limited built-in console collector. As a fallback,
 open `chrome://inspect` in one Chrome tab and leave it open, reproduce the

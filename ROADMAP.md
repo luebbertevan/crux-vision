@@ -123,7 +123,7 @@ desktop widths, a portrait stage is centered in the full review surface while
 the 330 px control rail occupies otherwise unused side space; landscape keeps a
 flexible main column beside the rail. At narrow widths, the rail follows the
 stage and transport in document order. At the reference viewports, the
-portrait stage is 378.5×673 px at 1440×900 and 369×656 px at 393×852; desktop
+portrait stage is 378.5×673 px at 1440×900 and 393×698.5 px at 393×852; desktop
 landscape is 1025×576.5 px. The 852×393 layout keeps both portrait and landscape
 media plus basic transport inside the viewport without horizontal overflow.
 Video and canvas still share identical bounds and `object-fit: contain`.
@@ -132,8 +132,8 @@ Video and canvas still share identical bounds and `object-fit: contain`.
 
 **Timing:** Immediately after R2A.1, before advanced controls
 
-**Status:** In progress — import/playback passed; the targeted Chrome-iOS
-MediaPipe canvas fix awaits the user-assisted analysis retry
+**Status:** In progress — import, playback, and analysis passed; final
+alignment/responsiveness/reload/heat observations remain
 
 On the iPhone 15 using Chrome/iOS WebKit, prove only that:
 
@@ -213,7 +213,9 @@ Build:
   review default unless later testing supports another value;
 - master overlay, skeleton, and trail toggles;
 - compact confidence-aware pose-unavailable behavior rather than slingshots;
-- zoom, pan, fit, and reset using the same video/overlay transform;
+- keep page-level pinch zoom disabled in the phone review shell; do not add
+  dedicated video zoom/pan unless later gym testing establishes a clear need
+  and the video/overlay transform can remain exact;
 - calibrated Strict, Balanced, and Permissive pose-quality choices in a simple
   default settings surface;
 - body-group and joint confidence overrides, rejected-sample inspection,
@@ -233,6 +235,9 @@ Build and validate:
 - responsive layout, safe areas, touch behavior, and distraction-free review;
 - sustained 20–30 second phone analysis, responsiveness, heat, battery, and
   browser-reload observations;
+- evaluate raising the user-selected analysis-range cap from 20 seconds to 60
+  seconds after measuring phone memory, thermal behavior, cancellation, and
+  reload risk; keep 20 seconds as the current R2A safety cap;
 - Lite CPU/GPU and Full challenger measurements only if they affect the choice;
 - an advanced analysis-density setting informed by the phone measurements,
   with 30 samples/second as the ordinary default and lower/higher options only

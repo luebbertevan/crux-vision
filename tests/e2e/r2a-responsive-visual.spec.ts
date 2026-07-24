@@ -130,6 +130,10 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
 }, testInfo) => {
   await page.setViewportSize({ width: 393, height: 852 });
   await page.goto('/');
+  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute(
+    'content',
+    /maximum-scale=1\.0, user-scalable=no/,
+  );
   await expect(page.getByRole('heading', { name: /See your climbing/i })).toBeVisible();
   await expectNoHorizontalOverflow(page);
   const openButton = page.getByTestId('video-input').locator('..');
@@ -144,9 +148,12 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   await expect(page.getByText('Hip midpoint')).toBeVisible();
   await expect(page.getByText('Shoulder midpoint')).toBeVisible();
   const portrait = await getReviewBounds(page);
-  expect(portrait.stage.width).toBeGreaterThanOrEqual(368);
-  expect(portrait.stage.height).toBeGreaterThanOrEqual(650);
-  expect(portrait.stage.x).toBeLessThanOrEqual(12.5);
+  expect(portrait.stage.width).toBeGreaterThanOrEqual(392);
+  expect(portrait.stage.height).toBeGreaterThanOrEqual(695);
+  expect(portrait.stage.x).toBeLessThanOrEqual(0.5);
+  expect(portrait.stage.right).toBeGreaterThanOrEqual(392.5);
+  expect(portrait.transport.x).toBeLessThanOrEqual(0.5);
+  expect(portrait.transport.right).toBeGreaterThanOrEqual(392.5);
   expect(portrait.transport.bottom).toBeLessThanOrEqual(852);
   expectAligned(portrait.video, portrait.canvas);
   await expectNoHorizontalOverflow(page);

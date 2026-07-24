@@ -357,13 +357,16 @@ Git history remains the runnable R1 checkpoint.
   checkpoints, advanced keyboard shortcuts, and complete custom transport.
 - **R2C:** user-selectable joints, trail duration/fade controls under advanced
   Trails settings, independent skeleton/trail toggles, confidence presets/debug
-  inspector, zoom/pan/fit/fill, and advanced missing-pose visualization. The
-  ordinary review default remains 1.5 seconds. R2A still builds independent
-  renderer contracts and one master overlay toggle so these are additive.
+  inspector, and advanced missing-pose visualization. Page-level pinch zoom is
+  disabled in the phone review shell; dedicated video zoom/pan is not planned
+  without later user evidence because it must preserve the exact video/overlay
+  transform. The ordinary review default remains 1.5 seconds. R2A still builds
+  independent renderer contracts and one master overlay toggle so these are
+  additive.
 - **R2D:** final Review/Inspect/Timeline phone navigation, bottom sheets, PWA/offline
   work, sustained 20–30 second phone/delegate/thermal/battery measurements,
-  advanced analysis-density choices around the 30 samples/second default, and
-  gym-session refinement.
+  evaluation of a user-selected 60-second range cap, advanced analysis-density
+  choices around the 30 samples/second default, and gym-session refinement.
 - **Later:** persistence, export, accounts/cloud, uploads, baked overlay video,
   comparison, analytics, climbing-specific scoring, hold/contact detection, and
   any ClimbingCap/AscendMotion or MoveNet/TensorFlow work.
@@ -429,8 +432,10 @@ video.
 - At 1440×900, the portrait fixture renders at 378.5×673 px, centered on the
   overall review surface with the rail clear at the right. The landscape
   fixture renders at 1025×576.5 px in the flexible main column.
-- At 393×852, the portrait fixture uses the full 369 px content width and is
-  656 px tall; transport ends at 821 px. At 852×393, portrait and landscape
+- At 393×852, the portrait fixture uses the full 393 px viewport width and is
+  698.5 px tall. The mobile-only stage heading is omitted, and the stage plus
+  transport are edge-to-edge while the header and secondary controls retain
+  safe-area padding. At 852×393, portrait and landscape
   fixtures reserve 206 px of stage height and keep a full-column transport dock
   inside the viewport without horizontal overflow.
 - Source errors are included in the height measurement, so a retained valid
@@ -456,13 +461,15 @@ video.
   cancellation, replacement, and overlay-alignment behavior were exercised by
   visual or browser acceptance paths.
 - The physical iPhone 15 / Chrome-iOS gate is in progress. HTTPS access, video
-  import, and playback passed. The diagnostic retry mapped
+  import, playback, and short analysis passed; initialization is noticeably
+  slower than desktop but remains acceptable. The diagnostic retry mapped
   `Can't find variable: document` to MediaPipe's canvas selection, which treats
   `CriOS` as old Safari and ignores the worker's available `OffscreenCanvas`.
   The worker now passes a fresh explicit canvas through MediaPipe's supported
   `canvas` option for every GPU/CPU initialization attempt. CPU fallback starts
   in a fresh worker after any GPU initialization failure so MediaPipe's
-  worker-global loader/WebGL state is not reused. The targeted retry is pending.
+  worker-global loader/WebGL state is not reused. Final physical observations
+  for alignment, interaction, reload/crash behavior, and heat remain.
 
 ### Physical phone gate handoff
 
