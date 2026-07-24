@@ -550,3 +550,10 @@ playback, steps previous/next, accepts direct one-based frame entry, and display
 the stored presentation timestamp. Frame numbering is only a calibration
 address over timestamped pose samples; timestamps remain the identity and
 source frames above the analysis density are not implied.
+
+Calibration policy edits have a bounded 100-step undo/redo history. Rapid
+changes to the same control coalesce, visible Undo/Redo buttons expose state,
+and the standard Mac and Windows/Linux shortcuts work while the calibration
+workspace is open. Inference-model changes, manual labels, and frame navigation
+are excluded from policy history. The five advanced setting families are native
+independent disclosures and start collapsed.

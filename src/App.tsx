@@ -42,8 +42,10 @@ import {
   type CalibrationLabelRecord,
   type PosePolicyTarget,
   type PosePreviewMode,
+  type PoseQualityPolicy,
   type PoseQualityPresetId,
 } from './pose/poseQuality';
+import { CalibrationHistory } from './pose/calibrationHistory';
 import { POSE_MODELS } from './pose/modelCatalog';
 import {
   analysisReducer,
@@ -62,6 +64,20 @@ type SourceSession = {
   posterUrl: string | null;
   metadata: SourceMetadata;
 };
+
+type CalibrationSettingsSnapshot = {
+  presetId: PoseQualityPresetId;
+  policyTarget: PosePolicyTarget;
+  policy: PoseQualityPolicy;
+  previewMode: PosePreviewMode;
+};
+
+const cloneCalibrationSettings = (
+  snapshot: CalibrationSettingsSnapshot,
+): CalibrationSettingsSnapshot => ({
+  ...snapshot,
+  policy: clonePoseQualityPolicy(snapshot.policy),
+});
 
 const isRunning = (phase: AnalysisPhase) =>
   phase === 'analyzing' || phase === 'partial';
@@ -114,6 +130,8 @@ export function App() {
   );
   const [previewMode, setPreviewMode] = useState<PosePreviewMode>('smoothed');
   const [selectedModel, setSelectedModel] = useState<PoseModelId>('lite');
+  const [calibrationWorkspaceOpen, setCalibrationWorkspaceOpen] = useState(false);
+  const [, setCalibrationHistoryRevision] = useState(0);
   const [calibrationLabels, setCalibrationLabels] = useState<
     CalibrationLabelRecord[]
   >([]);
@@ -131,7 +149,22 @@ export function App() {
   const sessionSequenceRef = useRef(0);
   const jobSequenceRef = useRef(0);
   const autoplaySessionRef = useRef<number | null>(null);
+  const calibrationHistoryRef = useRef(
+    new CalibrationHistory<CalibrationSettingsSnapshot>(),
+  );
+  const calibrationSettingsRef = useRef<CalibrationSettingsSnapshot>({
+    presetId: qualityPresetId,
+    policyTarget,
+    policy: qualityPolicy,
+    previewMode,
+  });
   analysisRef.current = analysis;
+  calibrationSettingsRef.current = {
+    presetId: qualityPresetId,
+    policyTarget,
+    policy: qualityPolicy,
+    previewMode,
+  };
 
   const player = useMemo(() => new PlayerController(), []);
   const playerSnapshot = useSyncExternalStore(
@@ -396,6 +429,52 @@ export function App() {
     [calibrationLabels, qualityEvaluation],
   );
 
+  const applyCalibrationSettings = useCallback(
+    (snapshot: CalibrationSettingsSnapshot) => {
+      const cloned = cloneCalibrationSettings(snapshot);
+      calibrationSettingsRef.current = cloned;
+      setQualityPresetId(cloned.presetId);
+      setPolicyTarget(cloned.policyTarget);
+      setQualityPolicy(cloned.policy);
+      setPreviewMode(cloned.previewMode);
+    },
+    [],
+  );
+
+  const changeCalibrationSettings = useCallback(
+    (
+      next: CalibrationSettingsSnapshot,
+      changeKey: string,
+    ) => {
+      calibrationHistoryRef.current.record(
+        cloneCalibrationSettings(calibrationSettingsRef.current),
+        changeKey,
+        performance.now(),
+      );
+      applyCalibrationSettings(next);
+      setCalibrationHistoryRevision((revision) => revision + 1);
+    },
+    [applyCalibrationSettings],
+  );
+
+  const undoCalibrationSetting = useCallback(() => {
+    const previous = calibrationHistoryRef.current.undo(
+      cloneCalibrationSettings(calibrationSettingsRef.current),
+    );
+    if (!previous) return;
+    applyCalibrationSettings(previous);
+    setCalibrationHistoryRevision((revision) => revision + 1);
+  }, [applyCalibrationSettings]);
+
+  const redoCalibrationSetting = useCallback(() => {
+    const next = calibrationHistoryRef.current.redo(
+      cloneCalibrationSettings(calibrationSettingsRef.current),
+    );
+    if (!next) return;
+    applyCalibrationSettings(next);
+    setCalibrationHistoryRevision((revision) => revision + 1);
+  }, [applyCalibrationSettings]);
+
   const seekToCalibrationFrame = useCallback(
     (frameIndex: number) => {
       const sample = qualityEvaluation.samples[frameIndex];
@@ -406,41 +485,108 @@ export function App() {
     [player, qualityEvaluation.samples],
   );
 
-  const changeQualityPreset = useCallback((preset: PoseQualityPresetId) => {
-    setQualityPresetId(preset);
-    setPolicyTarget('display');
-    setQualityPolicy(clonePoseQualityPolicy(POSE_QUALITY_PROFILES[preset].display));
-    setPreviewMode('smoothed');
-  }, []);
+  const changeQualityPreset = useCallback(
+    (preset: PoseQualityPresetId) => {
+      changeCalibrationSettings(
+        {
+          presetId: preset,
+          policyTarget: 'display',
+          policy: clonePoseQualityPolicy(POSE_QUALITY_PROFILES[preset].display),
+          previewMode: 'smoothed',
+        },
+        'preset',
+      );
+    },
+    [changeCalibrationSettings],
+  );
 
   const changePolicyTarget = useCallback(
     (target: PosePolicyTarget) => {
-      setPolicyTarget(target);
-      setQualityPolicy(
-        clonePoseQualityPolicy(POSE_QUALITY_PROFILES[qualityPresetId][target]),
+      changeCalibrationSettings(
+        {
+          presetId: qualityPresetId,
+          policyTarget: target,
+          policy: clonePoseQualityPolicy(
+            POSE_QUALITY_PROFILES[qualityPresetId][target],
+          ),
+          previewMode: target === 'display' ? 'smoothed' : 'accepted',
+        },
+        'policy-target',
       );
-      setPreviewMode(target === 'display' ? 'smoothed' : 'accepted');
     },
-    [qualityPresetId],
+    [changeCalibrationSettings, qualityPresetId],
   );
 
   const resetQualityPolicy = useCallback(() => {
-    setQualityPolicy(
-      clonePoseQualityPolicy(
-        POSE_QUALITY_PROFILES[qualityPresetId][policyTarget],
-      ),
+    changeCalibrationSettings(
+      {
+        ...calibrationSettingsRef.current,
+        policy: clonePoseQualityPolicy(
+          POSE_QUALITY_PROFILES[qualityPresetId][policyTarget],
+        ),
+      },
+      'reset-policy',
     );
-  }, [policyTarget, qualityPresetId]);
+  }, [changeCalibrationSettings, policyTarget, qualityPresetId]);
 
   const updateQualityPolicy = useCallback(
-    (policy: typeof qualityPolicy) => {
-      setQualityPolicy({
-        ...policy,
-        id: `${qualityPresetId}-${policyTarget}-custom`,
-      });
+    (policy: typeof qualityPolicy, changeKey: string) => {
+      changeCalibrationSettings(
+        {
+          ...calibrationSettingsRef.current,
+          policy: {
+            ...policy,
+            id: `${qualityPresetId}-${policyTarget}-custom`,
+          },
+        },
+        changeKey,
+      );
     },
-    [policyTarget, qualityPresetId],
+    [changeCalibrationSettings, policyTarget, qualityPresetId],
   );
+
+  const changePreviewMode = useCallback(
+    (nextPreviewMode: PosePreviewMode) => {
+      changeCalibrationSettings(
+        {
+          ...calibrationSettingsRef.current,
+          previewMode: nextPreviewMode,
+        },
+        'preview-mode',
+      );
+    },
+    [changeCalibrationSettings],
+  );
+
+  useEffect(() => {
+    if (!calibrationWorkspaceOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.dataset.calibrationHistoryIgnore === 'true')
+      ) {
+        return;
+      }
+      const key = event.key.toLowerCase();
+      const wantsUndo = key === 'z' && !event.shiftKey;
+      const wantsRedo =
+        (key === 'z' && event.shiftKey) ||
+        (key === 'y' && event.ctrlKey && !event.metaKey);
+      if (!wantsUndo && !wantsRedo) return;
+      event.preventDefault();
+      if (wantsUndo) undoCalibrationSetting();
+      else redoCalibrationSetting();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [
+    calibrationWorkspaceOpen,
+    redoCalibrationSetting,
+    undoCalibrationSetting,
+  ]);
 
   const changeAnalysisModel = useCallback(
     (model: PoseModelId) => {
@@ -863,16 +1009,21 @@ export function App() {
                 calibrationFrameTimestampMicroseconds={
                   currentQualitySample?.timestampMicroseconds ?? null
                 }
+                canUndo={calibrationHistoryRef.current.canUndo}
+                canRedo={calibrationHistoryRef.current.canRedo}
                 onPresetChange={changeQualityPreset}
                 onPolicyTargetChange={changePolicyTarget}
                 onPolicyChange={updateQualityPolicy}
-                onPreviewModeChange={setPreviewMode}
+                onPreviewModeChange={changePreviewMode}
                 onModelChange={changeAnalysisModel}
                 onLabel={labelCurrentJoint}
                 onClearLabels={() => setCalibrationLabels([])}
                 onResetPolicy={resetQualityPolicy}
                 onExport={exportCalibration}
                 onCalibrationFrameChange={seekToCalibrationFrame}
+                onUndo={undoCalibrationSetting}
+                onRedo={redoCalibrationSetting}
+                onWorkspaceToggle={setCalibrationWorkspaceOpen}
               />
 
               <div

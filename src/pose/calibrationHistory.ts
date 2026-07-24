@@ -1,0 +1,56 @@
+type HistoryEntry<T> = {
+  value: T;
+  changeKey: string;
+  changedAt: number;
+};
+
+export class CalibrationHistory<T> {
+  private readonly past: HistoryEntry<T>[] = [];
+  private readonly future: T[] = [];
+
+  constructor(
+    private readonly maximumEntries = 100,
+    private readonly coalesceMilliseconds = 750,
+  ) {}
+
+  get canUndo(): boolean {
+    return this.past.length > 0;
+  }
+
+  get canRedo(): boolean {
+    return this.future.length > 0;
+  }
+
+  record(valueBeforeChange: T, changeKey: string, changedAt: number): void {
+    const previous = this.past.at(-1);
+    if (
+      previous &&
+      previous.changeKey === changeKey &&
+      changedAt - previous.changedAt <= this.coalesceMilliseconds
+    ) {
+      previous.changedAt = changedAt;
+    } else {
+      this.past.push({ value: valueBeforeChange, changeKey, changedAt });
+      if (this.past.length > this.maximumEntries) this.past.shift();
+    }
+    this.future.length = 0;
+  }
+
+  undo(currentValue: T): T | null {
+    const entry = this.past.pop();
+    if (!entry) return null;
+    this.future.push(currentValue);
+    return entry.value;
+  }
+
+  redo(currentValue: T): T | null {
+    if (this.future.length === 0) return null;
+    const value = this.future.pop()!;
+    this.past.push({
+      value: currentValue,
+      changeKey: 'redo-boundary',
+      changedAt: Number.NEGATIVE_INFINITY,
+    });
+    return value;
+  }
+}

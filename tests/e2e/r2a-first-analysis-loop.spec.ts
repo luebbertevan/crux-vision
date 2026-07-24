@@ -262,6 +262,7 @@ test('recomputes cached pose quality without inference and clears calibration ev
   const coverageBefore = await page
     .getByTestId('quality-metrics')
     .getAttribute('data-accepted-coverage');
+  await page.getByText('Body-group override', { exact: true }).click();
   await page.getByTestId('group-visibility-threshold').fill('0.95');
   await expect(page.locator('main')).toHaveAttribute(
     'data-quality-policy',
@@ -283,6 +284,7 @@ test('recomputes cached pose quality without inference and clears calibration ev
     )
     .not.toBe(coverageBefore);
 
+  await page.getByText('Joint override and inspection', { exact: true }).click();
   await page.locator('video').evaluate(async (element) => {
     const video = element as HTMLVideoElement;
     video.pause();

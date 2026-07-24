@@ -161,6 +161,25 @@ objectionable, the next implementation candidate is a gap-bounded
 centered/offline display smoother, checked for pre-motion anticipation against
 the same exact frames.
 
+### Calibration workspace safeguards
+
+Calibration setting changes now have a bounded 100-step undo/redo history.
+Rapid changes to the same slider or number control within 750 ms coalesce into
+one step. Buttons remain visible near the top of the workspace, and while that
+workspace is open the normal shortcuts are supported:
+
+- `Cmd/Ctrl+Z` undo;
+- `Cmd/Ctrl+Shift+Z` redo;
+- `Ctrl+Y` redo.
+
+History covers the preset, display/analytics target, preview mode, thresholds,
+hysteresis, temporal limits, smoothing values, overrides, and preset reset.
+Inference-model changes are excluded because they clear raw analysis; manual
+labels and exact-frame navigation are also separate evidence/navigation actions.
+
+The five advanced setting families are independently collapsible and start
+closed so the current calibration task can remain visually focused.
+
 ## Comparison-tool recommendation
 
 A full pair of synchronized video players is not the first calibration tool to

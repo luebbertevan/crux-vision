@@ -271,6 +271,43 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
   await expect(page.getByLabel('Exact analyzed frame')).toHaveValue('10');
 });
 
+test('undoes and redoes calibration settings with standard shortcuts and collapsible groups', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await importVideo(page, portraitFixture);
+  await page.getByText('Pose quality calibration').click();
+
+  const smoothingSection = page
+    .locator('details.calibration-fieldset')
+    .filter({ hasText: 'Segment-local smoothing' });
+  await expect(smoothingSection).not.toHaveAttribute('open', '');
+  await smoothingSection.getByText('Segment-local smoothing', { exact: true }).click();
+  await expect(smoothingSection).toHaveAttribute('open', '');
+
+  const minimumCutoff = page.getByLabel('Minimum cutoff');
+  await expect(minimumCutoff).toHaveValue('2');
+  await minimumCutoff.fill('3');
+  await expect(page.getByRole('button', { name: 'Undo setting' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Undo setting' }).click();
+  await expect(minimumCutoff).toHaveValue('2');
+  await page.getByRole('button', { name: 'Redo setting' }).click();
+  await expect(minimumCutoff).toHaveValue('3');
+
+  await minimumCutoff.fill('4');
+  await page.keyboard.press('Control+z');
+  await expect(minimumCutoff).toHaveValue('3');
+  await page.keyboard.press('Control+Shift+z');
+  await expect(minimumCutoff).toHaveValue('4');
+  await page.keyboard.press('Control+z');
+  await expect(minimumCutoff).toHaveValue('3');
+  await page.keyboard.press('Control+y');
+  await expect(minimumCutoff).toHaveValue('4');
+
+  await smoothingSection.getByText('Segment-local smoothing', { exact: true }).click();
+  await expect(smoothingSection).not.toHaveAttribute('open', '');
+});
+
 test('keeps the advanced calibration workspace usable at iPhone width', async ({
   page,
 }) => {

@@ -31,9 +31,11 @@ type PoseQualityPanelProps = {
   calibrationFrameIndex: number | null;
   calibrationFrameCount: number;
   calibrationFrameTimestampMicroseconds: number | null;
+  canUndo: boolean;
+  canRedo: boolean;
   onPresetChange: (preset: PoseQualityPresetId) => void;
   onPolicyTargetChange: (target: PosePolicyTarget) => void;
-  onPolicyChange: (policy: PoseQualityPolicy) => void;
+  onPolicyChange: (policy: PoseQualityPolicy, changeKey: string) => void;
   onPreviewModeChange: (mode: PosePreviewMode) => void;
   onModelChange: (model: PoseModelId) => void;
   onLabel: (
@@ -45,6 +47,9 @@ type PoseQualityPanelProps = {
   onResetPolicy: () => void;
   onExport: () => void;
   onCalibrationFrameChange: (frameIndex: number) => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  onWorkspaceToggle: (open: boolean) => void;
 };
 
 const percent = (value: number) => `${Math.round(value * 100)}%`;
@@ -130,6 +135,8 @@ export function PoseQualityPanel({
   calibrationFrameIndex,
   calibrationFrameCount,
   calibrationFrameTimestampMicroseconds,
+  canUndo,
+  canRedo,
   onPresetChange,
   onPolicyTargetChange,
   onPolicyChange,
@@ -140,6 +147,9 @@ export function PoseQualityPanel({
   onResetPolicy,
   onExport,
   onCalibrationFrameChange,
+  onUndo,
+  onRedo,
+  onWorkspaceToggle,
 }: PoseQualityPanelProps) {
   const [selectedGroup, setSelectedGroup] = useState<BodyGroup>('wristsHands');
   const [selectedJoint, setSelectedJoint] = useState(15);
@@ -194,46 +204,58 @@ export function PoseQualityPanel({
     key: 'visibility' | 'presence',
     value: number,
   ) => {
-    onPolicyChange({
-      ...policy,
-      bodyGroups: {
-        ...policy.bodyGroups,
-        [selectedGroup]: {
-          ...groupThreshold,
-          [key]: value,
+    onPolicyChange(
+      {
+        ...policy,
+        bodyGroups: {
+          ...policy.bodyGroups,
+          [selectedGroup]: {
+            ...groupThreshold,
+            [key]: value,
+          },
         },
       },
-    });
+      `group-${selectedGroup}-${key}`,
+    );
   };
 
   const updateJointThreshold = (
     key: 'visibility' | 'presence',
     value: number,
   ) => {
-    onPolicyChange({
-      ...policy,
-      joints: {
-        ...policy.joints,
-        [selectedJoint]: {
-          ...jointThreshold,
-          [key]: value,
+    onPolicyChange(
+      {
+        ...policy,
+        joints: {
+          ...policy.joints,
+          [selectedJoint]: {
+            ...jointThreshold,
+            [key]: value,
+          },
         },
       },
-    });
+      `joint-${selectedJoint}-${key}`,
+    );
   };
 
   const setGroupOverride = (enabled: boolean) => {
     const bodyGroups = { ...policy.bodyGroups };
     if (enabled) bodyGroups[selectedGroup] = { ...groupThreshold };
     else delete bodyGroups[selectedGroup];
-    onPolicyChange({ ...policy, bodyGroups });
+    onPolicyChange(
+      { ...policy, bodyGroups },
+      `group-${selectedGroup}-override`,
+    );
   };
 
   const setJointOverride = (enabled: boolean) => {
     const joints = { ...policy.joints };
     if (enabled) joints[selectedJoint] = { ...jointThreshold };
     else delete joints[selectedJoint];
-    onPolicyChange({ ...policy, joints });
+    onPolicyChange(
+      { ...policy, joints },
+      `joint-${selectedJoint}-override`,
+    );
   };
 
   return (
@@ -259,7 +281,10 @@ export function PoseQualityPanel({
         <p>{POSE_QUALITY_PROFILES[presetId].description}</p>
       </div>
 
-      <details className="calibration-workspace">
+      <details
+        className="calibration-workspace"
+        onToggle={(event) => onWorkspaceToggle(event.currentTarget.open)}
+      >
         <summary>
           <span>
             <strong id="quality-title">Pose quality calibration</strong>
@@ -313,6 +338,17 @@ export function PoseQualityPanel({
             </label>
           </div>
 
+          <div className="calibration-history-actions">
+            <button type="button" disabled={!canUndo} onClick={onUndo}>
+              <span>Undo setting</span>
+              <kbd>⌘/Ctrl Z</kbd>
+            </button>
+            <button type="button" disabled={!canRedo} onClick={onRedo}>
+              <span>Redo setting</span>
+              <kbd>⌘/Ctrl ⇧Z</kbd>
+            </button>
+          </div>
+
           <div
             className="calibration-frame-navigator"
             data-testid="calibration-frame-navigator"
@@ -361,6 +397,7 @@ export function PoseQualityPanel({
                   max={Math.max(1, calibrationFrameCount)}
                   step={1}
                   inputMode="numeric"
+                  data-calibration-history-ignore="true"
                   value={calibrationFrameDraft}
                   disabled={calibrationFrameCount === 0}
                   onChange={(event) =>
@@ -449,33 +486,42 @@ export function PoseQualityPanel({
             ))}
           </div>
 
-          <fieldset className="calibration-fieldset">
-            <legend>Global confidence</legend>
+          <details className="calibration-fieldset">
+            <summary>Global confidence</summary>
+            <div className="calibration-fieldset-body">
             <ThresholdSlider
               label="Visibility"
               value={policy.global.visibility}
               testId="global-visibility-threshold"
               onChange={(visibility) =>
-                onPolicyChange({
-                  ...policy,
-                  global: { ...policy.global, visibility },
-                })
+                onPolicyChange(
+                  {
+                    ...policy,
+                    global: { ...policy.global, visibility },
+                  },
+                  'global-visibility',
+                )
               }
             />
             <ThresholdSlider
               label="Presence"
               value={policy.global.presence}
               onChange={(presence) =>
-                onPolicyChange({
-                  ...policy,
-                  global: { ...policy.global, presence },
-                })
+                onPolicyChange(
+                  {
+                    ...policy,
+                    global: { ...policy.global, presence },
+                  },
+                  'global-presence',
+                )
               }
             />
-          </fieldset>
+            </div>
+          </details>
 
-          <fieldset className="calibration-fieldset">
-            <legend>Body-group override</legend>
+          <details className="calibration-fieldset">
+            <summary>Body-group override</summary>
+            <div className="calibration-fieldset-body">
             <label className="calibration-select">
               <span>Group</span>
               <select
@@ -514,10 +560,12 @@ export function PoseQualityPanel({
               disabled={!groupOverrideEnabled}
               onChange={(value) => updateGroupThreshold('presence', value)}
             />
-          </fieldset>
+            </div>
+          </details>
 
-          <fieldset className="calibration-fieldset">
-            <legend>Joint override and inspection</legend>
+          <details className="calibration-fieldset">
+            <summary>Joint override and inspection</summary>
+            <div className="calibration-fieldset-body">
             <label className="calibration-select">
               <span>Joint</span>
               <select
@@ -593,22 +641,27 @@ export function PoseQualityPanel({
                 ),
               )}
             </div>
-          </fieldset>
+            </div>
+          </details>
 
-          <fieldset className="calibration-fieldset">
-            <legend>Continuity and plausibility</legend>
+          <details className="calibration-fieldset">
+            <summary>Continuity and plausibility</summary>
+            <div className="calibration-fieldset-body">
             <label className="calibration-toggle">
               <input
                 type="checkbox"
                 checked={policy.hysteresis.enabled}
                 onChange={(event) =>
-                  onPolicyChange({
-                    ...policy,
-                    hysteresis: {
-                      ...policy.hysteresis,
-                      enabled: event.currentTarget.checked,
+                  onPolicyChange(
+                    {
+                      ...policy,
+                      hysteresis: {
+                        ...policy.hysteresis,
+                        enabled: event.currentTarget.checked,
+                      },
                     },
-                  })
+                    'hysteresis-enabled',
+                  )
                 }
               />
               <span>Confidence hysteresis</span>
@@ -621,10 +674,13 @@ export function PoseQualityPanel({
               step={0.01}
               disabled={!policy.hysteresis.enabled}
               onChange={(acquireDelta) =>
-                onPolicyChange({
-                  ...policy,
-                  hysteresis: { ...policy.hysteresis, acquireDelta },
-                })
+                onPolicyChange(
+                  {
+                    ...policy,
+                    hysteresis: { ...policy.hysteresis, acquireDelta },
+                  },
+                  'hysteresis-acquire-delta',
+                )
               }
             />
             <NumberControl
@@ -635,10 +691,13 @@ export function PoseQualityPanel({
               step={0.01}
               disabled={!policy.hysteresis.enabled}
               onChange={(keepDelta) =>
-                onPolicyChange({
-                  ...policy,
-                  hysteresis: { ...policy.hysteresis, keepDelta },
-                })
+                onPolicyChange(
+                  {
+                    ...policy,
+                    hysteresis: { ...policy.hysteresis, keepDelta },
+                  },
+                  'hysteresis-keep-delta',
+                )
               }
             />
             <label className="calibration-toggle">
@@ -646,13 +705,16 @@ export function PoseQualityPanel({
                 type="checkbox"
                 checked={policy.temporal.enabled}
                 onChange={(event) =>
-                  onPolicyChange({
-                    ...policy,
-                    temporal: {
-                      ...policy.temporal,
-                      enabled: event.currentTarget.checked,
+                  onPolicyChange(
+                    {
+                      ...policy,
+                      temporal: {
+                        ...policy.temporal,
+                        enabled: event.currentTarget.checked,
+                      },
                     },
-                  })
+                    'temporal-enabled',
+                  )
                 }
               />
               <span>Timestamp-based temporal rejection</span>
@@ -665,13 +727,16 @@ export function PoseQualityPanel({
               step={1}
               disabled={!policy.temporal.enabled}
               onChange={(maximumSpeedBodyLengthsPerSecond) =>
-                onPolicyChange({
-                  ...policy,
-                  temporal: {
-                    ...policy.temporal,
-                    maximumSpeedBodyLengthsPerSecond,
+                onPolicyChange(
+                  {
+                    ...policy,
+                    temporal: {
+                      ...policy.temporal,
+                      maximumSpeedBodyLengthsPerSecond,
+                    },
                   },
-                })
+                  'temporal-maximum-speed',
+                )
               }
             />
             <NumberControl
@@ -682,13 +747,16 @@ export function PoseQualityPanel({
               step={25}
               disabled={!policy.temporal.enabled}
               onChange={(maximumAccelerationBodyLengthsPerSecondSquared) =>
-                onPolicyChange({
-                  ...policy,
-                  temporal: {
-                    ...policy.temporal,
-                    maximumAccelerationBodyLengthsPerSecondSquared,
+                onPolicyChange(
+                  {
+                    ...policy,
+                    temporal: {
+                      ...policy.temporal,
+                      maximumAccelerationBodyLengthsPerSecondSquared,
+                    },
                   },
-                })
+                  'temporal-maximum-acceleration',
+                )
               }
             />
             <NumberControl
@@ -699,31 +767,39 @@ export function PoseQualityPanel({
               step={0.05}
               disabled={!policy.temporal.enabled}
               onChange={(maximumSegmentLengthChangeRatio) =>
-                onPolicyChange({
-                  ...policy,
-                  temporal: {
-                    ...policy.temporal,
-                    maximumSegmentLengthChangeRatio,
+                onPolicyChange(
+                  {
+                    ...policy,
+                    temporal: {
+                      ...policy.temporal,
+                      maximumSegmentLengthChangeRatio,
+                    },
                   },
-                })
+                  'temporal-maximum-segment-change',
+                )
               }
             />
-          </fieldset>
+            </div>
+          </details>
 
-          <fieldset className="calibration-fieldset">
-            <legend>Segment-local smoothing</legend>
+          <details className="calibration-fieldset">
+            <summary>Segment-local smoothing</summary>
+            <div className="calibration-fieldset-body">
             <label className="calibration-toggle">
               <input
                 type="checkbox"
                 checked={policy.smoothing.enabled}
                 onChange={(event) =>
-                  onPolicyChange({
-                    ...policy,
-                    smoothing: {
-                      ...policy.smoothing,
-                      enabled: event.currentTarget.checked,
+                  onPolicyChange(
+                    {
+                      ...policy,
+                      smoothing: {
+                        ...policy.smoothing,
+                        enabled: event.currentTarget.checked,
+                      },
                     },
-                  })
+                    'smoothing-enabled',
+                  )
                 }
               />
               <span>One Euro display smoothing</span>
@@ -736,10 +812,13 @@ export function PoseQualityPanel({
               step={0.1}
               disabled={!policy.smoothing.enabled}
               onChange={(minimumCutoff) =>
-                onPolicyChange({
-                  ...policy,
-                  smoothing: { ...policy.smoothing, minimumCutoff },
-                })
+                onPolicyChange(
+                  {
+                    ...policy,
+                    smoothing: { ...policy.smoothing, minimumCutoff },
+                  },
+                  'smoothing-minimum-cutoff',
+                )
               }
             />
             <NumberControl
@@ -750,13 +829,17 @@ export function PoseQualityPanel({
               step={0.5}
               disabled={!policy.smoothing.enabled}
               onChange={(beta) =>
-                onPolicyChange({
-                  ...policy,
-                  smoothing: { ...policy.smoothing, beta },
-                })
+                onPolicyChange(
+                  {
+                    ...policy,
+                    smoothing: { ...policy.smoothing, beta },
+                  },
+                  'smoothing-speed-coefficient',
+                )
               }
             />
-          </fieldset>
+            </div>
+          </details>
 
           <div className="calibration-evidence">
             <div data-testid="calibration-label-count">

@@ -62,9 +62,15 @@ Permissive. The advanced calibration disclosure adds Lite/Full selection,
 display/analytics target selection, raw/accepted/rejected/smoothed preview,
 global/group/joint controls, hysteresis, temporal and smoothing controls,
 reason-coded joint inspection, coverage/gap/lag metrics, manual labels, reset,
-and JSON export. Policy changes recompute cached samples without rerunning
+JSON export, setting undo/redo, and collapsible setting families. Policy changes
+recompute cached samples without rerunning
 inference; a model change deliberately clears raw results and requires a new
 analysis.
+
+The calibration-setting history holds up to 100 steps and coalesces rapid
+changes to one control. Standard Mac and Windows/Linux undo/redo shortcuts work
+while the workspace is open. Model changes, labels, and frame navigation are
+excluded because they are not reversible policy edits.
 
 Derived hip and shoulder midpoints retain versioned source provenance and exist
 only when both required source joints are accepted. The simplified head remains
@@ -193,7 +199,7 @@ coverage proves cached-policy recomputation, model-change invalidation,
 source-replacement cleanup, the three-range preset sweep, bounded Lite/Full
 comparison, and mobile-width advanced-control sizing.
 
-The final production build, all 40 unit tests, and all 16 Chrome Playwright
+The final production build, all 43 unit tests, and all 17 Chrome Playwright
 tests passed before publication.
 
 Remaining limitations:
