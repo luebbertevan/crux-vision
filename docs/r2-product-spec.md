@@ -79,12 +79,15 @@ smoothing over immutable cached raw samples. Strict and Permissive alternatives
 expose documented coverage/continuity tradeoffs, while detailed policy controls
 and reason-coded debug views remain under the advanced disclosure. A focused
 human re-smoke still found one visible frame of lag, so the gate now includes
-exact analyzed-presentation-frame navigation and the zero-lag display decision
-remains open. Calibration policy edits and manual calibration seeks support
-standard undo/redo shortcuts, advanced setting families are independently
-collapsible, Smoothed preview is unavailable when its filter is disabled, and
-developer-only controls expose full safe diagnostic ranges without changing
-product defaults. Quality decisions and calibration operate only on the 23
+exact analyzed-presentation-frame navigation plus a gap-bounded experimental
+Centered offline preview with one undoable radius control. The zero-lag display
+decision remains open because the centered candidate must be checked for
+pre-motion anticipation. Calibration policy edits and manual calibration seeks
+support standard undo/redo shortcuts, advanced setting families are
+independently collapsible, One Euro smoothed preview is unavailable when its
+filter is disabled, and developer-only controls expose full safe diagnostic
+ranges without changing product defaults. Quality decisions and calibration
+operate only on the 23
 landmarks used by the product; unused face details remain raw provenance.
 Per-joint gap attribution and a separate whole-pose gap prevent one persistently
 missing joint from being described as a pose-wide outage. See the

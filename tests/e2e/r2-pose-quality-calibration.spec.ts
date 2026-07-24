@@ -337,6 +337,9 @@ test('prevents a misleading smoothed preview when its filter is disabled', async
     'disabled',
     '',
   );
+  await expect(preview.locator('option[value="centered"]')).not.toBeDisabled();
+  await preview.selectOption('centered');
+  await expect(preview).toHaveValue('centered');
 
   const smoothingSection = page
     .locator('details.calibration-fieldset')
@@ -392,13 +395,22 @@ test('exposes full effective and unbounded safe developer calibration ranges', a
   await expect(page.getByLabel('Max acceleration')).toHaveValue('100000');
 
   await page.getByText('Segment-local smoothing', { exact: true }).click();
-  for (const label of ['Minimum cutoff', 'Speed coefficient']) {
+  for (const label of [
+    'Minimum cutoff',
+    'Speed coefficient',
+    'Centered radius (ms)',
+  ]) {
     const control = page.getByLabel(label);
     await expect(control).toHaveAttribute('min', '0');
     expect(await control.getAttribute('max')).toBeNull();
   }
   await page.getByLabel('Speed coefficient').fill('1000');
   await expect(page.getByLabel('Speed coefficient')).toHaveValue('1000');
+  const centeredRadius = page.getByLabel('Centered radius (ms)');
+  await centeredRadius.fill('100');
+  await expect(centeredRadius).toHaveValue('100');
+  await page.getByRole('button', { name: 'Undo change' }).click();
+  await expect(centeredRadius).toHaveValue('66.667');
 });
 
 test('limits calibration controls and gap summaries to product-used landmarks', async ({

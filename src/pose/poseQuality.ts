@@ -4,10 +4,16 @@ import { PRODUCT_POSE_LANDMARK_INDICES } from './poseView';
 export const POSE_QUALITY_POLICY_VERSION =
   'balanced-v2.1-product-landmarks-2026-07-24';
 export const POSE_LANDMARK_COUNT = 33;
+export const DEFAULT_CENTERED_SMOOTHING_RADIUS_MICROSECONDS = 66_667;
 
 export type PoseQualityPresetId = 'strict' | 'balanced' | 'permissive';
 export type PosePolicyTarget = 'display' | 'analytics';
-export type PosePreviewMode = 'raw' | 'accepted' | 'rejected' | 'smoothed';
+export type PosePreviewMode =
+  | 'raw'
+  | 'accepted'
+  | 'rejected'
+  | 'smoothed'
+  | 'centered';
 export type BodyGroup =
   | 'head'
   | 'torso'
@@ -192,6 +198,7 @@ export type PoseLandmarkDecision = {
   raw: PoseLandmark | null;
   accepted: PoseLandmark | null;
   smoothed: PoseLandmark | null;
+  centered: PoseLandmark | null;
   threshold: ConfidenceThresholds;
   status: 'accepted' | 'rejected' | 'missing';
   reasons: LandmarkRejectionReason[];
@@ -223,14 +230,20 @@ export type PoseQualityMetrics = {
   meanReacquisitionMicroseconds: number;
   meanRequestedTimestampErrorMicroseconds: number;
   meanSmoothingDisplacement: number;
+  meanCenteredSmoothingDisplacement: number;
   meanInferenceMilliseconds: number;
   p95InferenceMilliseconds: number;
 };
 
 export type PoseQualityEvaluation = {
   policy: PoseQualityPolicy;
+  centeredSmoothingRadiusMicroseconds: number;
   samples: QualityPoseSample[];
   metrics: PoseQualityMetrics;
+};
+
+export type PoseQualityEvaluationOptions = {
+  centeredSmoothingRadiusMicroseconds?: number;
 };
 
 export type CalibrationLabel = 'usable' | 'wrong' | 'swapped' | 'unavailable';
@@ -658,6 +671,160 @@ const applySmoothing = (
   }
 };
 
+type CenteredTrackPoint = {
+  timestampMicroseconds: number;
+  decision: PoseLandmarkDecision;
+  landmark: PoseLandmark;
+};
+
+type CenteredIntegral = {
+  x: number;
+  y: number;
+  z: number;
+};
+
+const cumulativeIntegralAt = (
+  segment: readonly CenteredTrackPoint[],
+  prefix: readonly CenteredIntegral[],
+  timestampMicroseconds: number,
+): CenteredIntegral => {
+  const firstTimestamp = segment[0].timestampMicroseconds;
+  const lastIndex = segment.length - 1;
+  const lastTimestamp = segment[lastIndex].timestampMicroseconds;
+  if (timestampMicroseconds <= firstTimestamp) return { x: 0, y: 0, z: 0 };
+  if (timestampMicroseconds >= lastTimestamp) return prefix[lastIndex];
+
+  let lower = 0;
+  let upper = lastIndex;
+  while (lower + 1 < upper) {
+    const middle = Math.floor((lower + upper) / 2);
+    if (segment[middle].timestampMicroseconds <= timestampMicroseconds) {
+      lower = middle;
+    } else {
+      upper = middle;
+    }
+  }
+
+  const left = segment[lower];
+  const right = segment[lower + 1];
+  const intervalMicroseconds =
+    right.timestampMicroseconds - left.timestampMicroseconds;
+  const elapsedMicroseconds =
+    timestampMicroseconds - left.timestampMicroseconds;
+  const interpolation = elapsedMicroseconds / intervalMicroseconds;
+  const interpolated = {
+    x: left.landmark.x + (right.landmark.x - left.landmark.x) * interpolation,
+    y: left.landmark.y + (right.landmark.y - left.landmark.y) * interpolation,
+    z: left.landmark.z + (right.landmark.z - left.landmark.z) * interpolation,
+  };
+
+  return {
+    x:
+      prefix[lower].x +
+      elapsedMicroseconds * (left.landmark.x + interpolated.x) / 2,
+    y:
+      prefix[lower].y +
+      elapsedMicroseconds * (left.landmark.y + interpolated.y) / 2,
+    z:
+      prefix[lower].z +
+      elapsedMicroseconds * (left.landmark.z + interpolated.z) / 2,
+  };
+};
+
+const smoothCenteredSegment = (
+  segment: readonly CenteredTrackPoint[],
+  radiusMicroseconds: number,
+): void => {
+  if (segment.length < 3 || radiusMicroseconds <= 0) return;
+
+  const prefix: CenteredIntegral[] = [{ x: 0, y: 0, z: 0 }];
+  for (let index = 1; index < segment.length; index += 1) {
+    const previous = segment[index - 1];
+    const current = segment[index];
+    const duration =
+      current.timestampMicroseconds - previous.timestampMicroseconds;
+    prefix.push({
+      x:
+        prefix[index - 1].x +
+        duration * (previous.landmark.x + current.landmark.x) / 2,
+      y:
+        prefix[index - 1].y +
+        duration * (previous.landmark.y + current.landmark.y) / 2,
+      z:
+        prefix[index - 1].z +
+        duration * (previous.landmark.z + current.landmark.z) / 2,
+    });
+  }
+
+  const segmentStart = segment[0].timestampMicroseconds;
+  const segmentEnd = segment.at(-1)!.timestampMicroseconds;
+  for (const point of segment) {
+    const balancedRadius = Math.min(
+      radiusMicroseconds,
+      point.timestampMicroseconds - segmentStart,
+      segmentEnd - point.timestampMicroseconds,
+    );
+    if (balancedRadius <= 0) continue;
+
+    const start = cumulativeIntegralAt(
+      segment,
+      prefix,
+      point.timestampMicroseconds - balancedRadius,
+    );
+    const end = cumulativeIntegralAt(
+      segment,
+      prefix,
+      point.timestampMicroseconds + balancedRadius,
+    );
+    const duration = balancedRadius * 2;
+    point.decision.centered = {
+      ...point.landmark,
+      x: (end.x - start.x) / duration,
+      y: (end.y - start.y) / duration,
+      z: (end.z - start.z) / duration,
+    };
+  }
+};
+
+const applyCenteredSmoothing = (
+  samples: QualityPoseSample[],
+  policy: PoseQualityPolicy,
+  radiusMicroseconds: number,
+): void => {
+  for (const landmarkIndex of PRODUCT_POSE_LANDMARK_INDICES) {
+    let segment: CenteredTrackPoint[] = [];
+    const flush = () => {
+      smoothCenteredSegment(segment, radiusMicroseconds);
+      segment = [];
+    };
+
+    for (const sample of samples) {
+      const decision = sample.decisions[landmarkIndex];
+      if (!decision?.accepted) {
+        flush();
+        continue;
+      }
+
+      const previous = segment.at(-1);
+      const gap = previous
+        ? sample.timestampMicroseconds - previous.timestampMicroseconds
+        : 0;
+      if (
+        previous &&
+        (gap <= 0 || gap > policy.smoothing.maximumGapMicroseconds)
+      ) {
+        flush();
+      }
+      segment.push({
+        timestampMicroseconds: sample.timestampMicroseconds,
+        decision,
+        landmark: decision.accepted,
+      });
+    }
+    flush();
+  }
+};
+
 const buildMetrics = (
   samples: QualityPoseSample[],
   policy: PoseQualityPolicy,
@@ -674,6 +841,8 @@ const buildMetrics = (
   let temporalRejectedJointSlots = 0;
   let smoothingDisplacement = 0;
   let smoothingCount = 0;
+  let centeredSmoothingDisplacement = 0;
+  let centeredSmoothingCount = 0;
 
   for (const sample of samples) {
     for (const decision of sample.decisions) {
@@ -707,6 +876,13 @@ const buildMetrics = (
       if (decision.accepted && decision.smoothed) {
         smoothingDisplacement += distance(decision.accepted, decision.smoothed);
         smoothingCount += 1;
+      }
+      if (decision.accepted && decision.centered) {
+        centeredSmoothingDisplacement += distance(
+          decision.accepted,
+          decision.centered,
+        );
+        centeredSmoothingCount += 1;
       }
     }
   }
@@ -835,6 +1011,9 @@ const buildMetrics = (
     meanSmoothingDisplacement: smoothingCount
       ? smoothingDisplacement / smoothingCount
       : 0,
+    meanCenteredSmoothingDisplacement: centeredSmoothingCount
+      ? centeredSmoothingDisplacement / centeredSmoothingCount
+      : 0,
     meanInferenceMilliseconds: inferenceTimes.length
       ? inferenceTotal / inferenceTimes.length
       : 0,
@@ -845,7 +1024,15 @@ const buildMetrics = (
 export function evaluatePoseQuality(
   rawSamples: readonly RawPoseSample[],
   policy: PoseQualityPolicy,
+  options: PoseQualityEvaluationOptions = {},
 ): PoseQualityEvaluation {
+  const requestedCenteredRadius =
+    options.centeredSmoothingRadiusMicroseconds;
+  const centeredSmoothingRadiusMicroseconds =
+    typeof requestedCenteredRadius === 'number' &&
+    Number.isFinite(requestedCenteredRadius)
+    ? Math.max(0, requestedCenteredRadius)
+    : DEFAULT_CENTERED_SMOOTHING_RADIUS_MICROSECONDS;
   const ordered = [...rawSamples].sort(
     (first, second) => first.timestampMicroseconds - second.timestampMicroseconds,
   );
@@ -996,6 +1183,7 @@ export function evaluatePoseQuality(
         raw: raw ?? null,
         accepted,
         smoothed: accepted,
+        centered: accepted,
         threshold: required,
         status: accepted
           ? 'accepted'
@@ -1015,8 +1203,14 @@ export function evaluatePoseQuality(
   }
 
   applySmoothing(qualitySamples, policy);
+  applyCenteredSmoothing(
+    qualitySamples,
+    policy,
+    centeredSmoothingRadiusMicroseconds,
+  );
   return {
     policy,
+    centeredSmoothingRadiusMicroseconds,
     samples: qualitySamples,
     metrics: buildMetrics(qualitySamples, policy),
   };
@@ -1030,6 +1224,7 @@ export function landmarksForPreview(
     if (!decision) return null;
     if (preview === 'raw') return decision.raw;
     if (preview === 'smoothed') return decision.smoothed;
+    if (preview === 'centered') return decision.centered;
     return decision.accepted;
   });
 }
@@ -1043,6 +1238,7 @@ export function landmarkForPreview(
   if (!decision) return null;
   if (preview === 'raw') return decision.raw;
   if (preview === 'smoothed') return decision.smoothed;
+  if (preview === 'centered') return decision.centered;
   return decision.accepted;
 }
 

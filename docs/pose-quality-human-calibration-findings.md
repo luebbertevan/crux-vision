@@ -120,8 +120,8 @@ low-amplitude acceleration noise.
   maximum of `1` could not reach the responsive range.
 - Smoothed remains the ordinary default for the human re-smoke. Accepted raw
   remains the alignment reference.
-- The centered/offline smoother and calibration A/B mode are not needed unless
-  the focused re-smoke still finds objectionable lag.
+- Reserve a centered/offline smoother and calibration A/B mode unless the
+  focused re-smoke still finds objectionable lag.
 
 ### Focused re-smoke
 
@@ -199,6 +199,38 @@ nose plus landmarks 11–32. The 10 unused MediaPipe face-detail landmarks remai
 only in immutable raw provenance and are unavailable for overrides or labels.
 The former ambiguous longest-gap readout is replaced by an attributed longest
 product-joint gap and a separate longest whole-pose gap.
+
+## Centered offline experiment implemented — July 24, 2026
+
+The focused re-smoke met the condition above, so the calibration workspace now
+includes **Centered offline · experimental** beside Accepted raw and One Euro
+smoothed. It reuses the same accepted cached samples and does not rerun
+MediaPipe or change the Balanced product default.
+
+The implementation uses a presentation-timestamp-weighted centered moving
+average. For every accepted product-joint segment, it integrates the
+piecewise-linear track over equal time before and after the current timestamp.
+The window shrinks symmetrically at segment ends, resolves to Accepted raw at
+the boundary, and never crosses a rejected sample, repeated/backward timestamp,
+or gap over the active smoothing-gap limit. The default radius is `66.667 ms`;
+`0 ms` exactly matches Accepted raw. Radius changes participate in calibration
+undo/redo.
+
+This removes the inherent past-only phase delay on constant-velocity motion,
+but it can reveal future movement shortly before the raw track begins. No
+default decision has been made. Record the human comparison here:
+
+| Clip/range + exact frame | Joint/group | Accepted raw | One Euro | Centered 33.333 ms | Centered 66.667 ms | Centered 100 ms | Verdict / anticipation or boundary issue |
+|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |
+
+Minimum sign-off:
+
+- inspect motion onset, fastest swing, stopping/landing, and gap reacquisition;
+- confirm no cross-gap pull;
+- require visibly less trailing without objectionable anticipation;
+- repeat the improvement on at least two clips before considering a default
+  change.
 
 ## Comparison-tool recommendation
 

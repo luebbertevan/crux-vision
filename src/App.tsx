@@ -35,6 +35,7 @@ import { PlayerController } from './player/PlayerController';
 import { nearestPresentationFrameIndex } from './player/frameNavigation';
 import {
   clonePoseQualityPolicy,
+  DEFAULT_CENTERED_SMOOTHING_RADIUS_MICROSECONDS,
   evaluateCalibrationLabels,
   evaluatePoseQuality,
   POSE_QUALITY_PROFILES,
@@ -70,6 +71,7 @@ type CalibrationSettingsSnapshot = {
   policyTarget: PosePolicyTarget;
   policy: PoseQualityPolicy;
   previewMode: PosePreviewMode;
+  centeredSmoothingRadiusMicroseconds: number;
 };
 
 type CalibrationHistorySnapshot =
@@ -139,6 +141,10 @@ export function App() {
     clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display),
   );
   const [previewMode, setPreviewMode] = useState<PosePreviewMode>('smoothed');
+  const [
+    centeredSmoothingRadiusMicroseconds,
+    setCenteredSmoothingRadiusMicroseconds,
+  ] = useState(DEFAULT_CENTERED_SMOOTHING_RADIUS_MICROSECONDS);
   const [selectedModel, setSelectedModel] = useState<PoseModelId>('lite');
   const [calibrationWorkspaceOpen, setCalibrationWorkspaceOpen] = useState(false);
   const [, setCalibrationHistoryRevision] = useState(0);
@@ -168,6 +174,7 @@ export function App() {
     policyTarget,
     policy: qualityPolicy,
     previewMode,
+    centeredSmoothingRadiusMicroseconds,
   });
   analysisRef.current = analysis;
   calibrationSettingsRef.current = {
@@ -175,6 +182,7 @@ export function App() {
     policyTarget,
     policy: qualityPolicy,
     previewMode,
+    centeredSmoothingRadiusMicroseconds,
   };
 
   const player = useMemo(() => new PlayerController(), []);
@@ -421,8 +429,15 @@ export function App() {
   );
 
   const qualityEvaluation = useMemo(
-    () => evaluatePoseQuality(analysis.samples, qualityPolicy),
-    [analysis.samples, qualityPolicy],
+    () =>
+      evaluatePoseQuality(analysis.samples, qualityPolicy, {
+        centeredSmoothingRadiusMicroseconds,
+      }),
+    [
+      analysis.samples,
+      centeredSmoothingRadiusMicroseconds,
+      qualityPolicy,
+    ],
   );
   const calibrationFrameIndex = useMemo(
     () =>
@@ -453,6 +468,9 @@ export function App() {
       setPolicyTarget(cloned.policyTarget);
       setQualityPolicy(cloned.policy);
       setPreviewMode(cloned.previewMode);
+      setCenteredSmoothingRadiusMicroseconds(
+        cloned.centeredSmoothingRadiusMicroseconds,
+      );
     },
     [],
   );
@@ -569,6 +587,8 @@ export function App() {
           policyTarget: 'display',
           policy: clonePoseQualityPolicy(POSE_QUALITY_PROFILES[preset].display),
           previewMode: 'smoothed',
+          centeredSmoothingRadiusMicroseconds:
+            calibrationSettingsRef.current.centeredSmoothingRadiusMicroseconds,
         },
         'preset',
       );
@@ -586,6 +606,8 @@ export function App() {
             POSE_QUALITY_PROFILES[qualityPresetId][target],
           ),
           previewMode: target === 'display' ? 'smoothed' : 'accepted',
+          centeredSmoothingRadiusMicroseconds:
+            calibrationSettingsRef.current.centeredSmoothingRadiusMicroseconds,
         },
         'policy-target',
       );
@@ -635,6 +657,19 @@ export function App() {
           previewMode: nextPreviewMode,
         },
         'preview-mode',
+      );
+    },
+    [changeCalibrationSettings],
+  );
+
+  const changeCenteredSmoothingRadius = useCallback(
+    (radiusMicroseconds: number) => {
+      changeCalibrationSettings(
+        {
+          ...calibrationSettingsRef.current,
+          centeredSmoothingRadiusMicroseconds: radiusMicroseconds,
+        },
+        'centered-smoothing-radius',
       );
     },
     [changeCalibrationSettings],
@@ -714,7 +749,7 @@ export function App() {
   const exportCalibration = useCallback(() => {
     if (!source) return;
     const payload = {
-      schemaVersion: 'crux-pose-calibration-v2',
+      schemaVersion: 'crux-pose-calibration-v3',
       exportedAt: new Date().toISOString(),
       source: {
         sessionId: source.id,
@@ -737,6 +772,11 @@ export function App() {
       policyTarget,
       previewMode,
       policy: qualityPolicy,
+      centeredSmoothing: {
+        mode: 'timestamp-weighted-centered-moving-average',
+        radiusMicroseconds: centeredSmoothingRadiusMicroseconds,
+        productDefault: false,
+      },
       metrics: qualityEvaluation.metrics,
       labels: calibrationLabels,
       labelMetrics: calibrationLabelMetrics,
@@ -754,6 +794,7 @@ export function App() {
                 threshold: decision.threshold,
                 accepted: decision.accepted,
                 smoothed: decision.smoothed,
+                centered: decision.centered,
               }]
             : [],
         ),
@@ -780,6 +821,7 @@ export function App() {
     analysis.total,
     calibrationLabelMetrics,
     calibrationLabels,
+    centeredSmoothingRadiusMicroseconds,
     policyTarget,
     previewMode,
     qualityEvaluation,
@@ -865,6 +907,9 @@ export function App() {
       }
       data-quality-smoothing-displacement={
         qualityEvaluation.metrics.meanSmoothingDisplacement
+      }
+      data-quality-centered-smoothing-displacement={
+        qualityEvaluation.metrics.meanCenteredSmoothingDisplacement
       }
       data-quality-group-coverage={JSON.stringify(
         qualityEvaluation.metrics.groupCoverage,
@@ -1095,6 +1140,9 @@ export function App() {
                 policyTarget={policyTarget}
                 policy={qualityPolicy}
                 previewMode={previewMode}
+                centeredSmoothingRadiusMicroseconds={
+                  centeredSmoothingRadiusMicroseconds
+                }
                 evaluation={qualityEvaluation}
                 currentSample={currentQualitySample}
                 selectedModel={selectedModel}
@@ -1111,6 +1159,9 @@ export function App() {
                 onPolicyTargetChange={changePolicyTarget}
                 onPolicyChange={updateQualityPolicy}
                 onPreviewModeChange={changePreviewMode}
+                onCenteredSmoothingRadiusChange={
+                  changeCenteredSmoothingRadius
+                }
                 onModelChange={changeAnalysisModel}
                 onLabel={labelCurrentJoint}
                 onClearLabels={() => setCalibrationLabels([])}

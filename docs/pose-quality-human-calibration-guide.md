@@ -9,9 +9,9 @@ Record live observations in
 
 **Smoothing decision still open:** Human review found roughly 70 ms of lag with
 Balanced v1 and one visible frame with Balanced v2. The reviewer prefers no
-visible lag. Use the exact analyzed-frame controls to document the remaining
-difference between Accepted raw and Smoothed before beginning the broader
-procedure below.
+visible lag. The workspace now includes a Centered offline experimental preview.
+Use the exact analyzed-frame controls to compare it with Accepted raw and One
+Euro smoothed before beginning the broader procedure below.
 
 ## Recommended investment
 
@@ -33,8 +33,8 @@ change the Analytics policy unless the Display policy is already satisfactory.
 | Pose quality | Strict rejects more, Balanced is the proposed default, and Permissive retains more uncertain points. | Start with Balanced. Compare the other presets only after labeling Balanced. |
 | Inference model | Lite or Full generates the raw pose. Changing it clears the raw cache and requires analysis again. | Keep Lite. Full did not improve the bounded comparison. |
 | Policy target | Display favors a stable, useful overlay. Analytics is stricter and unsmoothed for future measurements. | Calibrate Display first. Leave Analytics unchanged for now. |
-| Overlay preview | Raw model shows everything; Accepted raw shows retained points before smoothing; Rejected adds rejected points; Smoothed shows the final display. | Compare all four views at the same moment. |
-| Exact analyzed frames | Previous/next steps between stored pose presentation timestamps; direct entry seeks a numbered analyzed sample. | Use this for repeatable Accepted raw versus Smoothed checks. It is exact for analyzed pose frames, not unanalyzed source frames. |
+| Overlay preview | Raw model shows everything; Accepted raw shows retained points before smoothing; Rejected adds rejected points; One Euro smoothed is the causal display candidate; Centered offline is the experimental future-aware candidate. | Compare Accepted raw, One Euro smoothed, and Centered offline at the same exact frames. |
+| Exact analyzed frames | Previous/next steps between stored pose presentation timestamps; direct entry seeks a numbered analyzed sample. | Use this for repeatable same-frame smoothing checks. It is exact for analyzed pose frames, not unanalyzed source frames. |
 | Undo / redo change | Reverts or reapplies the last calibration-setting change or manual seek made while the workspace is open. Quick slider and timeline movement is grouped into one history step; exact-frame steps remain individual. | Use the buttons or `Cmd/Ctrl+Z`; redo with `Cmd/Ctrl+Shift+Z` or `Ctrl+Y`. Model changes and labels are excluded. |
 
 The advanced setting families—Global confidence, Body-group override, Joint
@@ -42,9 +42,10 @@ override and inspection, Continuity and plausibility, and Segment-local
 smoothing—are independently collapsible. Keep only the family currently being
 tested open.
 
-The Smoothed preview is unavailable whenever One Euro display smoothing is off.
-Accepted raw deliberately bypasses an enabled filter so you can compare the
-same policy with and without filtered coordinates.
+The One Euro smoothed preview is unavailable whenever One Euro display
+smoothing is off. Centered offline remains available because it is an
+independent calibration experiment, not the product policy. Accepted raw
+deliberately bypasses both filters.
 
 In the Rejected preview, amber points failed confidence checks and pink points
 failed motion-plausibility checks.
@@ -90,17 +91,26 @@ Only finite values are accepted.
 
 ### Smoothing
 
-Smoothing never fills a rejected gap. Compare Accepted raw with Smoothed.
+Neither smoother fills a rejected gap.
 
 | Control | What increasing it does | Use it when |
 |---|---|---|
 | Minimum cutoff | Makes slow movement more responsive and less smoothed. | Raise by about `0.2` if the whole skeleton feels delayed; lower if slow/still pose jitters. |
 | Speed coefficient | Makes the filter follow fast movement more quickly. | Raise by about `2` if hands/feet lag during fast moves; lower if fast motion remains too nervous. Balanced v2 starts at `12`. |
+| Centered radius (ms) | Widens the experimental symmetric time window, usually removing more jitter but increasing the chance of visible pre-motion anticipation. | Check the default `66.667 ms` first. `0` exactly matches Accepted raw. |
 
 Do not judge smoothing from a paused frame alone. Play or scrub through the move.
 Minimum cutoff and Speed coefficient accept any finite nonnegative value. Very
 large values approach the raw signal rather than producing proportionally more
 useful responsiveness.
+
+Centered offline is a timestamp-weighted moving average over accepted points
+before and after the current presentation time. It integrates the
+piecewise-linear track over a symmetric window, shrinks that window evenly near
+segment boundaries, and becomes Accepted raw at the boundary itself. It never
+crosses a rejected point, non-monotonic timestamp, or oversized smoothing gap.
+It can remove causal trailing, but it can make a joint begin moving slightly
+before the raw track; that anticipation is the main failure to inspect.
 
 ## Measurements in plain language
 
@@ -113,7 +123,8 @@ useful responsiveness.
 | Flicker events | Short per-joint loss followed by reacquisition. | Lower is generally better, but this is not the previously reported whole-pose flicker diagnostic. |
 | Longest product-joint gap | Longest rejected interval for one used joint, with the responsible joint named. | Shows persistent loss of a specific useful joint; it does not mean the whole pose vanished. |
 | Longest whole-pose gap | Longest interval with no accepted product joint. | Use this to distinguish a true pose-wide outage from one missing limb. |
-| Mean smoothing shift | Average normalized distance between accepted raw and smoothed points. | Compare iterations. A larger value usually means more smoothing/lag, not necessarily worse output. |
+| Mean One Euro shift | Average normalized distance between Accepted raw and One Euro smoothed points. | Compare iterations. A larger value usually means more smoothing/lag, not necessarily worse output. |
+| Mean centered shift | Average normalized distance between Accepted raw and Centered offline points. | Compare radius choices; it measures coordinate change, not whether timing looks better. |
 | Mean inference | Model computation time per stored sample. | Performance information, not a calibration target. |
 | Mean timestamp error | Difference between requested and actual video presentation time. | Timing-health information, not a confidence-setting target. |
 | Model-empty samples | Frames where MediaPipe returned no pose at all. | Filters cannot repair these; treat them as honest gaps. |
@@ -126,6 +137,9 @@ useful responsiveness.
 - **One Euro:** An adaptive smoothing filter. It smooths small/slow jitter but
   tries to follow fast motion more closely. It can still introduce visible
   delay when its responsiveness is too low.
+- **Centered offline:** A non-causal filter for recorded footage that uses
+  accepted points on both sides of the current timestamp. It can avoid
+  systematic trailing but may anticipate motion.
 - **Non-monotonic:** A timestamp that repeats or moves backward instead of
   strictly advancing. Smoothing resets rather than connecting across it.
 - **Distal segment:** A limb section farther from the torso, such as
@@ -161,7 +175,8 @@ For each range:
 
 1. Select Lite, Display, and Balanced.
 2. Analyze once.
-3. Compare Raw model, Accepted raw, Rejected, and Smoothed.
+3. Compare Raw model, Accepted raw, Rejected, One Euro smoothed, and Centered
+   offline.
 4. At four useful moments, inspect both wrists and both ankles.
 5. Label each inspected joint `usable`, `wrong`, `swapped`, or `unavailable`.
 6. Export the calibration JSON **before replacing the video**. Labels are
@@ -188,11 +203,23 @@ This produces about 48 labels across three clips.
 
 ### 5. Tune smoothing third
 
-- If Smoothed trails Accepted raw during fast movement, first raise Speed
+- If One Euro smoothed trails Accepted raw during fast movement, first raise Speed
   coefficient by `2`.
 - If slow/still pose jitters, lower Minimum cutoff by `0.2`.
 - If the whole skeleton feels delayed, raise Minimum cutoff by `0.2`.
 - Keep the smallest change that is visibly helpful.
+
+Before changing One Euro broadly, run this centered comparison:
+
+1. At the same exact analyzed frames, inspect motion onset, fastest motion,
+   stopping/landing, and the first frame after a rejected gap.
+2. Compare Accepted raw, One Euro smoothed, and Centered offline at the default
+   `66.667 ms` radius.
+3. If needed, test only `33.333 ms` and `100 ms`; change no other setting.
+4. Reject a radius if it shows pre-motion anticipation, stop/landing overshoot,
+   or any pull across a gap.
+5. Prefer Centered offline only if it removes visible trailing while retaining
+   useful jitter reduction on at least two clips.
 
 ### 6. Touch hysteresis only if needed
 
@@ -207,7 +234,8 @@ Use these provisional acceptance targets:
 
 - Retained usable: at least 90%.
 - False visible: at most 5%, ideally 0% for obvious wrong/swapped geometry.
-- No repeated visible hand/foot lag in Smoothed.
+- No repeated visible hand/foot lag in the selected display smoother.
+- No visible pre-motion anticipation if Centered offline is selected.
 - No change justified by only one isolated frame.
 - A new default should improve at least two ranges without clearly harming the
   third.
@@ -235,9 +263,9 @@ limitation instead of overfitting the filters.
 
 ### Questionable moments
 
-| Clip/time | Joint | Raw observation | Accepted/rejected reason | Smoothed observation | Human label | Expected behavior |
-|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |
+| Clip/time | Joint | Accepted raw | One Euro smoothed | Centered offline + radius | Human verdict / failure |
+|---|---|---|---|---|---|
+|  |  |  |  |  |  |
 
 ### Change log
 

@@ -566,10 +566,21 @@ Inference-model changes and manual labels are excluded; source import or model
 change clears history. The five advanced setting families are native independent
 disclosures and start collapsed.
 
-Smoothed preview is unavailable when the active policy has smoothing disabled.
-Turning smoothing off while Smoothed is selected falls back to Accepted raw.
+One Euro smoothed preview is unavailable when the active policy has smoothing
+disabled. Turning smoothing off while it is selected falls back to Accepted raw.
 Accepted raw remains selectable with smoothing enabled so it can serve as the
 unfiltered comparison without altering filter calibration.
+
+The calibration workspace also exposes **Centered offline · experimental** as a
+separate future-aware preview. It computes a presentation-timestamp-weighted
+moving average over equal past and future time within each accepted
+product-joint segment. Its default `66.667 ms` radius is undoable, `0 ms`
+matches Accepted raw, the window shrinks evenly to raw at segment boundaries,
+and it never crosses a rejected, non-monotonic, or oversized gap. It remains
+available when One Euro is disabled because it is not part of the active
+display/analytics policy. Balanced still defaults to the causal One Euro path;
+human review must check the centered candidate for pre-motion anticipation
+before any default change.
 
 Developer calibration exposes the full effective confidence and hysteresis
 domains. Nonnegative temporal and smoothing diagnostics have no artificial

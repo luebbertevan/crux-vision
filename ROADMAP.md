@@ -179,8 +179,8 @@ added.
 
 ### R2 pose-quality calibration gate
 
-**Status:** Balanced v2 still trails by one human-visible frame — exact analyzed
-frame navigation added; zero-lag display decision pending
+**Status:** Centered offline calibration preview implemented; human zero-lag
+and anticipation comparison pending
 
 **Timing:** After the phone gate and before R2B
 
@@ -197,8 +197,8 @@ Build:
 - if range-start-sensitive alternating pose/unavailable flicker recurs often
   enough to matter, separate timestamp gaps from model/confidence gaps before
   changing display continuity;
-- preview raw, accepted, rejected, and smoothed samples without rerunning
-  inference;
+- preview raw, accepted, rejected, causal One Euro, and experimental centered
+  samples without rerunning inference;
 - measure usable coverage, false-visible samples, flicker, gap duration, and
   smoothing lag on representative climbing ranges;
 - publish Balanced v2 plus documented Strict and Permissive alternatives.
@@ -260,6 +260,16 @@ spacing remains honest. They do not claim access to source frames that were not
 analyzed. Use the exact-frame evidence to evaluate a gap-bounded
 centered/offline smoother before resuming broader calibration; do not begin the
 rest of R2B in this gate.
+
+That candidate is now implemented as **Centered offline · experimental**. It
+uses a presentation-timestamp-weighted symmetric moving average over each
+accepted product-joint segment, shrinks evenly to Accepted raw at segment
+boundaries, and never crosses a rejected, repeated/backward, or oversized gap.
+The default radius is `66.667 ms`, `0 ms` equals Accepted raw, and radius edits
+participate in calibration undo/redo. It is intentionally separate from the
+Balanced policy, which still defaults to causal One Euro smoothing. Human
+review must compare fast alignment, stationary jitter, motion onset,
+stopping/landing, and reacquisition boundaries before any default change.
 
 The calibration workspace also now supports bounded, coalescing undo/redo
 through visible controls and standard `Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`, and

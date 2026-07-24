@@ -52,15 +52,17 @@ Raw `RawPoseSample` values remain immutable. A derived quality pass applies:
 4. presentation-timestamped, body-scale-aware isolated-jump, velocity,
    acceleration, and distal segment-length checks;
 5. a segment-local One Euro display smoother that resets on rejection, missing
-   pose, non-monotonic timestamps, or a gap over 50 ms.
+   pose, non-monotonic timestamps, or a gap over 50 ms;
+6. an independent experimental centered offline preview over the same accepted
+   segments.
 
 No interpolation is enabled. Analytics uses stricter confidence and temporal
 limits, disables smoothing, and remains a distinct derived dataset.
 
 The ordinary control is a **Pose quality** selector with Balanced, Strict, and
 Permissive. The advanced calibration disclosure adds Lite/Full selection,
-display/analytics target selection, raw/accepted/rejected/smoothed preview,
-global/group/joint controls, hysteresis, temporal and smoothing controls,
+display/analytics target selection, raw/accepted/rejected/One Euro/centered
+preview, global/group/joint controls, hysteresis, temporal and smoothing controls,
 reason-coded joint inspection, coverage/gap/lag metrics, manual labels, reset,
 JSON export, setting undo/redo, and collapsible setting families. Policy changes
 recompute cached samples without rerunning
@@ -73,10 +75,10 @@ work while the workspace is open. Exact-frame seeks are individual history
 steps. Model changes and labels remain excluded; importing a source or changing
 the model clears history.
 
-The UI prevents a Smoothed preview when the active policy has smoothing
-disabled and falls back to Accepted raw if smoothing is turned off. Accepted
-raw remains available while smoothing is enabled as an intentional comparison
-that bypasses, but does not modify, the calibrated filter.
+The UI prevents a One Euro smoothed preview when the active policy has smoothing
+disabled and falls back to Accepted raw if smoothing is turned off. Centered
+offline remains independently available. Accepted raw remains an intentional
+comparison that bypasses both filters without changing either calibration.
 
 Derived hip and shoulder midpoints retain versioned source provenance and exist
 only when both required source joints are accepted. The simplified head remains
@@ -133,8 +135,10 @@ body landmarks 11–32), including honest model-empty and unavailable slots. The
 10 unused MediaPipe face-detail landmarks remain raw provenance and do not
 affect decisions, controls, labels, smoothing, or metrics. Coverage is not
 accuracy against ground truth.
-Calibration JSON schema `crux-pose-calibration-v2` preserves all raw landmarks
-but emits derived quality decisions only for those 23 product landmarks.
+Calibration JSON schema `crux-pose-calibration-v3` preserves all raw landmarks
+but emits derived quality decisions only for those 23 product landmarks. It
+records both smoother outputs and identifies centered smoothing as an
+experimental, non-default configuration.
 
 | Fixture and range | Purpose | Strict | Balanced | Permissive | Balanced confidence / temporal rejects |
 |---|---|---:|---:|---:|---:|
@@ -180,6 +184,23 @@ tests would fail the former `beta 0.7` default. A causal smoother cannot be
 perfectly zero-lag; the remaining sub-frame-to-one-frame response still needs
 human judgment on the intended display.
 
+### Centered offline experiment
+
+After the focused re-smoke still found one visible frame of One Euro lag, the
+workspace added a timestamp-weighted centered moving average with a default
+`66.667 ms` radius. For each accepted product-joint segment, it integrates the
+piecewise-linear track over equal presentation time before and after the
+current sample. The radius shrinks symmetrically at segment boundaries, the
+boundary output remains Accepted raw, and no rejected, non-monotonic, or
+oversized gap is crossed.
+
+The radius is undoable developer-workspace state rather than part of the
+Balanced policy. `0 ms` exactly matches Accepted raw. A synthetic irregular-
+timestamp constant-velocity regression verifies that the centered result does
+not inherit causal phase delay, while gap tests verify exact resets. Human
+sign-off remains pending because future-aware smoothing can trade trailing for
+pre-motion anticipation.
+
 No repeatable major raw slingshot or left/right swap appeared in the selected
 real-corpus moments, so this pass cannot honestly report a measured real-corpus
 false-visible reduction. Synthetic timestamped tracks prove that a
@@ -211,13 +232,14 @@ Automated coverage includes product-landmark scoping, threshold precedence,
 independent visibility and presence, hysteresis, synthetic slingshot and
 velocity rejection, segment-local smoothing reset, attributed per-joint and
 whole-pose gaps, display/analytics separation, immutable raw recomputation,
-manual-label metrics, and derived-point provenance. Browser
+manual-label metrics, centered constant-motion alignment and jitter reduction,
+and derived-point provenance. Browser
 coverage proves cached-policy recomputation, model-change invalidation,
 source-replacement cleanup, the three-range preset sweep, bounded Lite/Full
 comparison, full-domain developer calibration controls, and mobile-width
 advanced-control sizing.
 
-The final production build, all 47 unit tests, and all 20 Chrome Playwright
+The final production build, all 50 unit tests, and all 20 Chrome Playwright
 tests passed before publication.
 
 Remaining limitations:

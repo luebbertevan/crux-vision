@@ -79,12 +79,16 @@ The first calibrated policy will apply these stages in order:
 5. **Segment-local smoothing:** initially evaluate a One Euro filter for the
    live display. It operates only inside an accepted contiguous segment and
    resets at every gap.
-6. **Optional short-gap handling:** display interpolation, if adopted, is
+6. **Centered offline experiment:** for completed recorded analysis, compare a
+   timestamp-weighted symmetric moving average against Accepted raw and One
+   Euro. It remains a separate derived preview, shrinks evenly at segment
+   boundaries, and never crosses an honest gap.
+7. **Optional short-gap handling:** display interpolation, if adopted, is
    separately marked and bounded. Balanced v2 does not interpolate; analytics
    also defaults to no interpolation.
 
-An offline, symmetric smoother may later be used for derivative-based analysis,
-but it must remain a derived dataset and cannot alter raw samples.
+The centered experiment is not a product default. It must be checked for
+pre-motion anticipation before any display-policy change.
 
 ## Temporary calibration workspace
 
@@ -99,11 +103,11 @@ Controls:
   knees, and ankles/feet.
 - Optional left/right joint overrides.
 - Acquire and keep thresholds for hysteresis.
-- Temporal plausibility and smoothing toggles with a small number of tunable
-  parameters.
+- Temporal plausibility, causal One Euro smoothing, and one centered-window
+  radius control.
 - Display-policy and analytics-policy preview.
-- Raw, accepted, and rejected overlays; rejected samples are color-coded by
-  reason.
+- Raw, accepted, rejected, One Euro smoothed, and experimental centered
+  overlays; rejected samples are color-coded by reason.
 - Reset and JSON export for reproducible calibration runs.
 
 Readouts:
@@ -141,7 +145,9 @@ Compare:
 2. Confidence threshold only.
 3. Threshold plus hysteresis.
 4. Threshold, hysteresis, and temporal rejection.
-5. The accepted track with segment-local smoothing.
+5. The accepted track with segment-local One Euro smoothing.
+6. The same accepted track with centered offline smoothing at exact analyzed
+   frames.
 
 Threshold sweeps should start from `0.30` through `0.90` in `0.05` increments,
 then narrow around promising ranges. Judge each policy by:
@@ -151,6 +157,8 @@ then narrow around promising ranges. Judge each policy by:
 - Flicker and reacquisition delay.
 - Longest honest gap.
 - Visible lag introduced by smoothing.
+- Pre-motion anticipation, stopping overshoot, or boundary pull introduced by
+  centered smoothing.
 
 The visual priority is to remove obviously false geometry without erasing the
 movement being reviewed.
@@ -204,9 +212,10 @@ filtering and honest uncertainty remain available to every user.
 ## Completion decision
 
 Balanced v2 is the ordinary display candidate, with Strict and Permissive
-alternatives. The advanced workspace recomputes raw, accepted, rejected, and
-smoothed views from immutable cached samples and exposes separate display and
-analytics targets, threshold precedence, joint overrides, temporal and
+alternatives. The advanced workspace recomputes raw, accepted, rejected, One
+Euro smoothed, and experimental centered views from immutable cached samples
+and exposes separate display and analytics targets, threshold precedence, joint
+overrides, temporal and
 smoothing controls, reason-coded decisions, coverage/gap/lag metrics, manual
 labels, and a reproducible JSON export.
 
@@ -215,7 +224,9 @@ response after human review isolated roughly two frames of v1 lag to Smoothed.
 Automated and same-frame checks reduced measured high-motion lag to roughly one
 frame while retaining substantial jitter reduction. The focused human re-smoke
 still found one objectionable frame of lag. Exact analyzed-frame navigation now
-supports the centered/offline smoother decision before final display sign-off.
+supports a gap-bounded, timestamp-weighted centered/offline preview with an
+undoable radius control before final display sign-off. This experiment has not
+changed the product default.
 
 Three five-second real climbing ranges were calibrated on the reference laptop.
 Balanced accepted 49.7%, 90.7%, and 89.2% of the 23 scheduled product-joint

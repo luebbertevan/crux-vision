@@ -24,6 +24,7 @@ type PoseQualityPanelProps = {
   policyTarget: PosePolicyTarget;
   policy: PoseQualityPolicy;
   previewMode: PosePreviewMode;
+  centeredSmoothingRadiusMicroseconds: number;
   evaluation: PoseQualityEvaluation;
   currentSample: QualityPoseSample | null;
   selectedModel: PoseModelId;
@@ -38,6 +39,7 @@ type PoseQualityPanelProps = {
   onPolicyTargetChange: (target: PosePolicyTarget) => void;
   onPolicyChange: (policy: PoseQualityPolicy, changeKey: string) => void;
   onPreviewModeChange: (mode: PosePreviewMode) => void;
+  onCenteredSmoothingRadiusChange: (radiusMicroseconds: number) => void;
   onModelChange: (model: PoseModelId) => void;
   onLabel: (
     landmarkIndex: number,
@@ -139,6 +141,7 @@ export function PoseQualityPanel({
   policyTarget,
   policy,
   previewMode,
+  centeredSmoothingRadiusMicroseconds,
   evaluation,
   currentSample,
   selectedModel,
@@ -153,6 +156,7 @@ export function PoseQualityPanel({
   onPolicyTargetChange,
   onPolicyChange,
   onPreviewModeChange,
+  onCenteredSmoothingRadiusChange,
   onModelChange,
   onLabel,
   onClearLabels,
@@ -347,17 +351,22 @@ export function PoseQualityPanel({
                 }
               >
                 <option value="smoothed" disabled={!policy.smoothing.enabled}>
-                  Smoothed
+                  One Euro smoothed
                   {policy.smoothing.enabled ? '' : ' · filter disabled'}
+                </option>
+                <option value="centered">
+                  Centered offline · experimental
                 </option>
                 <option value="accepted">Accepted raw</option>
                 <option value="rejected">Accepted + rejected</option>
                 <option value="raw">Raw model</option>
               </select>
               <small>
-                {policy.smoothing.enabled
-                  ? 'Accepted raw bypasses the enabled filter without changing its calibration.'
-                  : 'Enable the filter below to make the Smoothed preview available.'}
+                {previewMode === 'centered'
+                  ? 'Uses accepted points before and after each timestamp. Judge anticipation as well as lag.'
+                  : policy.smoothing.enabled
+                    ? 'Accepted raw bypasses One Euro without changing its calibration.'
+                    : 'Enable One Euro below to make its smoothed preview available.'}
               </small>
             </label>
           </div>
@@ -486,8 +495,14 @@ export function PoseQualityPanel({
               <strong>{milliseconds(metrics.longestWholePoseGapMicroseconds)}</strong>
             </span>
             <span>
-              <small>Mean smoothing shift</small>
+              <small>Mean One Euro shift</small>
               <strong>{metrics.meanSmoothingDisplacement.toFixed(4)}</strong>
+            </span>
+            <span>
+              <small>Mean centered shift</small>
+              <strong>
+                {metrics.meanCenteredSmoothingDisplacement.toFixed(4)}
+              </strong>
             </span>
             <span>
               <small>Mean inference</small>
@@ -861,6 +876,24 @@ export function PoseQualityPanel({
                 )
               }
             />
+            <NumberControl
+              label="Centered radius (ms)"
+              value={centeredSmoothingRadiusMicroseconds / 1_000}
+              min={0}
+              step={0.001}
+              onChange={(radiusMilliseconds) => {
+                const radiusMicroseconds = radiusMilliseconds * 1_000;
+                if (!Number.isFinite(radiusMicroseconds)) return;
+                onCenteredSmoothingRadiusChange(
+                  Math.round(radiusMicroseconds),
+                );
+              }}
+            />
+            <small>
+              Experimental offline preview only. The symmetric window uses
+              presentation time and stops at every rejected or oversized gap.
+              Judge it after analysis completes.
+            </small>
             </div>
           </details>
 

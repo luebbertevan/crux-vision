@@ -201,8 +201,11 @@ describe('pose-quality policy', () => {
     );
 
     expect(decisionAt(evaluation, 1, 15).smoothed?.x).not.toBe(0.4);
+    expect(decisionAt(evaluation, 1, 15).centered?.x).toBe(0.4);
     expect(decisionAt(evaluation, 2, 15).smoothed).toBeNull();
+    expect(decisionAt(evaluation, 2, 15).centered).toBeNull();
     expect(decisionAt(evaluation, 3, 15).smoothed?.x).toBe(0.8);
+    expect(decisionAt(evaluation, 3, 15).centered?.x).toBe(0.8);
   });
 
   it('keeps the Balanced smoother responsive during sustained fast motion', () => {
@@ -220,6 +223,64 @@ describe('pose-quality policy', () => {
     const lagFrames = (final.accepted!.x - final.smoothed!.x) / step;
 
     expect(lagFrames).toBeLessThan(1);
+  });
+
+  it('centers a timestamp-weighted offline window without delaying constant motion', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.temporal.enabled = false;
+    const timestamps = [0, 20_000, 65_000, 105_000, 150_000];
+    const evaluation = evaluatePoseQuality(
+      timestamps.map((timestamp) =>
+        sample(timestamp, point(0.2 + timestamp / 1_000_000)),
+      ),
+      policy,
+      { centeredSmoothingRadiusMicroseconds: 60_000 },
+    );
+    const middle = decisionAt(evaluation, 2, 15);
+
+    expect(middle.centered?.x).toBeCloseTo(middle.accepted!.x, 10);
+    expect(middle.smoothed!.x).toBeLessThan(middle.accepted!.x);
+    expect(evaluation.centeredSmoothingRadiusMicroseconds).toBe(60_000);
+  });
+
+  it('reduces interior jitter with the centered offline window', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.temporal.enabled = false;
+    const evaluation = evaluatePoseQuality(
+      [0.5, 0.51, 0.49, 0.51, 0.5].map((x, index) =>
+        sample(index * 33_333, point(x)),
+      ),
+      policy,
+      { centeredSmoothingRadiusMicroseconds: 66_666 },
+    );
+    const middle = decisionAt(evaluation, 2, 15);
+
+    expect(Math.abs(middle.centered!.x - 0.5)).toBeLessThan(
+      Math.abs(middle.accepted!.x - 0.5),
+    );
+  });
+
+  it('lets a zero-radius centered preview exactly match accepted raw', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.temporal.enabled = false;
+    const evaluation = evaluatePoseQuality(
+      [
+        sample(0, point(0.2)),
+        sample(33_333, point(0.4)),
+        sample(66_666, point(0.3)),
+      ],
+      policy,
+      { centeredSmoothingRadiusMicroseconds: 0 },
+    );
+
+    for (const entry of evaluation.samples) {
+      expect(entry.decisions[15]!.centered).toEqual(
+        entry.decisions[15]!.accepted,
+      );
+    }
   });
 
   it('still suppresses alternating low-amplitude jitter with responsive smoothing', () => {
