@@ -182,6 +182,55 @@ describe('pose-quality policy', () => {
     expect(evaluation.samples[3].decisions[15].smoothed?.x).toBe(0.8);
   });
 
+  it('keeps the Balanced smoother responsive during sustained fast motion', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.temporal.enabled = false;
+    const step = 0.01;
+    const evaluation = evaluatePoseQuality(
+      Array.from({ length: 60 }, (_, index) =>
+        sample(index * 33_333, point(0.2 + index * step)),
+      ),
+      policy,
+    );
+    const final = evaluation.samples.at(-1)!.decisions[15];
+    const lagFrames = (final.accepted!.x - final.smoothed!.x) / step;
+
+    expect(lagFrames).toBeLessThan(1);
+  });
+
+  it('still suppresses alternating low-amplitude jitter with responsive smoothing', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.temporal.enabled = false;
+    const raw = Array.from({ length: 60 }, (_, index) =>
+      sample(
+        index * 33_333,
+        point(0.5 + (index % 2 === 0 ? -0.004 : 0.004)),
+      ),
+    );
+    const evaluation = evaluatePoseQuality(raw, policy);
+    const smoothed = evaluation.samples.map(
+      (entry) => entry.decisions[15].smoothed!.x,
+    );
+    let rawAcceleration = 0;
+    let smoothedAcceleration = 0;
+    for (let index = 2; index < raw.length; index += 1) {
+      rawAcceleration += Math.abs(
+        raw[index].landmarks[15].x -
+          2 * raw[index - 1].landmarks[15].x +
+          raw[index - 2].landmarks[15].x,
+      );
+      smoothedAcceleration += Math.abs(
+        smoothed[index] -
+          2 * smoothed[index - 1] +
+          smoothed[index - 2],
+      );
+    }
+
+    expect(smoothedAcceleration / rawAcceleration).toBeLessThan(0.25);
+  });
+
   it('counts leading and never-acquired intervals as honest gaps, not reacquisitions', () => {
     const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
     policy.hysteresis.enabled = false;

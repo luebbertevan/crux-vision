@@ -4,7 +4,7 @@ Crux Vision is a local-first movement-review workspace for climbers. R2A opens
 a local portrait or landscape video immediately, lets the user select a short
 range, and progressively renders timestamp-synchronized MediaPipe pose and
 calibrated, confidence-aware hip and shoulder midpoint trails without uploading
-or re-encoding the source. Balanced v1 is the ordinary pose-quality default;
+or re-encoding the source. Balanced v2 is the ordinary pose-quality default;
 Strict and Permissive alternatives and an advanced calibration workspace
 recompute inspectable derived views from immutable cached raw poses.
 

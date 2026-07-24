@@ -1,8 +1,8 @@
-# Pose-quality calibration report: Balanced v1
+# Pose-quality calibration report: Balanced v2
 
-**Status:** Implementation complete; human sign-off reopened for smoothing lag
+**Status:** Responsive smoothing fix implemented; human re-smoke pending
 
-**Policy version:** `balanced-v1-2026-07-24`
+**Policy version:** `balanced-v2-2026-07-24`
 
 **Date:** July 24, 2026
 
@@ -10,15 +10,18 @@
 
 ## Decision
 
-Balanced v1 is the implemented ordinary pose-quality display default. Strict
+Balanced v2 is the implemented ordinary pose-quality display default. Strict
 and Permissive remain built-in alternatives with intentional coverage and
 continuity tradeoffs. Display and analytics policies are separate.
 
 A subsequent human lache review confirmed that the default Smoothed view trails
-Accepted raw by roughly 70 ms during fast movement. Accepted raw remains
-registered to the climber. The confidence/temporal policy remains a candidate,
-but the smoothed ordinary display has not passed human sign-off. Broader manual
-calibration is paused pending the default-display and smoothing follow-up.
+Accepted raw by roughly 70 ms during fast movement. Accepted raw remained
+registered to the climber, isolating the problem to smoothing rather than
+playback timestamp lookup. A same-cache parameter sweep confirmed that the
+original One Euro speed response was too low for normalized climbing motion.
+Balanced v2 retains the original low-speed cutoff and raises only the speed
+coefficient. It is ready for a focused human re-smoke before broader manual
+calibration resumes.
 
 MediaPipe Lite remains the product model default. Full was evaluated against
 Lite on the same difficult five-second range before any default change and did
@@ -64,7 +67,7 @@ Derived hip and shoulder midpoints retain versioned source provenance and exist
 only when both required source joints are accepted. The simplified head remains
 a display-only accepted nose anchor.
 
-## Balanced v1 values
+## Balanced v2 values
 
 ### Confidence
 
@@ -94,17 +97,18 @@ thresholds, then uses `+0.05` acquisition and `-0.04` retention deltas.
 | Isolated jump | 0.65 body lengths |
 | Isolated return ratio | 0.40 |
 | One Euro minimum cutoff | 2.0 |
-| One Euro beta | 0.7 |
+| One Euro beta | 12.0 |
 | Derivative cutoff | 1.0 |
 | Reset gap | 50 ms |
 
 The analytics policy uses 85% of the display speed limit, 80% of its
 acceleration and segment-change limits, and no smoothing.
 
-Strict raises confidence thresholds and lowers temporal limits. Permissive
-lowers confidence thresholds and raises temporal limits. Their complete,
-versioned values live beside Balanced in `src/pose/poseQuality.ts` and are
-included by the calibration JSON export.
+Strict raises confidence thresholds and lowers temporal limits; its responsive
+speed coefficient is 8. Permissive lowers confidence thresholds and raises
+temporal limits; its coefficient is 16. Their complete, versioned values live
+beside Balanced in `src/pose/poseQuality.ts` and are included by the calibration
+JSON export.
 
 ## Calibration corpus and evidence
 
@@ -120,17 +124,36 @@ model-empty and unavailable slots. It is not accuracy against ground truth.
 
 The lache range contains 49 raw model-empty samples; all three policies preserve
 those gaps. Balanced recorded 18 short per-joint reacquisition events across the
-three ranges, versus 33 for Strict and nine for Permissive. Mean smoothing
-displacement was 0.0155, 0.0050, and 0.0083 normalized image units for the
-three Balanced ranges after responsiveness tuning.
+three ranges, versus 33 for Strict and nine for Permissive. With Balanced v2,
+mean smoothing displacement was 0.0075, 0.0037, and 0.0054 normalized image
+units for the three ranges.
 
 Visual comparison used raw, reason-colored rejected, accepted, and smoothed
 overlays on the three ranges plus additional spot checks of fast and occluded
 fixture moments. Early temporal limits rejected plausible fast hands and feet;
 raising the body-relative speed/acceleration bounds reduced the lache range to
 five temporal rejections after the segment-length regression fix. Increasing
-One Euro responsiveness then reduced
-visible fast-limb lag while retaining low-speed smoothing and exact gap resets.
+One Euro responsiveness then reduced visible fast-limb lag while retaining
+low-speed smoothing and exact gap resets.
+
+### Smoothing responsiveness follow-up
+
+The follow-up reused one Lite analysis of `lache-send.MOV`, 7–12 seconds, and
+recomputed every candidate over the same accepted samples. For high-motion
+joint steps, the original Balanced settings (`minimum cutoff 2`, `beta 0.7`)
+had a median projected lag of 1.73 frames and a 90th-percentile lag of 2.49
+frames. Balanced v2 (`minimum cutoff 2`, `beta 12`) reduced those values to
+0.80 and 1.24 frames. The candidate retained 45% of the accepted track's
+aggregate frame-to-frame acceleration, meaning it still removed about 55% of
+that roughness. Exact-frame spot checks on the swing placed v2 visibly closer
+to Accepted raw than v1.
+
+A synthetic 30 Hz constant-velocity regression now requires the Balanced
+smoother to remain under one frame of steady-state lag. A separate alternating
+low-amplitude track requires at least 75% acceleration-noise reduction. These
+tests would fail the former `beta 0.7` default. A causal smoother cannot be
+perfectly zero-lag; the remaining sub-frame-to-one-frame response still needs
+human judgment on the intended display.
 
 No repeatable major raw slingshot or left/right swap appeared in the selected
 real-corpus moments, so this pass cannot honestly report a measured real-corpus
@@ -167,7 +190,7 @@ coverage proves cached-policy recomputation, model-change invalidation,
 source-replacement cleanup, the three-range preset sweep, bounded Lite/Full
 comparison, and mobile-width advanced-control sizing.
 
-The final production build, all 35 unit tests, and all 15 Chrome Playwright
+The final production build, all 37 unit tests, and all 15 Chrome Playwright
 tests passed before publication.
 
 Remaining limitations:

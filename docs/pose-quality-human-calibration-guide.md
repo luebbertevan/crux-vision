@@ -1,15 +1,17 @@
 # Human pose-quality calibration guide
 
-Use this worksheet to decide whether Balanced v1 should remain the default or
+Use this worksheet to decide whether Balanced v2 should remain the default or
 be revised. The goal is not maximum coverage. The goal is to show trustworthy
 motion, hide obviously wrong geometry, and avoid visible smoothing lag.
 
 Record live observations in
 [`pose-quality-human-calibration-findings.md`](./pose-quality-human-calibration-findings.md).
 
-**Current pause:** Human review confirmed that Smoothed trails Accepted raw by
-roughly 70 ms during the lache swing. Do not begin the broader procedure below
-until the ordinary smoothing/default-display decision is resolved.
+**Focused re-smoke first:** Human review found roughly 70 ms of lag with
+Balanced v1. Balanced v2 raises the fast-motion response and is expected to
+reduce that to roughly one frame or less for most high-motion lache samples.
+Replay the same swing with Accepted raw and Smoothed before beginning the
+broader procedure below.
 
 ## Recommended investment
 
@@ -72,7 +74,7 @@ Smoothing never fills a rejected gap. Compare Accepted raw with Smoothed.
 | Control | What increasing it does | Use it when |
 |---|---|---|
 | Minimum cutoff | Makes slow movement more responsive and less smoothed. | Raise by about `0.2` if the whole skeleton feels delayed; lower if slow/still pose jitters. |
-| Speed coefficient | Makes the filter follow fast movement more quickly. | Raise by about `0.1` if hands/feet lag during fast moves; lower if fast motion remains too nervous. |
+| Speed coefficient | Makes the filter follow fast movement more quickly. | Raise by about `2` if hands/feet lag during fast moves; lower if fast motion remains too nervous. Balanced v2 starts at `12`. |
 
 Do not judge smoothing from a paused frame alone. Play or scrub through the move.
 
@@ -162,7 +164,7 @@ This produces about 48 labels across three clips.
 ### 5. Tune smoothing third
 
 - If Smoothed trails Accepted raw during fast movement, first raise Speed
-  coefficient by `0.1`.
+  coefficient by `2`.
 - If slow/still pose jitters, lower Minimum cutoff by `0.2`.
 - If the whole skeleton feels delayed, raise Minimum cutoff by `0.2`.
 - Keep the smallest change that is visibly helpful.
@@ -185,7 +187,7 @@ Use these provisional acceptance targets:
 - A new default should improve at least two ranges without clearly harming the
   third.
 
-If no change meets that bar, keep Balanced v1 and document the remaining model
+If no change meets that bar, keep Balanced v2 and document the remaining model
 limitation instead of overfitting the filters.
 
 ## Findings worksheet
@@ -196,7 +198,7 @@ limitation instead of overfitting the filters.
 - Date:
 - Device/browser:
 - Build/commit:
-- Overall verdict: keep Balanced v1 / revise / needs more evidence
+- Overall verdict: keep Balanced v2 / revise / needs more evidence
 
 ### Baseline ranges
 
@@ -218,7 +220,7 @@ Record one changed value per row.
 
 | Iteration | Single change | Before → after | Coverage | Retained usable | False visible | Visual result across clips | Keep/revert |
 |---|---|---|---:|---:|---:|---|---|
-| Baseline | Balanced v1 unchanged | — |  |  |  |  | Keep |
+| Baseline | Balanced v2 unchanged | — |  |  |  |  | Keep |
 |  |  |  |  |  |  |  |  |
 
 ### Final recommendation

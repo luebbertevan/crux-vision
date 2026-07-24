@@ -1,6 +1,7 @@
 # Pose-quality calibration plan
 
-**Status:** Complete July 24, 2026; Balanced v1 selected before R2B
+**Status:** Balanced v2 implementation complete July 24, 2026; focused human
+smoothing re-smoke pending before R2B
 
 **Purpose:** Establish a trustworthy first acceptance and smoothing policy for
 MediaPipe pose data before pose-derived analysis expands.
@@ -79,7 +80,7 @@ The first calibrated policy will apply these stages in order:
    live display. It operates only inside an accepted contiguous segment and
    resets at every gap.
 6. **Optional short-gap handling:** display interpolation, if adopted, is
-   separately marked and bounded. Balanced v1 does not interpolate; analytics
+   separately marked and bounded. Balanced v2 does not interpolate; analytics
    also defaults to no interpolation.
 
 An offline, symmetric smoother may later be used for derivative-based analysis,
@@ -184,13 +185,13 @@ filtering and honest uncertainty remain available to every user.
   results without rerunning inference and cannot resurrect stale source data.
 - Visual tests cover accepted, rejected, unavailable, and reacquired joints on
   portrait and landscape fixtures.
-- A versioned calibration report records the chosen Balanced v1 values, the
+- A versioned calibration report records the chosen Balanced v2 values, the
   derivation of Strict and Permissive, coverage tradeoffs, and unresolved
   failure modes.
 
 ## Exit criteria
 
-- Balanced v1 removes the major visible slingshots in the calibration corpus
+- Balanced v2 removes the major visible slingshots in the calibration corpus
   while retaining useful movement coverage.
 - Strict and Permissive have documented, measurable tradeoffs.
 - All rejection and interpolation paths remain inspectable.
@@ -201,12 +202,18 @@ filtering and honest uncertainty remain available to every user.
 
 ## Completion decision
 
-Balanced v1 ships as the ordinary display default, with Strict and Permissive
+Balanced v2 is the ordinary display candidate, with Strict and Permissive
 alternatives. The advanced workspace recomputes raw, accepted, rejected, and
 smoothed views from immutable cached samples and exposes separate display and
 analytics targets, threshold precedence, joint overrides, temporal and
 smoothing controls, reason-coded decisions, coverage/gap/lag metrics, manual
 labels, and a reproducible JSON export.
+
+The v2 follow-up retained the low-speed cutoff and raised the One Euro speed
+response after human review isolated roughly two frames of v1 lag to Smoothed.
+Automated and same-frame checks reduced measured high-motion lag to roughly one
+frame while retaining substantial jitter reduction. A focused human re-smoke
+remains before final display sign-off.
 
 Three five-second real climbing ranges were calibrated on the reference laptop.
 Balanced accepted 55.1%, 93.5%, and 92.5% of all scheduled joint slots in the

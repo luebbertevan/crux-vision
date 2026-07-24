@@ -531,8 +531,10 @@ wrists and other direct joints. A midpoint is missing whenever either source
 joint is rejected. Face detail is hidden; one accepted head anchor connects to
 the derived shoulder midpoint.
 
-The calibration work is complete. Balanced v1 is the ordinary default, with
-Strict and Permissive alternatives. Global, body-group, and joint overrides
+The calibration implementation is complete. Balanced v2 is the ordinary
+default, with Strict and Permissive alternatives; a focused human re-smoke of
+the responsive smoothing change remains before broader calibration resumes.
+Global, body-group, and joint overrides
 recompute derived views over immutable cached raw samples; acquisition/retention
 hysteresis, timestamp-based temporal rejection, and segment-local smoothing are
 inspectable under **Pose quality calibration**. Display and analytics policies

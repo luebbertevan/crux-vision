@@ -88,6 +88,48 @@ lag can vary with motion speed.
 5. Measure estimated smoothing lag in milliseconds/frames in addition to mean
    positional displacement.
 
+## Responsive smoothing investigation — July 24, 2026
+
+**Diagnosis:** No timestamp, sample-index, or renderer alignment defect was
+found. The prior One Euro configuration was behaving as implemented, but its
+speed coefficient was too small for normalized landmark coordinates. At 30 Hz,
+the minimum-cutoff response alone naturally produces about two frames of phase
+delay.
+
+The same cached Lite analysis of `lache-send.MOV`, 7–12 seconds, was swept
+without rerunning inference. On high-motion joint steps:
+
+| Balanced candidate | Median projected lag | 90th percentile | Acceleration retained |
+|---|---:|---:|---:|
+| cutoff 2, beta 0.7 | 1.73 frames | 2.49 frames | 31% |
+| cutoff 2, beta 12 | 0.80 frames | 1.24 frames | 45% |
+
+The responsive candidate keeps the minimum cutoff at 2 so slow/stationary pose
+remains strongly filtered, while the higher beta lets fast motion bypass more
+smoothing. Exact-frame spot checks on the swing placed the candidate closer to
+Accepted raw. Synthetic regression coverage now checks both under-one-frame
+steady fast-motion lag and at least 75% suppression of alternating
+low-amplitude acceleration noise.
+
+### Implemented follow-up
+
+- Balanced v2 changes the default speed coefficient from `0.7` to `12`.
+- Strict and Permissive use `8` and `16` respectively, preserving their
+  stronger-smoothing / greater-responsiveness ordering.
+- The advanced Speed coefficient control now spans `0–20`; its previous
+  maximum of `1` could not reach the responsive range.
+- Smoothed remains the ordinary default for the human re-smoke. Accepted raw
+  remains the alignment reference.
+- The centered/offline smoother and calibration A/B mode are not needed unless
+  the focused re-smoke still finds objectionable lag.
+
+### Focused re-smoke
+
+Replay the same lache swing on the new hosted build, switching only between
+Accepted raw and Smoothed. Record whether the remaining difference is
+imperceptible, acceptable (about one frame), or still objectionable. Do not
+begin broader threshold calibration until this check passes.
+
 ## Comparison-tool recommendation
 
 A full pair of synchronized video players is not the first calibration tool to

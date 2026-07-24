@@ -73,11 +73,12 @@ separate layout problem.
 
 ### Pose-quality calibration gate
 
-Completed after the phone check and before R2B. Balanced v1 now combines
+Implemented after the phone check and before R2B. Balanced v2 now combines
 confidence acceptance, hysteresis, temporal rejection, and segment-local
 smoothing over immutable cached raw samples. Strict and Permissive alternatives
 expose documented coverage/continuity tradeoffs, while detailed policy controls
-and reason-coded debug views remain under the advanced disclosure. See the
+and reason-coded debug views remain under the advanced disclosure. A focused
+human re-smoke of the responsive v2 smoother remains before final sign-off. See the
 [`calibration plan`](./pose-quality-calibration-plan.md) and
 [`calibration report`](./pose-quality-calibration-report.md).
 
@@ -244,7 +245,7 @@ R2 is complete when:
 - How much pose progress detail normal users should see.
 - Whether later corpus or R2D phone evidence gives Full enough visible quality
   improvement to justify broader exposure; the bounded calibration did not.
-- Whether later labeled ground-truth work should revise Balanced v1's calibrated
+- Whether later labeled ground-truth work should revise Balanced v2's calibrated
   joint/group thresholds, hysteresis, or smoothing.
 - The future layout and interaction model for comparing multiple videos.
 - Commercial packaging for synced or shared preset libraries.

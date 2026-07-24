@@ -625,8 +625,8 @@ export function PoseQualityPanel({
               label="Speed coefficient"
               value={policy.smoothing.beta}
               min={0}
-              max={1}
-              step={0.01}
+              max={20}
+              step={0.5}
               disabled={!policy.smoothing.enabled}
               onChange={(beta) =>
                 onPolicyChange({

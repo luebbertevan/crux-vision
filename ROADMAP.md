@@ -179,8 +179,8 @@ added.
 
 ### R2 pose-quality calibration gate
 
-**Status:** Reopened for smoothing follow-up — Balanced acceptance and
-MediaPipe Lite remain candidates; human display sign-off is paused
+**Status:** Balanced v2 smoothing fix implemented — focused human re-smoke
+pending before broader calibration resumes
 
 **Timing:** After the phone gate and before R2B
 
@@ -201,14 +201,14 @@ Build:
   inference;
 - measure usable coverage, false-visible samples, flicker, gap duration, and
   smoothing lag on representative climbing ranges;
-- publish Balanced v1 plus documented Strict and Permissive alternatives.
+- publish Balanced v2 plus documented Strict and Permissive alternatives.
 
 **Exit:** The selected policy materially reduces visible slingshots and false
 limb geometry without hiding most useful movement. Display and analytics
 policies remain separate and coverage-aware, the automated acceptance suite
 passes, and remaining MediaPipe limitations are documented.
 
-Balanced v1 now applies structural validation, confidence precedence, separate
+Balanced v2 now applies structural validation, confidence precedence, separate
 visibility/presence checks, acquisition/retention hysteresis, timestamp- and
 body-scale-aware temporal rejection, and gap-resetting segment-local One Euro
 smoothing over immutable cached raw samples. Strict and Permissive alternatives
@@ -237,16 +237,19 @@ becomes reproducible.
 
 See the
 [`calibration plan`](./docs/pose-quality-calibration-plan.md) and
-[`Balanced v1 report`](./docs/pose-quality-calibration-report.md).
+[`Balanced v2 report`](./docs/pose-quality-calibration-report.md).
 
 Post-implementation human review of `lache-send.MOV` confirmed that the
 Smoothed view trails Accepted raw by roughly 70 ms during fast movement.
 Accepted raw does not show the lag, isolating the regression to the causal One
-Euro smoothing path rather than the playback timestamp join. Broader manual
-calibration is paused. Before R2B, restore a non-lagging ordinary display,
-compare accepted/candidate smoothing on the exact same presented frame, and
-decide whether tuned causal smoothing or a gap-bounded centered/offline
-smoother can pass visual review.
+Euro smoothing path rather than the playback timestamp join. A same-cache lache
+sweep then showed that the original speed coefficient was too low: Balanced v2
+reduced median projected high-motion lag from 1.73 to 0.80 frames and the 90th
+percentile from 2.49 to 1.24 while still removing about 55% of aggregate
+frame-to-frame acceleration noise. The tuned causal smoother remains the
+ordinary display candidate pending one focused human re-smoke. Build a
+same-frame A/B tool or evaluate a gap-bounded centered/offline smoother only if
+that re-smoke still finds the remaining response objectionable.
 
 ### R2B — Precision review controls
 

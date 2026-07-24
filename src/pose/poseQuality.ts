@@ -1,6 +1,6 @@
 import type { PoseLandmark, RawPoseSample } from '../types';
 
-export const POSE_QUALITY_POLICY_VERSION = 'balanced-v1-2026-07-24';
+export const POSE_QUALITY_POLICY_VERSION = 'balanced-v2-2026-07-24';
 export const POSE_LANDMARK_COUNT = 33;
 
 export type PoseQualityPresetId = 'strict' | 'balanced' | 'permissive';
@@ -341,7 +341,7 @@ const strictDisplay = displayPolicy(
   {
     enabled: true,
     minimumCutoff: 1.7,
-    beta: 0.5,
+    beta: 8,
     derivativeCutoff: 1,
     maximumGapMicroseconds: 50_000,
   },
@@ -372,7 +372,7 @@ const balancedDisplay = displayPolicy(
   {
     enabled: true,
     minimumCutoff: 2,
-    beta: 0.7,
+    beta: 12,
     derivativeCutoff: 1,
     maximumGapMicroseconds: 50_000,
   },
@@ -403,7 +403,7 @@ const permissiveDisplay = displayPolicy(
   {
     enabled: true,
     minimumCutoff: 2.4,
-    beta: 0.9,
+    beta: 16,
     derivativeCutoff: 1,
     maximumGapMicroseconds: 50_000,
   },
@@ -420,7 +420,7 @@ export const POSE_QUALITY_PROFILES: Record<PoseQualityPresetId, PoseQualityProfi
   balanced: {
     id: 'balanced',
     label: 'Balanced',
-    description: 'Balanced v1: protect against visible slingshots while retaining motion.',
+    description: 'Balanced v2: responsive smoothing with balanced pose retention.',
     display: balancedDisplay,
     analytics: analyticsFromDisplay(balancedDisplay, 0.08),
   },
