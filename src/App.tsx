@@ -41,6 +41,7 @@ import type { AnalysisRange, SourceMetadata } from './types';
 type SourceSession = {
   id: number;
   url: string;
+  posterUrl: string | null;
   metadata: SourceMetadata;
 };
 
@@ -90,6 +91,7 @@ export function App() {
 
   const adapterRef = useRef<BrowserMediaAdapter | null>(null);
   const objectUrlRef = useRef<string | null>(null);
+  const posterUrlRef = useRef<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const analysisControllerRef = useRef<PoseAnalysisController | null>(null);
   const reviewMainRef = useRef<HTMLDivElement | null>(null);
@@ -156,12 +158,14 @@ export function App() {
       try {
         const { BrowserMediaAdapter } = await import('./media/mediaAdapter');
         candidate = await BrowserMediaAdapter.open(file);
+        const posterBlob = await candidate.createPosterBlob().catch(() => null);
         if (candidateGeneration !== importGenerationRef.current) {
           candidate.dispose();
           return;
         }
 
         const nextUrl = URL.createObjectURL(file);
+        const nextPosterUrl = posterBlob ? URL.createObjectURL(posterBlob) : null;
         const video = videoRef.current;
         video?.pause();
         if (video) {
@@ -171,11 +175,18 @@ export function App() {
         clearCanvas();
         adapterRef.current?.dispose();
         if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+        if (posterUrlRef.current) URL.revokeObjectURL(posterUrlRef.current);
 
         const sessionId = ++sessionSequenceRef.current;
         adapterRef.current = candidate;
         objectUrlRef.current = nextUrl;
-        setSource({ id: sessionId, url: nextUrl, metadata: candidate.metadata });
+        posterUrlRef.current = nextPosterUrl;
+        setSource({
+          id: sessionId,
+          url: nextUrl,
+          posterUrl: nextPosterUrl,
+          metadata: candidate.metadata,
+        });
         setRange(defaultAnalysisRange(candidate.metadata.durationMicroseconds));
         setStageFeedback('none');
         setOverlaysVisible(true);
@@ -249,6 +260,7 @@ export function App() {
       }
       adapterRef.current?.dispose();
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      if (posterUrlRef.current) URL.revokeObjectURL(posterUrlRef.current);
       player.destroy();
     },
     [player],
@@ -478,6 +490,7 @@ export function App() {
                 <video
                   ref={attachVideo}
                   src={source.url}
+                  poster={source.posterUrl ?? undefined}
                   playsInline
                   preload="auto"
                   onCanPlay={(event) => {

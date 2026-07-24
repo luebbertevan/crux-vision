@@ -103,6 +103,30 @@ export class BrowserMediaAdapter {
     });
   }
 
+  async createPosterBlob(maxDisplayWidth = 1_024): Promise<Blob | null> {
+    const sink = this.createSampleSink(maxDisplayWidth);
+    const iterator = sink.canvases()[Symbol.asyncIterator]();
+
+    try {
+      const first = await iterator.next();
+      if (first.done || !first.value) return null;
+
+      const canvas = first.value.canvas;
+      if (canvas instanceof HTMLCanvasElement) {
+        return await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob(resolve, 'image/jpeg', 0.86);
+        });
+      }
+
+      return await canvas.convertToBlob({
+        type: 'image/jpeg',
+        quality: 0.86,
+      });
+    } finally {
+      await iterator.return?.();
+    }
+  }
+
   async *framesAt(
     timestampsMicroseconds: readonly number[],
     signal?: AbortSignal,

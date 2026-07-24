@@ -18,9 +18,9 @@ browser environment—not desktop Chrome with a narrow viewport.
 ## R2A smoke test
 
 Before running a model matrix, prove that a portrait clip imports upright, a
-short Lite analysis produces pose, the overlay aligns, interaction remains
-responsive, and the page does not crash or reload. Stop and revisit the
-architecture if this fails.
+visible first frame replaces the empty black player, a short Lite analysis
+produces pose, the overlay aligns, interaction remains responsive, and the page
+does not crash or reload. Stop and revisit the architecture if this fails.
 
 The first physical run confirmed HTTPS access, portrait import, and playback,
 then exposed a WebKit worker mismatch in MediaPipe's generated canvas bridge:

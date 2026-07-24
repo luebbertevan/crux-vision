@@ -17,10 +17,11 @@ than restyling it.
 
 1. Open the empty Crux Vision shell and choose **Open video**.
 2. Select a local portrait or landscape clip. Local container inspection
-   validates the candidate, then the source appears as a `blob:` URL with
-   `playsInline`; playback is attempted as soon as it is playable and never
-   waits for pose/model work. If autoplay is refused, the prominent play control
-   remains ready.
+   validates the candidate and decodes its first upright frame into a local
+   poster, then the source appears as a `blob:` URL with `playsInline`;
+   playback is attempted as soon as it is playable and never waits for
+   pose/model work. If autoplay is refused, the poster remains visible and the
+   prominent play control remains ready.
 3. Watch or coarsely seek to the move. Use **Set start** and **Set end** at the
    current time, or adjust the two accessible range handles. The default is
    `0..min(duration, 10 seconds)` with a 0.5-second minimum range and a

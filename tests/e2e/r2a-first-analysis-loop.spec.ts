@@ -32,6 +32,17 @@ test('imports portrait media upright from a local blob without upload', async ({
   await page.goto('/');
   await importVideo(page, portraitFixture);
 
+  const videoElement = page.locator('video');
+  await expect(videoElement).toHaveAttribute('poster', /^blob:/);
+  const posterUrl = await videoElement.getAttribute('poster');
+  const posterSize = await page.evaluate(async (url) => {
+    const image = new Image();
+    image.src = url!;
+    await image.decode();
+    return { width: image.naturalWidth, height: image.naturalHeight };
+  }, posterUrl);
+  expect(posterSize.width).toBeGreaterThan(0);
+  expect(posterSize.height).toBeGreaterThan(posterSize.width);
   const stage = page.getByTestId('video-stage');
   await expect(stage).toHaveAttribute('data-display-width', '1080');
   await expect(stage).toHaveAttribute('data-display-height', '1920');
