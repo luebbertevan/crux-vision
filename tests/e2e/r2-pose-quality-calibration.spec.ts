@@ -338,6 +338,60 @@ test('prevents a misleading smoothed preview when its filter is disabled', async
   ).not.toBeChecked();
 });
 
+test('exposes full effective and unbounded safe developer calibration ranges', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await importVideo(page, portraitFixture);
+  await page.getByText('Pose quality calibration').click();
+
+  await page.getByText('Global confidence', { exact: true }).click();
+  const visibility = page.getByTestId('global-visibility-threshold');
+  await expect(visibility).toHaveAttribute('min', '0');
+  await expect(visibility).toHaveAttribute('max', '1');
+  await expect(visibility).toHaveAttribute('step', '0.01');
+  await visibility.fill('0');
+  await expect(visibility).toHaveValue('0');
+  await visibility.fill('1');
+  await expect(visibility).toHaveValue('1');
+
+  await page.getByText('Continuity and plausibility', { exact: true }).click();
+  const acquire = page.getByLabel('Acquire delta');
+  const keep = page.getByLabel('Keep delta');
+  await expect(acquire).toHaveAttribute('min', '0');
+  await expect(acquire).toHaveAttribute('max', '1');
+  await expect(keep).toHaveAttribute('min', '-1');
+  await expect(keep).toHaveAttribute('max', '0');
+  const acquireBeforeInvalidInput = await acquire.inputValue();
+  await acquire.fill('2');
+  await expect(acquire).toHaveValue(acquireBeforeInvalidInput);
+
+  for (const label of [
+    'Max body lengths / sec',
+    'Max acceleration',
+    'Max segment change',
+  ]) {
+    const control = page.getByLabel(label);
+    await expect(control).toHaveAttribute('min', '0');
+    expect(await control.getAttribute('max')).toBeNull();
+  }
+  const speed = page.getByLabel('Max body lengths / sec');
+  const speedBeforeInvalidInput = await speed.inputValue();
+  await speed.fill('-1');
+  await expect(speed).toHaveValue(speedBeforeInvalidInput);
+  await page.getByLabel('Max acceleration').fill('100000');
+  await expect(page.getByLabel('Max acceleration')).toHaveValue('100000');
+
+  await page.getByText('Segment-local smoothing', { exact: true }).click();
+  for (const label of ['Minimum cutoff', 'Speed coefficient']) {
+    const control = page.getByLabel(label);
+    await expect(control).toHaveAttribute('min', '0');
+    expect(await control.getAttribute('max')).toBeNull();
+  }
+  await page.getByLabel('Speed coefficient').fill('1000');
+  await expect(page.getByLabel('Speed coefficient')).toHaveValue('1000');
+});
+
 test('keeps the advanced calibration workspace usable at iPhone width', async ({
   page,
 }) => {

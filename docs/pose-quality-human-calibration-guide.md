@@ -62,7 +62,8 @@ MediaPipe confidence is a clue, not proof that a point is correct.
 | Joint override | Changes one exact left/right landmark. | Only for a repeated single-joint bias across several clips. |
 
 Threshold precedence is `joint override > body-group override > global`.
-Increase or decrease confidence in `0.05` steps.
+The developer controls expose the full `0–1` confidence domain in `0.01` steps.
+Use `0` and `1` as diagnostic extremes, not likely product defaults.
 
 ### Continuity and plausibility
 
@@ -78,6 +79,11 @@ Increase or decrease confidence in `0.05` steps.
 Adjust temporal limits by roughly 10–15% per iteration. Lower limits reject more;
 higher limits retain more.
 
+Acquire delta exposes its full effective `0–1` range and Keep delta exposes
+`-1–0`; confidence math clamps at the valid `0–1` boundary. The nonnegative
+speed, acceleration, and segment-change controls have no artificial upper limit.
+Only finite values are accepted.
+
 ### Smoothing
 
 Smoothing never fills a rejected gap. Compare Accepted raw with Smoothed.
@@ -88,6 +94,9 @@ Smoothing never fills a rejected gap. Compare Accepted raw with Smoothed.
 | Speed coefficient | Makes the filter follow fast movement more quickly. | Raise by about `2` if hands/feet lag during fast moves; lower if fast motion remains too nervous. Balanced v2 starts at `12`. |
 
 Do not judge smoothing from a paused frame alone. Play or scrub through the move.
+Minimum cutoff and Speed coefficient accept any finite nonnegative value. Very
+large values approach the raw signal rather than producing proportionally more
+useful responsiveness.
 
 ## Measurements in plain language
 

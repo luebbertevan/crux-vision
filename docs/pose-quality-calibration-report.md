@@ -203,9 +203,10 @@ smoothing reset, honest leading gaps, display/analytics separation, immutable
 raw recomputation, manual-label metrics, and derived-point provenance. Browser
 coverage proves cached-policy recomputation, model-change invalidation,
 source-replacement cleanup, the three-range preset sweep, bounded Lite/Full
-comparison, and mobile-width advanced-control sizing.
+comparison, full-domain developer calibration controls, and mobile-width
+advanced-control sizing.
 
-The final production build, all 45 unit tests, and all 18 Chrome Playwright
+The final production build, all 45 unit tests, and all 19 Chrome Playwright
 tests passed before publication.
 
 Remaining limitations:

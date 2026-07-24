@@ -262,6 +262,9 @@ test('landscape phone keeps portrait and landscape review controls usable', asyn
   });
 
   await importVideo(page, landscapeFixture);
+  await expect
+    .poll(async () => (await getReviewBounds(page)).stage.width)
+    .toBeGreaterThanOrEqual(360);
   bounds = await getReviewBounds(page);
   expect(bounds.stage.width).toBeGreaterThanOrEqual(360);
   expect(bounds.transport.bottom).toBeLessThanOrEqual(393);

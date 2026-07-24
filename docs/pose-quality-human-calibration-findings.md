@@ -188,6 +188,12 @@ intentional unfiltered comparison view; it does not change the calibrated filter
 The five advanced setting families are independently collapsible and start
 closed so the current calibration task can remain visually focused.
 
+The developer workspace now exposes the complete effective `0–1` confidence,
+`0–1` acquire-delta, and `-1–0` keep-delta domains. Finite nonnegative
+temporal and smoothing controls no longer have artificial upper limits.
+Non-finite or out-of-domain input is ignored, and product preset defaults are
+unchanged.
+
 ## Comparison-tool recommendation
 
 A full pair of synchronized video players is not the first calibration tool to

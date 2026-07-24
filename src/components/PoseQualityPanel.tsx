@@ -78,9 +78,9 @@ function ThresholdSlider({
       <input
         data-testid={testId}
         type="range"
-        min={0.2}
-        max={0.95}
-        step={0.05}
+        min={0}
+        max={1}
+        step={0.01}
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(Number(event.currentTarget.value))}
@@ -101,7 +101,7 @@ function NumberControl({
   label: string;
   value: number;
   min: number;
-  max: number;
+  max?: number;
   step: number;
   disabled?: boolean;
   onChange: (value: number) => void;
@@ -114,9 +114,20 @@ function NumberControl({
         min={min}
         max={max}
         step={step}
+        inputMode="decimal"
         value={value}
         disabled={disabled}
-        onChange={(event) => onChange(Number(event.currentTarget.value))}
+        onChange={(event) => {
+          const next = event.currentTarget.valueAsNumber;
+          if (
+            !Number.isFinite(next) ||
+            next < min ||
+            (max !== undefined && next > max)
+          ) {
+            return;
+          }
+          onChange(next);
+        }}
       />
     </label>
   );
@@ -677,7 +688,7 @@ export function PoseQualityPanel({
               label="Acquire delta"
               value={policy.hysteresis.acquireDelta}
               min={0}
-              max={0.2}
+              max={1}
               step={0.01}
               disabled={!policy.hysteresis.enabled}
               onChange={(acquireDelta) =>
@@ -693,7 +704,7 @@ export function PoseQualityPanel({
             <NumberControl
               label="Keep delta"
               value={policy.hysteresis.keepDelta}
-              min={-0.2}
+              min={-1}
               max={0}
               step={0.01}
               disabled={!policy.hysteresis.enabled}
@@ -729,9 +740,8 @@ export function PoseQualityPanel({
             <NumberControl
               label="Max body lengths / sec"
               value={policy.temporal.maximumSpeedBodyLengthsPerSecond}
-              min={2}
-              max={60}
-              step={1}
+              min={0}
+              step={0.1}
               disabled={!policy.temporal.enabled}
               onChange={(maximumSpeedBodyLengthsPerSecond) =>
                 onPolicyChange(
@@ -749,9 +759,8 @@ export function PoseQualityPanel({
             <NumberControl
               label="Max acceleration"
               value={policy.temporal.maximumAccelerationBodyLengthsPerSecondSquared}
-              min={20}
-              max={2_000}
-              step={25}
+              min={0}
+              step={1}
               disabled={!policy.temporal.enabled}
               onChange={(maximumAccelerationBodyLengthsPerSecondSquared) =>
                 onPolicyChange(
@@ -769,9 +778,8 @@ export function PoseQualityPanel({
             <NumberControl
               label="Max segment change"
               value={policy.temporal.maximumSegmentLengthChangeRatio}
-              min={0.1}
-              max={1.5}
-              step={0.05}
+              min={0}
+              step={0.01}
               disabled={!policy.temporal.enabled}
               onChange={(maximumSegmentLengthChangeRatio) =>
                 onPolicyChange(
@@ -814,9 +822,8 @@ export function PoseQualityPanel({
             <NumberControl
               label="Minimum cutoff"
               value={policy.smoothing.minimumCutoff}
-              min={0.1}
-              max={5}
-              step={0.1}
+              min={0}
+              step={0.01}
               disabled={!policy.smoothing.enabled}
               onChange={(minimumCutoff) =>
                 onPolicyChange(
@@ -832,8 +839,7 @@ export function PoseQualityPanel({
               label="Speed coefficient"
               value={policy.smoothing.beta}
               min={0}
-              max={20}
-              step={0.5}
+              step={0.1}
               disabled={!policy.smoothing.enabled}
               onChange={(beta) =>
                 onPolicyChange(

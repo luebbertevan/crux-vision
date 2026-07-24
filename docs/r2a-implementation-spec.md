@@ -563,3 +563,8 @@ Smoothed preview is unavailable when the active policy has smoothing disabled.
 Turning smoothing off while Smoothed is selected falls back to Accepted raw.
 Accepted raw remains selectable with smoothing enabled so it can serve as the
 unfiltered comparison without altering filter calibration.
+
+Developer calibration exposes the full effective confidence and hysteresis
+domains. Nonnegative temporal and smoothing diagnostics have no artificial
+upper limits, while numeric input rejects non-finite and out-of-domain values.
+These wider diagnostic ranges do not change the product preset defaults.

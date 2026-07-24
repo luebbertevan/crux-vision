@@ -268,6 +268,10 @@ and labels remain outside history. Global, group, joint, continuity, and
 smoothing setting families are independently collapsible so one calibration
 task can stay in focus.
 
+Developer calibration controls expose full effective confidence/hysteresis
+domains and remove artificial maxima from finite nonnegative temporal and
+smoothing inputs. Product preset defaults remain unchanged.
+
 ### R2B — Precision review controls
 
 **Outcome:** The user can reach and repeatedly inspect a fast climbing movement.
