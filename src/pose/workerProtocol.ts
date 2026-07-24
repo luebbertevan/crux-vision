@@ -1,5 +1,16 @@
 import type { Delegate, PoseLandmark, PoseModelId } from '../types';
 
+export type PoseWorkerDiagnostics = {
+  phase: PoseWorkerRequest['type'];
+  delegate: Delegate | null;
+  userAgent: string | null;
+  isSecureContext: boolean;
+  crossOriginIsolated: boolean;
+  canvasCompatibilityApplied: boolean;
+  canvasGlobalsBefore: Record<string, string>;
+  canvasGlobalsAfter: Record<string, string>;
+};
+
 export type PoseWorkerRequest =
   | {
       type: 'initialize';
@@ -32,4 +43,10 @@ export type PoseWorkerResponse =
       inferenceMilliseconds: number;
     }
   | { type: 'disposed'; requestId: number }
-  | { type: 'error'; requestId: number; message: string; stack?: string };
+  | {
+      type: 'error';
+      requestId: number;
+      message: string;
+      stack?: string;
+      diagnostics: PoseWorkerDiagnostics;
+    };

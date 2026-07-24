@@ -1,6 +1,10 @@
 import type { Delegate, PoseLandmark, PoseModelId } from '../types';
 import { MEDIAPIPE_WASM_ROOT, POSE_MODELS } from './modelCatalog';
-import type { PoseWorkerRequest, PoseWorkerResponse } from './workerProtocol';
+import type {
+  PoseWorkerDiagnostics,
+  PoseWorkerRequest,
+  PoseWorkerResponse,
+} from './workerProtocol';
 
 type PendingRequest = {
   resolve: (response: PoseWorkerResponse) => void;
@@ -20,6 +24,17 @@ export type WorkerPoseResult = {
   inferenceMilliseconds: number;
 };
 
+export class MediaPipeWorkerError extends Error {
+  readonly workerDiagnostics: PoseWorkerDiagnostics;
+
+  constructor(response: Extract<PoseWorkerResponse, { type: 'error' }>) {
+    super(response.message);
+    this.name = 'MediaPipeWorkerError';
+    if (response.stack) this.stack = response.stack;
+    this.workerDiagnostics = response.diagnostics;
+  }
+}
+
 export class MediaPipeWorkerClient {
   private readonly worker = new Worker(new URL('./mediapipe.worker.ts', import.meta.url), {
     type: 'module',
@@ -35,7 +50,7 @@ export class MediaPipeWorkerClient {
       if (!pending) return;
 
       this.pending.delete(response.requestId);
-      if (response.type === 'error') pending.reject(new Error(response.message));
+      if (response.type === 'error') pending.reject(new MediaPipeWorkerError(response));
       else pending.resolve(response);
     };
 

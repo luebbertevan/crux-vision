@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { PoseAnalysisController } from './analysis/PoseAnalysisController';
+import { createAnalysisDiagnostics } from './analysis/errorDiagnostics';
 import {
   analysisTimestamps,
   defaultAnalysisRange,
@@ -273,6 +274,7 @@ export function App() {
             sessionId: source.id,
             jobId,
             error: error instanceof Error ? error.message : 'Pose analysis failed.',
+            errorDetails: createAnalysisDiagnostics(error),
           });
         })
         .finally(() => {
@@ -575,7 +577,26 @@ export function App() {
                 </div>
               )}
 
-              {analysis.error && <p className="analysis-error" role="alert">{analysis.error}</p>}
+              {analysis.error && (
+                <>
+                  <p className="analysis-error" role="alert">{analysis.error}</p>
+                  {analysis.errorDetails && (
+                    <details className="analysis-diagnostics">
+                      <summary>Diagnostic details</summary>
+                      <pre>{analysis.errorDetails}</pre>
+                      <button
+                        type="button"
+                        className="button-subtle"
+                        onClick={() =>
+                          void navigator.clipboard?.writeText(analysis.errorDetails ?? '')
+                        }
+                      >
+                        Copy diagnostics
+                      </button>
+                    </details>
+                  )}
+                </>
+              )}
               {!source.metadata.browserCanDecode && (
                 <p className="analysis-error" role="alert">
                   This browser can preview the clip, but cannot decode frames for local analysis.

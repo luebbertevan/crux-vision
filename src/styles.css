@@ -591,6 +591,33 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 .analysis-progress { height: 3px; margin: 9px 2px 0; overflow: hidden; border-radius: 99px; background: #31362f; }
 .analysis-progress span { display: block; height: 100%; border-radius: inherit; background: var(--lime); }
 .analysis-error { margin: 11px 0 0; color: var(--danger); font-size: .67rem; line-height: 1.45; }
+.analysis-diagnostics {
+  margin-top: 10px;
+  color: #9da398;
+  font-size: .65rem;
+}
+.analysis-diagnostics summary {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  color: #c2c6bd;
+  cursor: pointer;
+}
+.analysis-diagnostics pre {
+  max-height: 220px;
+  margin: 6px 0 9px;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid #343932;
+  border-radius: 8px;
+  color: #b9beb4;
+  background: #101310;
+  font: .6rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.analysis-diagnostics .button-subtle { width: 100%; }
 .analysis-actions { display: grid; gap: 8px; margin-top: 15px; }
 .privacy-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 12px 0 0; color: #676c64; font-size: .58rem; }
 

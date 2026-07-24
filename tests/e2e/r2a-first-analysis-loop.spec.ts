@@ -161,6 +161,28 @@ test('publishes MediaPipe Lite progressively and draws a timestamped overlay', a
   await expect(page.getByText('Pose unavailable here')).toBeVisible();
 });
 
+test('preserves copyable diagnostics for worker initialization failures', async ({ page }) => {
+  await page.route('**/pose_landmarker_lite.task', (route) => route.abort());
+  await page.goto('/');
+  await importVideo(page, climbingFixture);
+  await setRange(page, 7_000_000, 8_000_000);
+  await page.getByRole('button', { name: 'Analyze range' }).click();
+
+  await expect(page.locator('main')).toHaveAttribute('data-analysis-phase', 'error', {
+    timeout: 30_000,
+  });
+  await page.getByText('Diagnostic details').click();
+  await expect(page.getByRole('button', { name: 'Copy diagnostics' })).toBeVisible();
+
+  const report = await page.locator('.analysis-diagnostics pre').textContent();
+  expect(report).toContain('"diagnosticRevision": "r2a1-phone-worker-2026-07-23-1"');
+  expect(report).toContain('"errors"');
+  expect(report).toContain('"delegate": "CPU"');
+  expect(report).toContain('"delegate": "GPU"');
+  expect(report).toContain('"canvasGlobalsBefore"');
+  expect(report).toContain('"canvasGlobalsAfter"');
+});
+
 test('cancels progressive work, preserves partial results, and resumes', async ({ page }) => {
   test.setTimeout(180_000);
   await page.goto('/');

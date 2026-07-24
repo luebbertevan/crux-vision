@@ -448,15 +448,18 @@ video.
 - `npm test`: 7 files, 23 tests passed.
 - `npm run build`: passed; product shell, lazy media adapter, and module worker
   emitted successfully with no large-chunk warning.
-- `npm run test:e2e`: 10 tests passed in desktop Chrome against real fixtures.
+- `npm run test:e2e`: 11 tests passed in desktop Chrome against real fixtures,
+  including preservation of copyable GPU/CPU worker initialization diagnostics.
 - Visual inspection passed at 1440×900 desktop, 393×852 iPhone portrait, and
   852×393 iPhone landscape for both portrait and landscape imports. Empty,
   imported, long-filename, retained-source error, ready, unavailable-pose,
   cancellation, replacement, and overlay-alignment behavior were exercised by
   visual or browser acceptance paths.
 - The physical iPhone 15 / Chrome-iOS gate is in progress. HTTPS access, video
-  import, and playback passed; the analysis retry remains pending after
-  correcting MediaPipe's WebKit worker canvas-path selection.
+  import, and playback passed. The initial OffscreenCanvas compatibility change
+  did not resolve `Can't find variable: document`; the deployed diagnostic
+  retry now preserves both delegate failures, full stacks, and worker/page
+  canvas globals instead of applying another speculative fix.
 
 ### Physical phone gate handoff
 
@@ -466,7 +469,9 @@ run analysis, and seek inside it until skeleton/trails appear. While analysis is
 running, play/pause and scroll once; confirm no reload or lockup. Finally choose
 Replace video and confirm the old overlay disappears. Record only pass/fail,
 browser/iOS version, and any orientation, alignment, responsiveness, crash, or
-heat issue. Do not begin the longer R2D matrix at this gate.
+heat issue. If analysis fails, expand **Diagnostic details**, tap **Copy
+diagnostics**, and return the complete report before continuing. Do not begin
+the longer R2D matrix at this gate.
 
 ## First product-review follow-ups
 

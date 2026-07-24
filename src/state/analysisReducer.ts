@@ -20,6 +20,7 @@ export type AnalysisState = {
   analyzedThroughMicroseconds: number | null;
   delegate: Delegate | null;
   error: string | null;
+  errorDetails: string | null;
 };
 
 export const initialAnalysisState = (sessionId = 0): AnalysisState => ({
@@ -34,6 +35,7 @@ export const initialAnalysisState = (sessionId = 0): AnalysisState => ({
   analyzedThroughMicroseconds: null,
   delegate: null,
   error: null,
+  errorDetails: null,
 });
 
 export type AnalysisAction =
@@ -58,7 +60,13 @@ export type AnalysisAction =
     }
   | { type: 'complete'; sessionId: number; jobId: number }
   | { type: 'cancel'; sessionId: number; jobId: number }
-  | { type: 'fail'; sessionId: number; jobId: number; error: string };
+  | {
+      type: 'fail';
+      sessionId: number;
+      jobId: number;
+      error: string;
+      errorDetails: string;
+    };
 
 const matchesActiveJob = (
   state: AnalysisState,
@@ -89,6 +97,7 @@ export function analysisReducer(
         : null,
       delegate: null,
       error: null,
+      errorDetails: null,
     };
   }
 
@@ -122,7 +131,16 @@ export function analysisReducer(
       ),
     };
   }
-  if (action.type === 'complete') return { ...state, phase: 'ready', error: null };
-  if (action.type === 'cancel') return { ...state, phase: 'cancelled', error: null };
-  return { ...state, phase: 'error', error: action.error };
+  if (action.type === 'complete') {
+    return { ...state, phase: 'ready', error: null, errorDetails: null };
+  }
+  if (action.type === 'cancel') {
+    return { ...state, phase: 'cancelled', error: null, errorDetails: null };
+  }
+  return {
+    ...state,
+    phase: 'error',
+    error: action.error,
+    errorDetails: action.errorDetails,
+  };
 }

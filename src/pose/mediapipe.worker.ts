@@ -7,13 +7,26 @@ import type { PoseWorkerRequest, PoseWorkerResponse } from './workerProtocol';
 import { preferOffscreenCanvasInDocumentlessWorker } from './workerCanvasCompatibility';
 
 const workerScope: DedicatedWorkerGlobalScope = self as DedicatedWorkerGlobalScope;
-preferOffscreenCanvasInDocumentlessWorker(
+const canvasGlobals = () => ({
+  document: typeof (globalThis as { document?: unknown }).document,
+  HTMLCanvasElement: typeof (globalThis as { HTMLCanvasElement?: unknown }).HTMLCanvasElement,
+  OffscreenCanvas: typeof (globalThis as { OffscreenCanvas?: unknown }).OffscreenCanvas,
+  WebGLRenderingContext: typeof (
+    globalThis as { WebGLRenderingContext?: unknown }
+  ).WebGLRenderingContext,
+  WebGL2RenderingContext: typeof (
+    globalThis as { WebGL2RenderingContext?: unknown }
+  ).WebGL2RenderingContext,
+});
+const canvasGlobalsBefore = canvasGlobals();
+const canvasCompatibilityApplied = preferOffscreenCanvasInDocumentlessWorker(
   globalThis as typeof globalThis & {
     document?: unknown;
     HTMLCanvasElement?: unknown;
     OffscreenCanvas?: unknown;
   },
 );
+const canvasGlobalsAfter = canvasGlobals();
 let landmarker: PoseLandmarker | null = null;
 
 const copyLandmarks = (
@@ -101,11 +114,27 @@ workerScope.onmessage = async (event: MessageEvent<PoseWorkerRequest>) => {
     respond({ type: 'disposed', requestId: request.requestId });
   } catch (error) {
     const normalized = error instanceof Error ? error : new Error(String(error));
+    const diagnostics = {
+      phase: request.type,
+      delegate: request.type === 'initialize' ? request.delegate : null,
+      userAgent: workerScope.navigator?.userAgent ?? null,
+      isSecureContext: workerScope.isSecureContext,
+      crossOriginIsolated: workerScope.crossOriginIsolated,
+      canvasCompatibilityApplied,
+      canvasGlobalsBefore,
+      canvasGlobalsAfter,
+    };
+    console.error('Crux pose worker failure', {
+      message: normalized.message,
+      stack: normalized.stack,
+      diagnostics,
+    });
     respond({
       type: 'error',
       requestId: request.requestId,
       message: normalized.message,
       stack: normalized.stack,
+      diagnostics,
     });
   }
 };

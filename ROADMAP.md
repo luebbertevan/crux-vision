@@ -76,7 +76,7 @@ gaps, cancel/resume, and stale-safe source replacement. Direct wrist sources
 remain in the joint-agnostic trail contract. MediaPipe tries GPU first and falls
 back once to CPU; model/delegate controls are not exposed as product UI.
 
-The laptop exit is verified by 23 focused Vitest tests, ten Chrome Playwright
+The laptop exit is verified by 23 focused Vitest tests, eleven Chrome Playwright
 tests against real portrait/landscape fixtures, a production build, and visual
 inspection at 1440×900, 393×852, and 852×393. The R1 MediaBunny/MediaPipe
 contracts and evidence remain; MoveNet, TensorFlow, and diagnostic-only UI and
@@ -132,8 +132,8 @@ Video and canvas still share identical bounds and `object-fit: contain`.
 
 **Timing:** Immediately after R2A.1, before advanced controls
 
-**Status:** In progress — import/playback passed; WebKit worker initialization
-compatibility fix awaits the user-assisted analysis retry
+**Status:** In progress — import/playback passed; an instrumented WebKit worker
+failure report awaits the user-assisted analysis retry
 
 On the iPhone 15 using Chrome/iOS WebKit, prove only that:
 
@@ -146,6 +146,12 @@ On the iPhone 15 using Chrome/iOS WebKit, prove only that:
 This is intentionally smaller than the original R1 benchmark plan. If it fails,
 decide the compatibility or pose-data-only server fallback before expanding R2.
 The longer thermal, battery, and model/delegate matrix moves to R2D.
+
+The first compatibility hypothesis—forcing MediaPipe's OffscreenCanvas branch
+inside the documentless worker—did not resolve the iPhone error. The phone build
+now preserves both GPU and CPU initialization failures, worker canvas/global
+state, and full stacks in a copyable on-page diagnostic report. The next retry
+is diagnostic rather than another speculative compatibility change.
 
 ### R2 pose-quality calibration gate
 

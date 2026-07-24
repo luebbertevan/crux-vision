@@ -24,17 +24,36 @@ architecture if this fails.
 
 The first physical run confirmed HTTPS access, portrait import, and playback,
 then exposed a WebKit worker mismatch in MediaPipe's generated canvas bridge:
-the worker selected a `document`-dependent canvas path even though workers do
-not have a document. The rebuild now forces MediaPipe's intended
-`OffscreenCanvas` branch in that specific documentless environment. Repeat the
-same short analysis after deployment before continuing this checklist.
+analysis fails with `Can't find variable: document` in the documentless worker.
+Forcing MediaPipe's intended `OffscreenCanvas` branch did not resolve the error,
+so do not continue guessing from the short message. The current build preserves
+the GPU and CPU failures, full stacks, and relevant worker/page globals in an
+on-page report.
+
+For the next diagnostic run:
+
+1. Fully close the existing Crux Vision tab, reopen the HTTPS production URL,
+   import a portrait clip, and run a 3–5 second analysis.
+2. After the error appears, expand **Diagnostic details**, tap **Copy
+   diagnostics**, and paste the complete report into the Codex task. The report
+   contains browser/runtime data and error stacks, not video pixels or pose
+   samples.
+3. If the clipboard button is unavailable, press and hold inside the report to
+   select/copy it, or send screenshots covering the complete report.
+
+Chrome for iOS also has a limited built-in console collector. As a fallback,
+open `chrome://inspect` in one Chrome tab and leave it open, reproduce the
+failure in another tab, then return to `chrome://inspect` and capture the logged
+errors. Prefer the on-page report because it deliberately retains the worker
+failure and both delegate attempts.
 
 Run this exact short handoff:
 
 1. Open the HTTPS-served production build in Chrome on the iPhone 15.
 2. Choose one portrait clip from Photos and confirm it begins playing upright.
 3. Pause near a visible climbing move, set a 3–5 second start/end range, and tap
-   **Analyze range**.
+   **Analyze range**. If it fails, stop here and return the diagnostic report
+   above.
 4. During analysis, play/pause and scroll once. Confirm controls respond and the
    page does not reload.
 5. Seek inside analyzed time and confirm the skeleton plus hip- and
