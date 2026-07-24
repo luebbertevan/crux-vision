@@ -23,6 +23,10 @@ This gate calibrates a trustworthy first display policy. It is not
 motion-capture validation, a biomechanical accuracy claim, or evidence that
 filtering can reconstruct genuinely missing or occluded motion.
 
+Use the
+[`human calibration guide and findings worksheet`](./pose-quality-human-calibration-guide.md)
+for the next visual review pass.
+
 ## Implemented contract
 
 Raw `RawPoseSample` values remain immutable. A derived quality pass applies:

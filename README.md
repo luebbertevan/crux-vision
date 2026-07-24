@@ -16,6 +16,9 @@ evidence remains in [`docs/r1-spike-report.md`](./docs/r1-spike-report.md) and
 [`docs/r1-results`](./docs/r1-results).
 The completed pose-quality gate is documented in
 [`docs/pose-quality-calibration-report.md`](./docs/pose-quality-calibration-report.md).
+The plain-language controls, review sequence, and fill-in findings tables are
+in the
+[`human calibration guide`](./docs/pose-quality-human-calibration-guide.md).
 
 ## Develop
 
