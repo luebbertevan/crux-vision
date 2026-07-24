@@ -449,7 +449,10 @@ video.
 - The phone control rail itself spans the viewport and uses internal safe-area
   padding, giving its range and analysis cards equal left/right gutters. The
   viewport meta lock, `touch-action`, and iOS gesture-event guard disable
-  page-level pinch scaling.
+  page-level pinch scaling. The shell also follows
+  `visualViewport.width` and `visualViewport.offsetLeft` so a restored iOS
+  visual scale or horizontal offset cannot leave a one-sided gutter; the stage
+  and centered cards share that same visible frame.
 - The stage retains the upright source aspect ratio and `object-fit: contain`.
   Video and overlay canvas remain absolute siblings with identical CSS bounds;
   the existing contained-content transform, DPR cap, timestamp lookup, raw pose

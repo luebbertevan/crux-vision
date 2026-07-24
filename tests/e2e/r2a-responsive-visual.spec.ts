@@ -163,6 +163,25 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
     Math.abs(rangeCard!.x - (393 - rangeCard!.x - rangeCard!.width)),
   ).toBeLessThanOrEqual(1);
 
+  await page.evaluate(() => {
+    document.documentElement.style.setProperty('--visual-viewport-width', '360px');
+    document.documentElement.style.setProperty('--visual-viewport-left', '18px');
+  });
+  await expect
+    .poll(async () => (await getReviewBounds(page)).stage.width)
+    .toBeCloseTo(360, 0);
+  const shiftedViewport = await getReviewBounds(page);
+  expect(shiftedViewport.stage.x).toBeCloseTo(18, 0);
+  expect(shiftedViewport.stage.right).toBeCloseTo(378, 0);
+  const shiftedRangeCard = await page.locator('.range-section').boundingBox();
+  expect(shiftedRangeCard).not.toBeNull();
+  expect(shiftedRangeCard!.x - 18).toBeCloseTo(12, 0);
+  expect(378 - shiftedRangeCard!.x - shiftedRangeCard!.width).toBeCloseTo(12, 0);
+  await page.evaluate(() => {
+    document.documentElement.style.setProperty('--visual-viewport-width', '393px');
+    document.documentElement.style.setProperty('--visual-viewport-left', '0px');
+  });
+
   await page.setViewportSize({ width: 393, height: 740 });
   const withCollapsedViewport = await getReviewBounds(page);
   expect(withCollapsedViewport.stage.width).toBeGreaterThanOrEqual(392);

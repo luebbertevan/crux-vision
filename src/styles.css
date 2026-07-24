@@ -644,6 +644,9 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 
 @media (max-width: 719px) {
   .app-shell {
+    width: var(--visual-viewport-width, 100%);
+    margin-right: 0;
+    margin-left: var(--visual-viewport-left, 0px);
     padding:
       max(12px, env(safe-area-inset-top))
       max(12px, env(safe-area-inset-right))

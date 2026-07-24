@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useReducer,
   useRef,
@@ -193,6 +194,30 @@ export function App() {
     },
     [cancelAnalysis, clearCanvas],
   );
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const syncVisualViewport = () => {
+      const viewport = window.visualViewport;
+      const width = viewport?.width ?? root.clientWidth;
+      const offsetLeft = viewport?.offsetLeft ?? 0;
+      root.style.setProperty('--visual-viewport-width', `${width}px`);
+      root.style.setProperty('--visual-viewport-left', `${offsetLeft}px`);
+    };
+
+    syncVisualViewport();
+    window.addEventListener('resize', syncVisualViewport);
+    window.visualViewport?.addEventListener('resize', syncVisualViewport);
+    window.visualViewport?.addEventListener('scroll', syncVisualViewport);
+
+    return () => {
+      window.removeEventListener('resize', syncVisualViewport);
+      window.visualViewport?.removeEventListener('resize', syncVisualViewport);
+      window.visualViewport?.removeEventListener('scroll', syncVisualViewport);
+      root.style.removeProperty('--visual-viewport-width');
+      root.style.removeProperty('--visual-viewport-left');
+    };
+  }, []);
 
   useEffect(() => {
     const preventPageZoom = (event: Event) => {

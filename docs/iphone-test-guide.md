@@ -39,8 +39,11 @@ noticeably slower than desktop but remains acceptable. The portrait stage is
 now edge-to-edge at narrow widths, page-level pinch zoom is disabled, and
 secondary controls remain centered with equal safe-area gutters below it. Phone
 stage sizing is width-driven and must not change when Chrome's address bar
-expands or collapses during scrolling. Continue the smoke test with alignment,
-responsiveness, reload/crash, and heat observations. If analysis fails again,
+expands or collapses during scrolling. The shell also tracks the live visual
+viewport width and horizontal offset so the stage fills the visible screen and
+the control cards retain equal gutters even if Chrome restores a prior visual
+scale. Continue the smoke test with alignment, responsiveness, reload/crash,
+and heat observations. If analysis fails again,
 expand **Diagnostic details**, tap **Copy diagnostics**, and paste the complete
 report into the Codex task. The report contains browser/runtime data and error
 stacks, not video pixels or pose samples.
