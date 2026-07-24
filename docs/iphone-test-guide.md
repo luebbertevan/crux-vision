@@ -5,6 +5,9 @@ more complete R2D evaluation. Use the reference iPhone 15 on iOS 26.5 in Chrome.
 Chrome on iOS uses Apple's WebKit engine, so this is evidence for the actual
 browser environment—not desktop Chrome with a narrow viewport.
 
+**R2A smoke status:** Complete — passed July 24, 2026 on the reference iPhone
+15 in Chrome for iOS. The exact Chrome version was not recorded.
+
 ## Before testing
 
 - Serve the built app from a trusted HTTPS origin. A local `http://` address is
@@ -38,15 +41,29 @@ The explicit-canvas retry succeeded on the reference phone. Initialization is
 noticeably slower than desktop but remains acceptable. The portrait stage is
 now edge-to-edge at narrow widths, page-level pinch zoom is disabled, and
 secondary controls remain centered with equal safe-area gutters below it. Phone
-stage sizing is width-driven and must not change when Chrome's address bar
-expands or collapses during scrolling. The stage and transport track the live
-visual viewport width and horizontal offset, while the control cards retain
-normal phone dimensions and align to the viewport center. Continue the smoke
-test with alignment, responsiveness, reload/crash, and heat observations. If
-analysis fails again,
-expand **Diagnostic details**, tap **Copy diagnostics**, and paste the complete
-report into the Codex task. The report contains browser/runtime data and error
-stacks, not video pixels or pose samples.
+stage sizing is width-driven and did not change when Chrome's address bar
+expanded or collapsed during scrolling. The stage and transport tracked the
+live visual viewport width and horizontal offset, while the control cards
+retained normal phone dimensions and aligned to the viewport center.
+
+The final smoke run used production Sites version 9 from commit
+`0b1abbe6fbdbba9cc4bc702f488586f6a23339e8` and passed:
+
+- a portrait video imported from Photos, appeared upright, and showed its local
+  first-frame poster instead of a black player when autoplay was blocked;
+- playback, timed frame extraction, MediaPipe Lite initialization, and a short
+  analysis completed;
+- the skeleton and hip/shoulder midpoint trails registered to the climber while
+  seeking through analyzed time;
+- play/pause, scrolling, seeking, and secondary controls remained responsive;
+- replacing the source cleared the prior overlay and progress;
+- the page did not crash or reload, and no unusual heat was reported during the
+  short smoke test.
+
+The longer thermal/battery run and Lite/Full delegate matrix were intentionally
+not run. One previously observed alternating pose/unavailable flicker is
+deferred unless it becomes reproducible during pose-quality calibration; no
+runtime flicker-diagnostics feature exists.
 
 Chrome for iOS also has a limited built-in console collector. As a fallback,
 open `chrome://inspect` in one Chrome tab and leave it open, reproduce the
@@ -54,7 +71,7 @@ failure in another tab, then return to `chrome://inspect` and capture the logged
 errors. Prefer the on-page report because it deliberately retains the worker
 failure and both delegate attempts.
 
-Run this exact short handoff:
+The completed short handoff, retained for reproducibility, was:
 
 1. Open the HTTPS-served production build in Chrome on the iPhone 15.
 2. Choose one portrait clip from Photos and confirm it begins playing upright.
@@ -70,8 +87,8 @@ Run this exact short handoff:
    and progress do not return.
 
 Record pass/fail, Chrome and iOS versions, and only observed orientation,
-alignment, responsiveness, crash/reload, or unusual heat issues. Do not run the
-long model/delegate matrix at this gate.
+alignment, responsiveness, crash/reload, or unusual heat issues. The completed
+gate did not include the long model/delegate matrix.
 
 ## R2D short model matrix
 
@@ -107,7 +124,10 @@ default. Record:
 The client-only mobile path passes if portrait import, display orientation,
 frame extraction, pose inference, and live overlay all work without a browser
 crash; the skeleton is registered to the displayed video; and Lite processes at
-a practical rate on
-the reference phone. Full remains a candidate only if its visible quality gain
+a practical rate on the reference phone. Full remains a candidate only if its
+visible quality gain
 justifies its latency and thermal cost. If neither local path is practical, the
 fallback decision must be documented before R2B expands the interaction system.
+
+The minimal R2A client-only mobile gate passed. The remaining sustained and
+model-comparison evidence belongs to R2D rather than this completed smoke test.

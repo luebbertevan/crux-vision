@@ -50,7 +50,8 @@ R2 is split into feedback-ready slices. Its product contract is in
 
 ### R2A — Product shell and first analysis loop
 
-**Status:** Complete on the reference laptop, including R2A.1 stage sizing
+**Status:** Complete, including R2A.1 stage sizing and the minimal physical
+iPhone gate
 
 **Outcome:** A climber can import a local video, play it immediately, select a
 short climbing range, see pose arrive progressively, and review a synchronized
@@ -86,7 +87,7 @@ implementation record.
 
 ### R2A.1 — Single-video review scale
 
-**Status:** Complete on the reference laptop; physical phone gate is next
+**Status:** Complete; physical phone gate passed
 
 **Timing:** Before the R2 phone gate
 
@@ -134,8 +135,7 @@ Video and canvas still share identical bounds and `object-fit: contain`.
 
 **Timing:** Immediately after R2A.1, before advanced controls
 
-**Status:** In progress — import, playback, and analysis passed; final
-alignment/responsiveness/reload/heat observations remain
+**Status:** Complete — passed on the physical iPhone 15 in Chrome/iOS WebKit
 
 On the iPhone 15 using Chrome/iOS WebKit, prove only that:
 
@@ -158,6 +158,24 @@ passes a fresh explicit `OffscreenCanvas` through MediaPipe's supported
 user-agent branch without adding a fake DOM. If GPU initialization fails, the
 single CPU fallback now starts in a fresh worker so MediaPipe's failed
 worker-global loader/WebGL state cannot contaminate it.
+
+The user passed the final smoke test on July 24, 2026, using the production
+phone build from commit `0b1abbe` on the reference iPhone 15 running iOS 26.5
+in Chrome for iOS (exact Chrome version not recorded). A portrait video imported
+from Photos, appeared upright with a decoded local poster, played, and completed
+a short Lite analysis. Timed extraction and MediaPipe initialization produced
+pose; the skeleton and hip/shoulder midpoint trails remained registered to the
+climber. Play/pause, seeking, and page scrolling stayed responsive, replacing
+the video cleared the previous analysis, and the page did not crash or reload.
+The stage and transport remained edge-to-edge, secondary controls remained
+readable and centered, and page-level pinch zoom stayed disabled. No unusual
+heat was reported during this short smoke test.
+
+The longer thermal/battery and delegate/model matrix was not run and remains in
+R2D. No compatibility fallback is required by this gate. One previously
+observed alternating pose/unavailable flicker remains a future investigation
+only if it becomes reproducible; no runtime flicker-diagnostics feature was
+added.
 
 ### R2 pose-quality calibration gate
 

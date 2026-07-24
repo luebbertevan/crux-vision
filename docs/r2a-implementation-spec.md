@@ -1,6 +1,6 @@
 # R2A implementation spec: first analysis loop
 
-**Status:** R2A and R2A.1 complete on the reference laptop — phone gate next
+**Status:** R2A and R2A.1 complete; minimal physical iPhone gate passed
 
 **Branch/base:** `codex/r2a1-video-stage-scale` from R2A commit `2178bd9`
 
@@ -470,28 +470,41 @@ video.
   imported, long-filename, retained-source error, ready, unavailable-pose,
   cancellation, replacement, and overlay-alignment behavior were exercised by
   visual or browser acceptance paths.
-- The physical iPhone 15 / Chrome-iOS gate is in progress. HTTPS access, video
-  import, playback, and short analysis passed; initialization is noticeably
-  slower than desktop but remains acceptable. The diagnostic retry mapped
+- The physical iPhone 15 / Chrome-iOS gate passed on July 24, 2026. HTTPS
+  access, upright portrait import, local-poster display, playback, timed
+  extraction, MediaPipe initialization, short analysis, overlay alignment,
+  responsive interaction, source replacement, and no-crash/no-reload behavior
+  all passed. Initialization is noticeably slower than desktop but remains
+  acceptable. The diagnostic retry mapped
   `Can't find variable: document` to MediaPipe's canvas selection, which treats
   `CriOS` as old Safari and ignores the worker's available `OffscreenCanvas`.
   The worker now passes a fresh explicit canvas through MediaPipe's supported
   `canvas` option for every GPU/CPU initialization attempt. CPU fallback starts
   in a fresh worker after any GPU initialization failure so MediaPipe's
-  worker-global loader/WebGL state is not reused. Final physical observations
-  for alignment, interaction, reload/crash behavior, and heat remain.
+  worker-global loader/WebGL state is not reused.
 
-### Physical phone gate handoff
+### Physical phone gate completion
 
-Use the HTTPS-served production app on the iPhone 15 in Chrome. Import one
-portrait clip from Photos, confirm it plays upright, select a 3–5 second range,
-run analysis, and seek inside it until skeleton/trails appear. While analysis is
-running, play/pause and scroll once; confirm no reload or lockup. Finally choose
-Replace video and confirm the old overlay disappears. Record only pass/fail,
-browser/iOS version, and any orientation, alignment, responsiveness, crash, or
-heat issue. If analysis fails, expand **Diagnostic details**, tap **Copy
-diagnostics**, and return the complete report before continuing. Do not begin
-the longer R2D matrix at this gate.
+The user completed the handoff against production Sites version 9, built from
+commit `0b1abbe6fbdbba9cc4bc702f488586f6a23339e8`, on the reference iPhone 15
+running iOS 26.5 in Chrome for iOS; the exact Chrome version was not recorded.
+The portrait clip imported from Photos and appeared upright, with the locally
+decoded first-frame poster preventing a black player when autoplay was blocked.
+Playback, a 3–5 second Lite analysis, seeking through analyzed time, and
+replacement all passed. The skeleton and hip/shoulder midpoint trails remained
+aligned to the displayed climber. Play/pause, scrolling, and the secondary
+controls remained responsive; the page did not crash or reload, and no unusual
+heat was reported during the short run.
+
+The narrow layout also passed its intended physical behavior: the stage and
+transport remained edge-to-edge, secondary controls retained normal readable
+dimensions and stayed centered, and page-level pinch zoom remained disabled.
+The longer thermal, battery, sustained-analysis, and Lite/Full delegate matrix
+was intentionally not run; it remains R2D work.
+
+One previously observed alternating pose/unavailable flicker is deferred unless
+it becomes reproducible during the pose-quality calibration gate. This is only
+a future-investigation note; there is no runtime flicker-diagnostics feature.
 
 ## First product-review follow-ups
 
