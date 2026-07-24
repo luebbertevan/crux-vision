@@ -85,6 +85,31 @@ test('publishes MediaPipe Lite progressively and draws a timestamped overlay', a
       root,
       { attributes: true, attributeFilter: ['data-analysis-phase'] },
     );
+    const progressSamples: Array<{ percent: number; fillRatio: number }> = [];
+    (
+      window as Window & {
+        __r2aProgressSamples?: Array<{ percent: number; fillRatio: number }>;
+      }
+    ).__r2aProgressSamples = progressSamples;
+    new MutationObserver(() => {
+      const progress = document.querySelector<HTMLElement>(
+        '[data-testid="analysis-progress"]',
+      );
+      const fill = progress?.querySelector<HTMLElement>('span');
+      if (!progress || !fill || progress.clientWidth === 0) return;
+      const percent = Number(progress.getAttribute('aria-valuenow'));
+      if (percent >= 10 && percent <= 90) {
+        progressSamples.push({
+          percent,
+          fillRatio: fill.getBoundingClientRect().width / progress.getBoundingClientRect().width,
+        });
+      }
+    }).observe(root, {
+      attributes: true,
+      attributeFilter: ['aria-valuenow', 'style'],
+      childList: true,
+      subtree: true,
+    });
   });
   await page.getByRole('button', { name: 'Analyze range' }).click();
   await expect(page.locator('main')).toHaveAttribute('data-analysis-phase', 'ready', {
@@ -96,6 +121,18 @@ test('publishes MediaPipe Lite progressively and draws a timestamped overlay', a
   );
   expect(phases).toContain('analyzing');
   expect(phases).toContain('partial');
+  const progressSamples = await page.evaluate(
+    () =>
+      (
+        window as Window & {
+          __r2aProgressSamples?: Array<{ percent: number; fillRatio: number }>;
+        }
+      ).__r2aProgressSamples ?? [],
+  );
+  expect(progressSamples.length).toBeGreaterThan(0);
+  for (const sample of progressSamples) {
+    expect(Math.abs(sample.fillRatio - sample.percent / 100)).toBeLessThan(0.015);
+  }
   await expect(page.getByTestId('analysis-status')).toContainText('Analysis ready');
 
   await page.locator('video').evaluate(async (element) => {

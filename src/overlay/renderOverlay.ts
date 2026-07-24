@@ -10,7 +10,7 @@ import type { RawPoseSample } from '../types';
 import type { DisplayTransform } from './displayTransform';
 import { mapNormalizedPoint } from './displayTransform';
 
-export const TRAIL_DURATION_MICROSECONDS = 2.35 * SECOND_MICROSECONDS;
+export const TRAIL_DURATION_MICROSECONDS = 1.3 * SECOND_MICROSECONDS;
 export const TRAIL_MAXIMUM_GAP_MICROSECONDS = Math.round(
   (1.5 * SECOND_MICROSECONDS) / DEFAULT_SAMPLE_RATE,
 );

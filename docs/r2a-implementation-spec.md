@@ -31,7 +31,7 @@ than restyling it.
 5. Continue playing or seeking while results arrive one sample at a time. A
    quiet progress line fills on the selected range; Cancel remains available.
 6. Within analyzed time, a live skeleton follows the presented media timestamp.
-   Hip- and shoulder-midpoint trails show the preceding 2.35 seconds by default.
+   Hip- and shoulder-midpoint trails show the preceding 1.3 seconds by default.
 7. If pose is missing or rejected at the presented moment, geometry disappears
    cleanly and a compact **Pose unavailable here** message appears. It is not an
    error and never bridges the gap.
@@ -358,7 +358,7 @@ Git history remains the runnable R1 checkpoint.
 - **R2C:** user-selectable joints, trail duration/fade controls under advanced
   Trails settings, independent skeleton/trail toggles, confidence presets/debug
   inspector, zoom/pan/fit/fill, and advanced missing-pose visualization. The
-  ordinary review default remains 2.35 seconds. R2A still builds independent
+  ordinary review default remains 1.3 seconds. R2A still builds independent
   renderer contracts and one master overlay toggle so these are additive.
 - **R2D:** final Review/Inspect/Timeline phone navigation, bottom sheets, PWA/offline
   work, sustained 20–30 second phone/delegate/thermal/battery measurements,
@@ -393,13 +393,18 @@ video.
   requested no more than the same 151 unique frames while taking 1.89 seconds.
   This supports 30 as the current quality/performance middle ground; later
   advanced choices remain capped by source frame rate and phone evidence.
+- The determinate analysis percentage and its compact progress bar use the same
+  clamped completion fraction. The bar updates directly rather than restarting
+  a transition on every quickly published sample, and exposes semantic progress
+  values for assistive technology.
 - Skeleton segments require accepted endpoints in the same sample. Detailed
   face landmarks are hidden; one accepted nose anchor connects to the accepted
   shoulder midpoint. Hip and shoulder midpoint trails use independent
-  2.35-second timestamp windows and split on any rejected required source or gap
-  over 100 ms. Trail strokes use a minimum four-canvas-pixel width/radius and
-  fade from 0.38 to 0.98 alpha so their older history remains legible on varied
-  wall backgrounds.
+  1.3-second timestamp windows and split on any rejected required source or gap
+  over 50 ms. The archived legacy implementation used a two-second window but
+  faded old dots nearly to transparent; the current shorter default accounts
+  for the rebuild's more visible 0.38-to-0.98 alpha treatment. Trail strokes use
+  a minimum four-canvas-pixel width/radius.
 - Cancellation terminates the worker, aborts frame iteration, closes an
   untransferred bitmap, and preserves completed attempts for Resume. Source and
   job identities reject late results; source replacement tests cover active

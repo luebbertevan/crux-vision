@@ -284,7 +284,8 @@ export function App() {
     [range, source],
   );
 
-  const progress = analysis.total > 0 ? analysis.completed / analysis.total : 0;
+  const progress =
+    analysis.total > 0 ? Math.min(1, analysis.completed / analysis.total) : 0;
   const playbackDuration = playerSnapshot.durationSeconds || source?.metadata.durationSeconds || 0;
   const sourceReady = Boolean(source && range);
 
@@ -531,7 +532,15 @@ export function App() {
               </div>
 
               {analysis.total > 0 && (
-                <div className="analysis-progress" aria-hidden="true">
+                <div
+                  className="analysis-progress"
+                  role="progressbar"
+                  aria-label="Analysis progress"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(progress * 100)}
+                  data-testid="analysis-progress"
+                >
                   <span style={{ width: `${Math.min(100, progress * 100)}%` }} />
                 </div>
               )}
