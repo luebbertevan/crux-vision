@@ -70,13 +70,13 @@ Build:
 
 R2A delivered the real graphite/chalk product shell, local blob playback,
 accessible 0.5–20 second range selection, progressive MediaPipe Lite analysis
-at 15 requested samples/second in the module worker, a presentation-timestamped
+at 30 requested samples/second in the module worker, a presentation-timestamped
 live skeleton, 2.35-second hip- and shoulder-midpoint trails, confidence-aware
 gaps, cancel/resume, and stale-safe source replacement. Direct wrist sources
 remain in the joint-agnostic trail contract. MediaPipe tries GPU first and falls
 back once to CPU; model/delegate controls are not exposed as product UI.
 
-The laptop exit is verified by 19 focused Vitest tests, ten Chrome Playwright
+The laptop exit is verified by 20 focused Vitest tests, ten Chrome Playwright
 tests against real portrait/landscape fixtures, a production build, and visual
 inspection at 1440×900, 393×852, and 852×393. The R1 MediaBunny/MediaPipe
 contracts and evidence remain; MoveNet, TensorFlow, and diagnostic-only UI and
@@ -223,6 +223,9 @@ Build and validate:
 - sustained 20–30 second phone analysis, responsiveness, heat, battery, and
   browser-reload observations;
 - Lite CPU/GPU and Full challenger measurements only if they affect the choice;
+- an advanced analysis-density setting informed by the phone measurements,
+  with 30 samples/second as the ordinary default and lower/higher options only
+  where source frame rate and device performance make them meaningful;
 - a real gym-session feedback pass and a short findings report.
 
 **R2 feedback question:** Can a climber import a phone clip at the gym, reach the

@@ -4,7 +4,7 @@ export const SECOND_MICROSECONDS = 1_000_000;
 export const MIN_RANGE_MICROSECONDS = 500_000;
 export const MAX_RANGE_MICROSECONDS = 20_000_000;
 export const DEFAULT_RANGE_MICROSECONDS = 10_000_000;
-export const DEFAULT_SAMPLE_RATE = 15;
+export const DEFAULT_SAMPLE_RATE = 30;
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value));
@@ -98,14 +98,17 @@ export function analysisTimestamps(
     return [range.startMicroseconds];
   }
 
-  const interval = Math.max(1, Math.round(SECOND_MICROSECONDS / sampleRate));
+  const interval = SECOND_MICROSECONDS / sampleRate;
+  const stepCount = Math.ceil(
+    ((range.endMicroseconds - range.startMicroseconds) * sampleRate) /
+      SECOND_MICROSECONDS,
+  );
   const timestamps: number[] = [];
-  for (
-    let timestamp = range.startMicroseconds;
-    timestamp < range.endMicroseconds;
-    timestamp += interval
-  ) {
-    timestamps.push(timestamp);
+  for (let step = 0; step < stepCount; step += 1) {
+    const timestamp =
+      range.startMicroseconds + Math.round(step * interval);
+    if (timestamp >= range.endMicroseconds) break;
+    if (timestamps.at(-1) !== timestamp) timestamps.push(timestamp);
   }
   if (timestamps.at(-1) !== range.endMicroseconds) {
     timestamps.push(range.endMicroseconds);

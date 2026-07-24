@@ -60,7 +60,8 @@ After every run:
 
 ## R2D sustained run
 
-Run Lite with the better delegate over 20–30 seconds at 15 samples/sec. Record:
+Run Lite with the better delegate over 20–30 seconds at the 30 samples/sec
+default. Record:
 
 - wall time and average inference time;
 - whether the browser becomes warm or reloads the page;

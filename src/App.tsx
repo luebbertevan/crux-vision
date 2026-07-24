@@ -522,7 +522,7 @@ export function App() {
                   <small>
                     {analysis.delegate
                       ? `MediaPipe Lite · ${analysis.delegate}`
-                      : 'MediaPipe Lite · 15 samples/sec'}
+                      : 'MediaPipe Lite · 30 samples/sec'}
                   </small>
                 </span>
                 {analysis.total > 0 && (

@@ -191,6 +191,12 @@ are grouped into Pose quality, Trails, Playback, and View. Group and joint
 thresholds, raw/rejected overlays, smoothing, and coverage diagnostics live
 under Pose quality → Advanced.
 
+Analysis density is also an advanced setting rather than a normal review
+control. The ordinary default is 30 requested samples/second. Later measured
+choices may offer a lower-power 15 samples/second mode and a source-rate
+precision mode, capped by actual unique presentation frames and validated on
+the reference phone.
+
 Built-in calibrated quality choices are core product behavior. User-named
 presets may first be local; accounts are needed only for later sync, sharing, or
 organization-managed profiles.

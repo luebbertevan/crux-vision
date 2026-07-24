@@ -27,7 +27,7 @@ than restyling it.
    20-second R2A analysis limit.
 4. Press **Analyze range**. MediaPipe Lite loads in the existing module-worker
    path and display-oriented samples are processed in ascending presentation
-   time at 15 requested samples/second.
+   time at 30 requested samples/second.
 5. Continue playing or seeking while results arrive one sample at a time. A
    quiet progress line fills on the selected range; Cancel remains available.
 6. Within analyzed time, a live skeleton follows the presented media timestamp.
@@ -177,7 +177,7 @@ are application dependencies, not video transfer.
 - `normalizeRange(inUs, outUs, durationUs)` clamps to the source, enforces
   `in < out`, a 500,000 µs minimum, and a 20,000,000 µs R2A maximum. Handle
   crossing clamps the active handle instead of silently swapping meanings.
-- A committed analysis schedule is monotonically increasing at 15 requested
+- A committed analysis schedule is monotonically increasing at 30 requested
   samples/second and includes the range endpoints when possible. The adapter's
   actual returned presentation timestamp is authoritative and is what the
   worker/result stores.
@@ -213,7 +213,7 @@ destructive filtering or a claim of calibrated climbing accuracy.
 
 - Samples stay ordered by actual presentation timestamp.
 - The overlay chooses the nearest sample by binary search with a maximum
-  distance of 0.75 analysis intervals (50 ms at 15 Hz).
+  distance of 0.75 analysis intervals (25 ms at 30 Hz).
 - Ties prefer the earlier sample. Beyond tolerance, return no sample; never hold
   the last pose through a gap.
 
@@ -254,7 +254,7 @@ destructive filtering or a claim of calibrated climbing accuracy.
   screen-space animation history is retained.
 - Segmentation is per source. A low-confidence/missing required landmark ends
   the current polyline. A new segment also starts when adjacent raw timestamps
-  differ by more than 1.5 requested intervals (100 ms at 15 Hz). Single
+  differ by more than 1.5 requested intervals (50 ms at 30 Hz). Single
   accepted points may render as dots; no interpolation is added.
 - Progressive holes, cancellations, and true pose loss therefore create clean
   gaps. Hip and shoulder midpoint sources never share a continuity decision.
@@ -361,7 +361,8 @@ Git history remains the runnable R1 checkpoint.
   ordinary review default remains 2.35 seconds. R2A still builds independent
   renderer contracts and one master overlay toggle so these are additive.
 - **R2D:** final Review/Inspect/Timeline phone navigation, bottom sheets, PWA/offline
-  work, sustained 20–30 second phone/delegate/thermal/battery measurements, and
+  work, sustained 20–30 second phone/delegate/thermal/battery measurements,
+  advanced analysis-density choices around the 30 samples/second default, and
   gym-session refinement.
 - **Later:** persistence, export, accounts/cloud, uploads, baked overlay video,
   comparison, analytics, climbing-specific scoring, hold/contact detection, and
@@ -382,9 +383,16 @@ video.
 - MediaBunny is dynamically loaded only when a file is chosen, reducing the
   initial production JavaScript from roughly 556 kB to 219 kB before gzip; its
   separate media chunk loads during local import.
-- The product uses only MediaPipe Lite at 15 requested samples/second. It tries
+- The product uses only MediaPipe Lite at 30 requested samples/second. It tries
   GPU first and retries CPU once. Raw samples include actual integer
   presentation timestamps, model/delegate identity, visibility, and presence.
+- The three current acceptance fixtures are approximately 29.97 fps, so the
+  30-sample default analyzes essentially every unique source frame. In a warm
+  five-second `lache-send.MOV` laptop measurement, 15 samples/second analyzed
+  76 unique frames in 1.17 seconds, 30 analyzed 151 in 1.76 seconds, and 60
+  requested no more than the same 151 unique frames while taking 1.89 seconds.
+  This supports 30 as the current quality/performance middle ground; later
+  advanced choices remain capped by source frame rate and phone evidence.
 - Skeleton segments require accepted endpoints in the same sample. Detailed
   face landmarks are hidden; one accepted nose anchor connects to the accepted
   shoulder midpoint. Hip and shoulder midpoint trails use independent
@@ -429,7 +437,7 @@ video.
 
 ### Verification completed
 
-- `npm test`: 6 files, 19 tests passed after the derived-point follow-up.
+- `npm test`: 6 files, 20 tests passed.
 - `npm run build`: passed; product shell, lazy media adapter, and module worker
   emitted successfully with no large-chunk warning.
 - `npm run test:e2e`: 10 tests passed in desktop Chrome against real fixtures.

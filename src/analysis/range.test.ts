@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   analysisTimestamps,
+  DEFAULT_SAMPLE_RATE,
   defaultAnalysisRange,
   MAX_RANGE_MICROSECONDS,
   MIN_RANGE_MICROSECONDS,
@@ -57,5 +58,12 @@ describe('analysis ranges', () => {
         2,
       ),
     ).toEqual([0, 500_000, 1_000_000]);
+  });
+
+  it('defaults to 30 requested samples per second', () => {
+    expect(
+      analysisTimestamps({ startMicroseconds: 0, endMicroseconds: 1_000_000 }),
+    ).toHaveLength(DEFAULT_SAMPLE_RATE + 1);
+    expect(DEFAULT_SAMPLE_RATE).toBe(30);
   });
 });
