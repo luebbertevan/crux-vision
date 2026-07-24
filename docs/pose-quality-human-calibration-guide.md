@@ -7,6 +7,10 @@ motion, hide obviously wrong geometry, and avoid visible smoothing lag.
 Record live observations in
 [`pose-quality-human-calibration-findings.md`](./pose-quality-human-calibration-findings.md).
 
+**Current pause:** Human review confirmed that Smoothed trails Accepted raw by
+roughly 70 ms during the lache swing. Do not begin the broader procedure below
+until the ordinary smoothing/default-display decision is resolved.
+
 ## Recommended investment
 
 Spend one focused 45–60 minute session now. Human review is valuable because

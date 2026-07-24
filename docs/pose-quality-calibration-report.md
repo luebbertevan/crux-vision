@@ -1,6 +1,6 @@
 # Pose-quality calibration report: Balanced v1
 
-**Status:** Complete
+**Status:** Implementation complete; human sign-off reopened for smoothing lag
 
 **Policy version:** `balanced-v1-2026-07-24`
 
@@ -10,9 +10,15 @@
 
 ## Decision
 
-Balanced v1 is the ordinary pose-quality display default. Strict and
-Permissive remain built-in alternatives with intentional coverage and
+Balanced v1 is the implemented ordinary pose-quality display default. Strict
+and Permissive remain built-in alternatives with intentional coverage and
 continuity tradeoffs. Display and analytics policies are separate.
+
+A subsequent human lache review confirmed that the default Smoothed view trails
+Accepted raw by roughly 70 ms during fast movement. Accepted raw remains
+registered to the climber. The confidence/temporal policy remains a candidate,
+but the smoothed ordinary display has not passed human sign-off. Broader manual
+calibration is paused pending the default-display and smoothing follow-up.
 
 MediaPipe Lite remains the product model default. Full was evaluated against
 Lite on the same difficult five-second range before any default change and did

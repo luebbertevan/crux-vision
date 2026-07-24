@@ -179,7 +179,8 @@ added.
 
 ### R2 pose-quality calibration gate
 
-**Status:** Complete — Balanced v1 selected; MediaPipe Lite remains the default
+**Status:** Reopened for smoothing follow-up — Balanced acceptance and
+MediaPipe Lite remain candidates; human display sign-off is paused
 
 **Timing:** After the phone gate and before R2B
 
@@ -237,6 +238,15 @@ becomes reproducible.
 See the
 [`calibration plan`](./docs/pose-quality-calibration-plan.md) and
 [`Balanced v1 report`](./docs/pose-quality-calibration-report.md).
+
+Post-implementation human review of `lache-send.MOV` confirmed that the
+Smoothed view trails Accepted raw by roughly 70 ms during fast movement.
+Accepted raw does not show the lag, isolating the regression to the causal One
+Euro smoothing path rather than the playback timestamp join. Broader manual
+calibration is paused. Before R2B, restore a non-lagging ordinary display,
+compare accepted/candidate smoothing on the exact same presented frame, and
+decide whether tuned causal smoothing or a gap-bounded centered/offline
+smoother can pass visual review.
 
 ### R2B — Precision review controls
 

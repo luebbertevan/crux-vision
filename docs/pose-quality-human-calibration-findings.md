@@ -50,6 +50,44 @@ before this comparison.
   playback timestamp lookup, video-frame presentation timing, and overlay
   rendering synchronization.
 
+## Lag diagnostic result — July 24, 2026
+
+**Result:** Accepted raw does not show the lag. Smoothed does.
+
+The smoothed skeleton looks visually clean and successfully reduces noise, but
+it trails the climber during fast movement. The effect appears across the whole
+skeleton and is easiest to see during the lache swing. Visual inspection
+estimated roughly two frames of delay.
+
+The second estimate—about seven playback-slider arrow presses—does not represent
+seven video frames. The current slider step is `0.01` seconds, so seven presses
+are approximately 70 ms, or 2.1 frames at 30 fps. The two estimates are
+therefore consistent with a roughly two-frame phase delay, although the exact
+lag can vary with motion speed.
+
+### Conclusion
+
+- The video/overlay timestamp join is not the leading cause because Accepted
+  raw remains registered.
+- The causal One Euro smoothing path is the confirmed source of the newly
+  visible delay.
+- Broader confidence/temporal calibration remains paused until the ordinary
+  display path no longer regresses fast-motion alignment.
+- No calibration parameter or runtime default was changed as part of this
+  diagnostic.
+
+### Recommended product response
+
+1. Restore Accepted raw as the temporary ordinary display default.
+2. Retain Smoothed as an advanced comparison view.
+3. Evaluate a centered/offline smoother for completed analysis segments. Unlike
+   a causal live filter, it may reduce jitter without systematically trailing
+   recorded motion, but it must remain gap-bounded and be checked for
+   pre-motion anticipation.
+4. Add an exact-frame calibration A/B view before choosing the final smoother.
+5. Measure estimated smoothing lag in milliseconds/frames in addition to mean
+   positional displacement.
+
 ## Comparison-tool recommendation
 
 A full pair of synchronized video players is not the first calibration tool to
