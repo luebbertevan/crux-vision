@@ -26,6 +26,8 @@ filtering can reconstruct genuinely missing or occluded motion.
 Use the
 [`human calibration guide and findings worksheet`](./pose-quality-human-calibration-guide.md)
 for the next visual review pass.
+The dated observations and decisions are in
+[`pose-quality-human-calibration-findings.md`](./pose-quality-human-calibration-findings.md).
 
 ## Implemented contract
 

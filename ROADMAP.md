@@ -375,8 +375,16 @@ it does not add work to the current roadmap.
 
 - Automatic hold segmentation with manual correction.
 - Domain-specific pose evaluation or fine-tuning.
+- User-edited pose keyframes with draggable joint/armature correction, bounded
+  interpolation, reversible edits, and explicit manual/interpolated provenance.
+- Optional AI-assisted correction on user-flagged individual frames, only after
+  labeled evaluation shows an advantage over MediaPipe and with user
+  confirmation plus explicit privacy/compute terms.
 - More than two simultaneous videos.
 - A native mobile app or capture companion if mobile web fails a demonstrated
   product requirement.
 - Sensor fusion with IMU, depth, or force/contact data.
 - LLM summaries limited to validated structured observations.
+
+The non-binding pose-correction concepts and required trust boundaries are in
+[`docs/future-pose-correction-notes.md`](docs/future-pose-correction-notes.md).

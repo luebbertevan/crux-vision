@@ -4,6 +4,9 @@ Use this worksheet to decide whether Balanced v1 should remain the default or
 be revised. The goal is not maximum coverage. The goal is to show trustworthy
 motion, hide obviously wrong geometry, and avoid visible smoothing lag.
 
+Record live observations in
+[`pose-quality-human-calibration-findings.md`](./pose-quality-human-calibration-findings.md).
+
 ## Recommended investment
 
 Spend one focused 45–60 minute session now. Human review is valuable because
@@ -86,6 +89,28 @@ Do not judge smoothing from a paused frame alone. Play or scrub through the move
 | Current joint status | Accepted, rejected, or missing, plus visibility, presence, and rejection reasons at the playhead. | Use this to understand one questionable point. |
 | Retained usable | Fraction of your `usable` labels that the policy keeps. | Primary protection against over-filtering. |
 | False visible | Fraction of `wrong`, `swapped`, or `unavailable` labels that the policy still shows. | Primary protection against confident-looking bad geometry. |
+
+## Short glossary
+
+- **One Euro:** An adaptive smoothing filter. It smooths small/slow jitter but
+  tries to follow fast motion more closely. It can still introduce visible
+  delay when its responsiveness is too low.
+- **Non-monotonic:** A timestamp that repeats or moves backward instead of
+  strictly advancing. Smoothing resets rather than connecting across it.
+- **Distal segment:** A limb section farther from the torso, such as
+  elbow-to-wrist or knee-to-ankle.
+- **Derivative cutoff:** An internal One Euro value controlling how much the
+  estimated movement speed itself is smoothed. Balanced fixes it at `1.0`; it
+  is not currently a UI control.
+- **Reacquisition event:** A joint becomes accepted again after an unavailable
+  or rejected gap. A very short loss/reacquisition can look like blinking.
+- **Corpus:** The collection of representative videos and ranges used for
+  calibration.
+- **Provenance:** A record of where a point came from. For example, a hip
+  midpoint records that it was derived from the accepted left and right hips
+  using a named algorithm version.
+- **Accepted availability:** The fraction of joint/time slots retained by a
+  policy. It measures available data, not whether those points are correct.
 
 ## Straightforward calibration session
 

@@ -43,6 +43,9 @@ Possible later options include:
 - advertising that does not compromise the review experience or video privacy;
 - a premium tier for exports or downloadable rendered videos;
 - premium advanced settings and workflow conveniences; and
+- premium manual pose-correction/keyframing or optional user-confirmed
+  AI-assisted correction workflows, if their accuracy and privacy contracts are
+  validated; and
 - premium analytics once those analytics are validated and genuinely useful.
 
 Core confidence filtering, honest uncertainty, basic pose review, and essential
