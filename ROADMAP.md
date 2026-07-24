@@ -299,7 +299,10 @@ Only after the local loop proves valuable:
 
 Commercial packaging of preset libraries, sync, and organization-managed
 profiles is a later product decision. Core confidence filtering and honest
-uncertainty are not paywalled.
+uncertainty are not paywalled. The non-binding research behind possible future
+commercialization is recorded in
+[`docs/future-commercialization-notes.md`](docs/future-commercialization-notes.md);
+it does not add work to the current roadmap.
 
 ## Later, contingent work
 
