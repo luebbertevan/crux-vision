@@ -116,9 +116,11 @@ without cropping, overlap, or an awkward small island. At 393×852, the stage
 uses the available width and essential transport remains reachable. Landscape
 footage remains large and balanced at both viewports.
 
-R2A.1 now sizes the stage by fitting the upright display dimensions into the
+R2A.1 sizes desktop stages by fitting the upright display dimensions into the
 review column's measured width and the viewport height remaining below the
-actual stage top after transport and safe-area padding are reserved. At wide
+actual stage top after transport and safe-area padding are reserved. Narrow
+phone stages are width-driven so changing iOS browser chrome cannot resize the
+video during scroll; secondary controls continue below when necessary. At wide
 desktop widths, a portrait stage is centered in the full review surface while
 the 330 px control rail occupies otherwise unused side space; landscape keeps a
 flexible main column beside the rail. At narrow widths, the rail follows the

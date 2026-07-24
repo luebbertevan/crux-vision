@@ -64,10 +64,16 @@ export function useReviewStageSize({
         1,
         viewportHeight - stageTop - reservedBelowStage,
       );
-      const scale = Math.min(
-        availableWidth / displayWidth,
-        availableHeight / displayHeight,
-      );
+      // iOS changes visualViewport.height as browser chrome expands/collapses.
+      // A phone stage must stay full-width instead of visibly resizing during
+      // scroll; secondary controls can continue below the initial viewport.
+      const isNarrowPhone = window.matchMedia('(max-width: 719px)').matches;
+      const scale = isNarrowPhone
+        ? availableWidth / displayWidth
+        : Math.min(
+            availableWidth / displayWidth,
+            availableHeight / displayHeight,
+          );
       const nextSize = {
         width: roundToHalfPixel(displayWidth * scale),
         height: roundToHalfPixel(displayHeight * scale),

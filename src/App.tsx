@@ -194,6 +194,20 @@ export function App() {
     [cancelAnalysis, clearCanvas],
   );
 
+  useEffect(() => {
+    const preventPageZoom = (event: Event) => {
+      if (event.cancelable) event.preventDefault();
+    };
+    const options: AddEventListenerOptions = { passive: false };
+    document.addEventListener('gesturestart', preventPageZoom, options);
+    document.addEventListener('gesturechange', preventPageZoom, options);
+
+    return () => {
+      document.removeEventListener('gesturestart', preventPageZoom, options);
+      document.removeEventListener('gesturechange', preventPageZoom, options);
+    };
+  }, []);
+
   useEffect(
     () => () => {
       importGenerationRef.current += 1;

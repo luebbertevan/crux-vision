@@ -157,6 +157,24 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   expect(portrait.transport.bottom).toBeLessThanOrEqual(852);
   expectAligned(portrait.video, portrait.canvas);
   await expectNoHorizontalOverflow(page);
+  const rangeCard = await page.locator('.range-section').boundingBox();
+  expect(rangeCard).not.toBeNull();
+  expect(
+    Math.abs(rangeCard!.x - (393 - rangeCard!.x - rangeCard!.width)),
+  ).toBeLessThanOrEqual(1);
+
+  await page.setViewportSize({ width: 393, height: 740 });
+  const withCollapsedViewport = await getReviewBounds(page);
+  expect(withCollapsedViewport.stage.width).toBeGreaterThanOrEqual(392);
+  expect(withCollapsedViewport.stage.height).toBeGreaterThanOrEqual(695);
+  expect(withCollapsedViewport.stage.x).toBeLessThanOrEqual(0.5);
+  await page.evaluate(() => window.scrollTo(0, 400));
+  const afterScroll = await getReviewBounds(page);
+  expect(afterScroll.stage.width).toBe(withCollapsedViewport.stage.width);
+  expect(afterScroll.stage.height).toBe(withCollapsedViewport.stage.height);
+  await page.setViewportSize({ width: 393, height: 852 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+
   const analysisRange = page.getByTestId('playback-analysis-range');
   await expect(analysisRange).toBeVisible();
   const timeline = page.locator('.playback-timeline');
@@ -186,7 +204,8 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   await expect(page.getByTestId('video-stage')).toBeVisible();
   await expectNoHorizontalOverflow(page);
   const withError = await getReviewBounds(page);
-  expect(withError.transport.bottom).toBeLessThanOrEqual(852);
+  expect(withError.stage.width).toBeGreaterThanOrEqual(392);
+  expect(withError.transport.y).toBeGreaterThanOrEqual(withError.stage.bottom);
   await page.screenshot({
     path: testInfo.outputPath('iphone-import-error-with-source.png'),
     fullPage: true,

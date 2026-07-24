@@ -37,11 +37,13 @@ retains the copyable diagnostics if another failure appears.
 The explicit-canvas retry succeeded on the reference phone. Initialization is
 noticeably slower than desktop but remains acceptable. The portrait stage is
 now edge-to-edge at narrow widths, page-level pinch zoom is disabled, and
-secondary controls remain padded below it. Continue the smoke test with
-alignment, responsiveness, reload/crash, and heat observations. If analysis
-fails again, expand **Diagnostic details**, tap **Copy diagnostics**, and paste
-the complete report into the Codex task. The report contains browser/runtime
-data and error stacks, not video pixels or pose samples.
+secondary controls remain centered with equal safe-area gutters below it. Phone
+stage sizing is width-driven and must not change when Chrome's address bar
+expands or collapses during scrolling. Continue the smoke test with alignment,
+responsiveness, reload/crash, and heat observations. If analysis fails again,
+expand **Diagnostic details**, tap **Copy diagnostics**, and paste the complete
+report into the Codex task. The report contains browser/runtime data and error
+stacks, not video pixels or pose samples.
 
 Chrome for iOS also has a limited built-in console collector. As a fallback,
 open `chrome://inspect` in one Chrome tab and leave it open, reproduce the

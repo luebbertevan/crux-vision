@@ -428,7 +428,9 @@ video.
   measures the review width, the stage's document position, the current visual
   viewport, transport height and margin, and computed bottom safe padding. It
   applies `min(available width / display width, available height / display
-  height)` to the upright display dimensions.
+  height)` to desktop upright display dimensions. Below 720 px, sizing is
+  deliberately width-only so iOS browser-bar changes cannot shrink the player
+  during scroll; controls may continue below the initial viewport.
 - At 1440×900, the portrait fixture renders at 378.5×673 px, centered on the
   overall review surface with the rail clear at the right. The landscape
   fixture renders at 1025×576.5 px in the flexible main column.
@@ -438,11 +440,16 @@ video.
   safe-area padding. At 852×393, portrait and landscape
   fixtures reserve 206 px of stage height and keep a full-column transport dock
   inside the viewport without horizontal overflow.
-- Source errors are included in the height measurement, so a retained valid
-  source scales down instead of pushing basic transport offscreen. Long file
-  names remain single-line and ellipsized. Analysis cards remain below the
-  stage on narrow portrait screens and independently scrollable in the
-  landscape-phone rail.
+- Source errors remain in desktop height measurement. On narrow portrait
+  screens the stage stays full-width and basic transport remains immediately
+  below it, reachable by normal vertical scrolling. Long file names remain
+  single-line and ellipsized where the desktop heading is shown. Analysis cards
+  remain below the stage and independently scrollable in the landscape-phone
+  rail.
+- The phone control rail itself spans the viewport and uses internal safe-area
+  padding, giving its range and analysis cards equal left/right gutters. The
+  viewport meta lock, `touch-action`, and iOS gesture-event guard disable
+  page-level pinch scaling.
 - The stage retains the upright source aspect ratio and `object-fit: contain`.
   Video and overlay canvas remain absolute siblings with identical CSS bounds;
   the existing contained-content transform, DPR cap, timestamp lookup, raw pose

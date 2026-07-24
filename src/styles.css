@@ -706,10 +706,11 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   }
   .control-rail {
     position: static;
-    width: auto;
+    width: 100%;
     max-height: none;
-    margin-right: max(12px, env(safe-area-inset-right));
-    margin-left: max(12px, env(safe-area-inset-left));
+    margin: 0;
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(12px, env(safe-area-inset-left));
     overflow: visible;
     gap: 10px;
   }
