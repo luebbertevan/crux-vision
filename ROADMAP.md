@@ -71,7 +71,7 @@ Build:
 R2A delivered the real graphite/chalk product shell, local blob playback,
 accessible 0.5–20 second range selection, progressive MediaPipe Lite analysis
 at 30 requested samples/second in the module worker, a presentation-timestamped
-live skeleton, 1.3-second hip- and shoulder-midpoint trails, confidence-aware
+live skeleton, 1.5-second hip- and shoulder-midpoint trails, confidence-aware
 gaps, cancel/resume, and stale-safe source replacement. Direct wrist sources
 remain in the joint-agnostic trail contract. MediaPipe tries GPU first and falls
 back once to CPU; model/delegate controls are not exposed as product UI.
@@ -198,7 +198,7 @@ visualization.
 Build:
 
 - selectable wrist, ankle, hip, and shoulder trails;
-- advanced trail duration/fade controls, retaining 1.3 seconds as the ordinary
+- advanced trail duration/fade controls, retaining 1.5 seconds as the ordinary
   review default unless later testing supports another value;
 - master overlay, skeleton, and trail toggles;
 - compact confidence-aware pose-unavailable behavior rather than slingshots;
