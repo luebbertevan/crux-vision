@@ -179,7 +179,7 @@ added.
 
 ### R2 pose-quality calibration gate
 
-**Status:** Planned
+**Status:** Complete — Balanced v1 selected; MediaPipe Lite remains the default
 
 **Timing:** After the phone gate and before R2B
 
@@ -207,8 +207,36 @@ limb geometry without hiding most useful movement. Display and analytics
 policies remain separate and coverage-aware, the automated acceptance suite
 passes, and remaining MediaPipe limitations are documented.
 
-See
-[`docs/pose-quality-calibration-plan.md`](./docs/pose-quality-calibration-plan.md).
+Balanced v1 now applies structural validation, confidence precedence, separate
+visibility/presence checks, acquisition/retention hysteresis, timestamp- and
+body-scale-aware temporal rejection, and gap-resetting segment-local One Euro
+smoothing over immutable cached raw samples. Strict and Permissive alternatives
+have measurable coverage/continuity tradeoffs. The ordinary surface exposes the
+three presets; model, policy target, thresholds, joint overrides, debug views,
+metrics, labels, and JSON export remain under **Pose quality calibration**.
+
+The bounded laptop corpus covered dynamic portrait movement, portrait
+overhang/occlusion, and extended landscape movement. Balanced accepted 55.1%,
+93.5%, and 92.5% of all scheduled joint slots in those ranges respectively.
+The difficult lache range included 49 model-empty samples out of 151; filtering
+does not conceal or reconstruct them. Visual review found no repeatable major
+raw slingshot in the selected moments, while synthetic high-confidence
+slingshots are rejected and the tuned temporal limits retain plausible fast
+limbs. This is a first display-policy calibration, not motion-capture accuracy
+validation.
+
+A bounded Full-model challenger on the difficult range accepted 54.5% versus
+Lite's 55.1%. Repeated short warm-cache laptop timing changed order and was not
+treated as device-performance evidence. With no visible or coverage gain, the
+result does not justify changing the product default from Lite.
+The phone thermal/battery and delegate/model matrix remains R2D work and was not
+run. The previously reported pose/unavailable alternation did not recur in this
+calibration pass; it remains only a short future-investigation note if it
+becomes reproducible.
+
+See the
+[`calibration plan`](./docs/pose-quality-calibration-plan.md) and
+[`Balanced v1 report`](./docs/pose-quality-calibration-report.md).
 
 ### R2B — Precision review controls
 
@@ -239,11 +267,11 @@ Build:
 - keep page-level pinch zoom disabled in the phone review shell; do not add
   dedicated video zoom/pan unless later gym testing establishes a clear need
   and the video/overlay transform can remain exact;
-- calibrated Strict, Balanced, and Permissive pose-quality choices in a simple
-  default settings surface;
-- body-group and joint confidence overrides, rejected-sample inspection,
+- carry the calibrated Strict, Balanced, and Permissive choices into the
+  expanded visual-inspection settings without changing Balanced by accident;
+- retain the completed body-group/joint overrides, rejected-sample inspection,
   smoothing, and coverage detail under Pose quality → Advanced;
-- a versioned derived-point contract for deterministic midpoints and any later
+- extend the completed versioned derived-point contract only for later
   validated, body-relative visual or analytic anchors;
 - overlay alignment and timestamp tests for portrait and landscape fixtures.
 

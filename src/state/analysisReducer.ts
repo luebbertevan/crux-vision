@@ -1,4 +1,9 @@
-import type { AnalysisRange, Delegate, RawPoseSample } from '../types';
+import type {
+  AnalysisRange,
+  Delegate,
+  PoseModelId,
+  RawPoseSample,
+} from '../types';
 
 export type AnalysisPhase =
   | 'idle'
@@ -19,6 +24,7 @@ export type AnalysisState = {
   total: number;
   analyzedThroughMicroseconds: number | null;
   delegate: Delegate | null;
+  model: PoseModelId | null;
   error: string | null;
   errorDetails: string | null;
 };
@@ -34,6 +40,7 @@ export const initialAnalysisState = (sessionId = 0): AnalysisState => ({
   total: 0,
   analyzedThroughMicroseconds: null,
   delegate: null,
+  model: null,
   error: null,
   errorDetails: null,
 });
@@ -47,6 +54,7 @@ export type AnalysisAction =
       range: AnalysisRange;
       total: number;
       resume: boolean;
+      model: PoseModelId;
     }
   | { type: 'delegate'; sessionId: number; jobId: number; delegate: Delegate }
   | {
@@ -96,6 +104,7 @@ export function analysisReducer(
         ? state.analyzedThroughMicroseconds
         : null,
       delegate: null,
+      model: action.model,
       error: null,
       errorDetails: null,
     };

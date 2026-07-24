@@ -1,6 +1,6 @@
 # R2 product spec: first useful Crux Vision
 
-**Status:** R2A complete; updated from first product review
+**Status:** R2A and the pose-quality calibration gate complete; R2B next
 
 **Purpose:** Establish enough product and technical direction to start a fast
 feedback loop without freezing the interface before it has been used.
@@ -73,11 +73,13 @@ separate layout problem.
 
 ### Pose-quality calibration gate
 
-After the phone check and before R2B, calibrate confidence acceptance,
-hysteresis, temporal rejection, and segment-local smoothing on representative
-climbing footage. Establish Balanced, Strict, and Permissive defaults while
-keeping raw data immutable and uncertainty inspectable. See
-[`pose-quality-calibration-plan.md`](./pose-quality-calibration-plan.md).
+Completed after the phone check and before R2B. Balanced v1 now combines
+confidence acceptance, hysteresis, temporal rejection, and segment-local
+smoothing over immutable cached raw samples. Strict and Permissive alternatives
+expose documented coverage/continuity tradeoffs, while detailed policy controls
+and reason-coded debug views remain under the advanced disclosure. See the
+[`calibration plan`](./pose-quality-calibration-plan.md) and
+[`calibration report`](./pose-quality-calibration-report.md).
 
 ### R2B — Precision review
 
@@ -103,7 +105,8 @@ R2 starts with these decisions unless new evidence overturns them:
 - React, TypeScript, and Vite for the client.
 - The browser video element is the playback engine.
 - MediaBunny owns source metadata and offline timed-sample extraction.
-- MediaPipe Pose Landmarker Lite is the provisional model.
+- MediaPipe Pose Landmarker Lite is the calibrated product default. Full remains
+  an advanced challenger and did not improve the bounded difficult-range result.
 - Pose inference runs in a module worker and returns timed data only.
 - Canvas 2D renders live overlay layers.
 - Pose samples use presentation timestamps, not frame indexes.
@@ -239,9 +242,10 @@ R2 is complete when:
 - Whether checkpoints appear directly on the main timeline or in a secondary
   lane.
 - How much pose progress detail normal users should see.
-- Whether Full provides enough visible quality improvement to be user-selectable.
-- Exact Balanced v1 joint/group thresholds, hysteresis, and smoothing values
-  until the calibration gate is complete.
+- Whether later corpus or R2D phone evidence gives Full enough visible quality
+  improvement to justify broader exposure; the bounded calibration did not.
+- Whether later labeled ground-truth work should revise Balanced v1's calibrated
+  joint/group thresholds, hysteresis, or smoothing.
 - The future layout and interaction model for comparing multiple videos.
 - Commercial packaging for synced or shared preset libraries.
 

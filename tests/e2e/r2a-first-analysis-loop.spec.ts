@@ -240,6 +240,74 @@ test('replacing a source during analysis clears stale jobs and pose', async ({ p
   await expect(page.locator('main')).toHaveAttribute('data-sample-count', '0');
 });
 
+test('recomputes cached pose quality without inference and clears calibration evidence on replacement', async ({
+  page,
+}) => {
+  test.setTimeout(150_000);
+  await page.goto('/');
+  await importVideo(page, climbingFixture);
+  await setRange(page, 7_000_000, 12_000_000);
+  await page.getByRole('button', { name: 'Analyze range' }).click();
+  await expect(page.locator('main')).toHaveAttribute('data-analysis-phase', 'ready', {
+    timeout: 150_000,
+  });
+
+  const rawSampleCount = await page.locator('main').getAttribute('data-sample-count');
+  expect(Number(rawSampleCount)).toBeGreaterThan(0);
+  await expect(page.locator('main')).not.toHaveAttribute(
+    'data-quality-observed',
+    '0',
+  );
+  await page.getByText('Pose quality calibration').click();
+  const coverageBefore = await page
+    .getByTestId('quality-metrics')
+    .getAttribute('data-accepted-coverage');
+  await page.getByTestId('group-visibility-threshold').fill('0.95');
+  await expect(page.locator('main')).toHaveAttribute(
+    'data-quality-policy',
+    'balanced-display-custom',
+  );
+  await expect(page.locator('main')).toHaveAttribute(
+    'data-sample-count',
+    rawSampleCount!,
+  );
+  await expect(page.locator('main')).toHaveAttribute(
+    'data-quality-sample-count',
+    rawSampleCount!,
+  );
+  await expect
+    .poll(() =>
+      page
+        .getByTestId('quality-metrics')
+        .getAttribute('data-accepted-coverage'),
+    )
+    .not.toBe(coverageBefore);
+
+  await page.locator('video').evaluate(async (element) => {
+    const video = element as HTMLVideoElement;
+    video.pause();
+    video.currentTime = 10;
+    await new Promise<void>((resolve) =>
+      video.addEventListener('seeked', () => resolve(), { once: true }),
+    );
+  });
+  await page.getByRole('button', { name: 'usable' }).click();
+  await expect(page.getByTestId('calibration-label-count')).toContainText('1');
+
+  await page.getByTestId('video-input').setInputFiles(landscapeFixture);
+  await expect(page.getByTestId('video-stage')).toHaveAttribute(
+    'data-display-width',
+    '1920',
+  );
+  await expect(page.locator('main')).toHaveAttribute('data-analysis-phase', 'idle');
+  await expect(page.locator('main')).toHaveAttribute('data-sample-count', '0');
+  await expect(page.locator('main')).toHaveAttribute(
+    'data-quality-sample-count',
+    '0',
+  );
+  await expect(page.getByTestId('calibration-label-count')).toContainText('0');
+});
+
 test('reports an invalid local file without leaving the empty shell', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('video-input').setInputFiles({

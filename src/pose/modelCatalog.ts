@@ -10,4 +10,8 @@ export const POSE_MODELS: Record<PoseModelId, { label: string; url: string }> = 
     label: 'MediaPipe Lite',
     url: `${MODEL_ROOT}/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
   },
+  full: {
+    label: 'MediaPipe Full',
+    url: `${MODEL_ROOT}/pose_landmarker_full/float16/1/pose_landmarker_full.task`,
+  },
 };

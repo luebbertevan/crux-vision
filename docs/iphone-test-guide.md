@@ -61,9 +61,10 @@ The final smoke run used production Sites version 9 from commit
   short smoke test.
 
 The longer thermal/battery run and Lite/Full delegate matrix were intentionally
-not run. One previously observed alternating pose/unavailable flicker is
-deferred unless it becomes reproducible during pose-quality calibration; no
-runtime flicker-diagnostics feature exists.
+not run. One previously observed alternating pose/unavailable flicker did not
+recur during the later bounded desktop pose-quality calibration. It remains
+deferred unless it becomes reproducible; no runtime flicker-diagnostics feature
+exists.
 
 Chrome for iOS also has a limited built-in console collector. As a fallback,
 open `chrome://inspect` in one Chrome tab and leave it open, reproduce the

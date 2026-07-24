@@ -1,12 +1,16 @@
 import { DEFAULT_SAMPLE_RATE, SECOND_MICROSECONDS } from '../analysis/range';
 import {
-  buildSkeletonSegments,
-  isSkeletonLandmarkVisible,
-  resolvePosePoint,
+  buildSkeletonSegmentsFromGetter,
+  resolvePosePointFromGetter,
   type PosePointSource,
 } from '../pose/poseView';
-import { buildTrailSegments } from '../pose/trail';
-import type { RawPoseSample } from '../types';
+import {
+  landmarkForPreview,
+  type PosePreviewMode,
+  type QualityPoseSample,
+} from '../pose/poseQuality';
+import { buildTrailSegmentsWithResolver } from '../pose/trail';
+import type { PoseLandmark } from '../types';
 import type { DisplayTransform } from './displayTransform';
 import { mapNormalizedPoint } from './displayTransform';
 
@@ -48,19 +52,41 @@ export function renderOverlay(
   width: number,
   height: number,
   transform: DisplayTransform,
-  samples: readonly RawPoseSample[],
-  currentSample: RawPoseSample | null,
+  samples: readonly QualityPoseSample[],
+  currentSample: QualityPoseSample | null,
   presentationTimestampMicroseconds: number,
+  previewMode: PosePreviewMode,
 ): OverlayRenderResult {
   context.clearRect(0, 0, width, height);
 
+  const getPreviewLandmark = (
+    sample: QualityPoseSample,
+    landmarkIndex: number,
+  ): PoseLandmark | null => {
+    const landmark = landmarkForPreview(sample, landmarkIndex, previewMode);
+    return landmark &&
+      Number.isFinite(landmark.x) &&
+      Number.isFinite(landmark.y)
+      ? landmark
+      : null;
+  };
+
   let trailSegmentCount = 0;
   for (const trail of TRAILS) {
-    const segments = buildTrailSegments(samples, presentationTimestampMicroseconds, {
-      source: trail.source,
-      durationMicroseconds: TRAIL_DURATION_MICROSECONDS,
-      maximumGapMicroseconds: TRAIL_MAXIMUM_GAP_MICROSECONDS,
-    });
+    const segments = buildTrailSegmentsWithResolver(
+      samples,
+      presentationTimestampMicroseconds,
+      {
+        source: trail.source,
+        durationMicroseconds: TRAIL_DURATION_MICROSECONDS,
+        maximumGapMicroseconds: TRAIL_MAXIMUM_GAP_MICROSECONDS,
+      },
+      (sample, source) =>
+        resolvePosePointFromGetter(
+          (landmarkIndex) => getPreviewLandmark(sample, landmarkIndex),
+          source,
+        )?.point ?? null,
+    );
     trailSegmentCount += segments.length;
 
     for (const segment of segments) {
@@ -96,7 +122,11 @@ export function renderOverlay(
     }
   }
 
-  const skeleton = buildSkeletonSegments(currentSample);
+  const skeleton = currentSample
+    ? buildSkeletonSegmentsFromGetter((landmarkIndex) =>
+        getPreviewLandmark(currentSample, landmarkIndex),
+      )
+    : [];
   context.lineCap = 'round';
   context.lineJoin = 'round';
   context.lineWidth = Math.max(2, width / 300);
@@ -115,9 +145,13 @@ export function renderOverlay(
 
   context.shadowBlur = 0;
   const acceptedLandmarks =
-    currentSample?.landmarks.filter((landmark, landmarkIndex) =>
-      isSkeletonLandmarkVisible(landmarkIndex, landmark),
-    ) ?? [];
+    currentSample?.decisions
+      .map((_decision, landmarkIndex) =>
+        landmarkIndex === 0 || landmarkIndex >= 11
+          ? getPreviewLandmark(currentSample, landmarkIndex)
+          : null,
+      )
+      .filter((landmark): landmark is PoseLandmark => Boolean(landmark)) ?? [];
   const radius = Math.max(2.2, width / 260);
   for (const landmark of acceptedLandmarks) {
     const point = mapNormalizedPoint(transform, landmark);
@@ -130,8 +164,38 @@ export function renderOverlay(
     context.stroke();
   }
 
+  if (previewMode === 'rejected' && currentSample) {
+    const rejectedRadius = Math.max(3.2, width / 220);
+    for (const decision of currentSample.decisions) {
+      if (decision.status !== 'rejected' || !decision.raw) continue;
+      if (!Number.isFinite(decision.raw.x) || !Number.isFinite(decision.raw.y)) continue;
+      const point = mapNormalizedPoint(transform, decision.raw);
+      const temporal = decision.reasons.some((reason) =>
+        reason === 'isolated-jump' ||
+        reason === 'velocity' ||
+        reason === 'acceleration' ||
+        reason === 'segment-length'
+      );
+      context.beginPath();
+      context.arc(point.x, point.y, rejectedRadius, 0, Math.PI * 2);
+      context.fillStyle = temporal
+        ? 'rgba(242, 104, 164, 0.82)'
+        : 'rgba(244, 170, 74, 0.82)';
+      context.fill();
+      context.lineWidth = Math.max(1.5, width / 600);
+      context.strokeStyle = '#161916';
+      context.stroke();
+    }
+  }
+
   const currentTrailAvailable = TRAILS.some((trail) =>
-    Boolean(resolvePosePoint(currentSample, trail.source)),
+    Boolean(
+      currentSample &&
+        resolvePosePointFromGetter(
+          (landmarkIndex) => getPreviewLandmark(currentSample, landmarkIndex),
+          trail.source,
+        ),
+    ),
   );
 
   return {

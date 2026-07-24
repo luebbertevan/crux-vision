@@ -1,8 +1,12 @@
 # Pose-quality calibration plan
 
-**Status:** Planned after the R2 phone gate and before R2B  
+**Status:** Complete July 24, 2026; Balanced v1 selected before R2B
+
 **Purpose:** Establish a trustworthy first acceptance and smoothing policy for
 MediaPipe pose data before pose-derived analysis expands.
+
+The implementation and bounded evidence are recorded in
+[`pose-quality-calibration-report.md`](./pose-quality-calibration-report.md).
 
 ## Why this is a gate
 
@@ -75,7 +79,8 @@ The first calibrated policy will apply these stages in order:
    live display. It operates only inside an accepted contiguous segment and
    resets at every gap.
 6. **Optional short-gap handling:** display interpolation, if adopted, is
-   separately marked and bounded. Analytics defaults to no interpolation.
+   separately marked and bounded. Balanced v1 does not interpolate; analytics
+   also defaults to no interpolation.
 
 An offline, symmetric smoother may later be used for derivative-based analysis,
 but it must remain a derived dataset and cannot alter raw samples.
@@ -193,6 +198,41 @@ filtering and honest uncertainty remain available to every user.
   silently operating on poor input.
 - Known model limitations are documented without implying that calibration can
   reconstruct genuinely missing motion.
+
+## Completion decision
+
+Balanced v1 ships as the ordinary display default, with Strict and Permissive
+alternatives. The advanced workspace recomputes raw, accepted, rejected, and
+smoothed views from immutable cached samples and exposes separate display and
+analytics targets, threshold precedence, joint overrides, temporal and
+smoothing controls, reason-coded decisions, coverage/gap/lag metrics, manual
+labels, and a reproducible JSON export.
+
+Three five-second real climbing ranges were calibrated on the reference laptop.
+Balanced accepted 55.1%, 93.5%, and 92.5% of all scheduled joint slots in the
+dynamic portrait, portrait overhang/occlusion, and landscape ranges. The first
+range's low result is dominated by 49 raw model-empty samples out of 151, which
+remain honest gaps. Strict rejected more uncertain points and introduced more
+short reacquisitions; Permissive retained more marginal distal points.
+
+No repeatable major raw slingshot appeared in the selected visual moments, so
+this pass does not claim a measured real-corpus false-visible reduction or
+biomechanical ground truth. Automated synthetic tracks prove that a
+high-confidence one-frame slingshot and excessive velocity are rejected, and
+visual tuning verified that plausible fast limbs are not broadly removed.
+Manual labels remain available for later, larger corpus work.
+
+MediaPipe Full was evaluated as a bounded challenger before any default change.
+On the difficult dynamic portrait range it accepted 54.5% of all scheduled
+joint slots versus Lite's 55.1%. Repeated short warm-cache laptop timings
+changed order, so they are not used as device-performance evidence. With no
+visible or coverage gain, Lite remains the product default. The longer physical
+phone thermal, battery, delegate, and model matrix remains explicitly deferred
+to R2D.
+
+The previously reported alternating pose/unavailable behavior did not recur.
+No runtime flicker-diagnostics feature was introduced; investigate only if a
+repeatable case appears.
 
 ## Explicit non-goals
 

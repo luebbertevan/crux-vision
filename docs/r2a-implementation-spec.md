@@ -1,6 +1,7 @@
 # R2A implementation spec: first analysis loop
 
-**Status:** R2A and R2A.1 complete; minimal physical iPhone gate passed
+**Status:** R2A and R2A.1 complete; minimal physical iPhone gate and subsequent
+pose-quality calibration gate passed
 
 **Branch/base:** `codex/r2a1-video-stage-scale` from R2A commit `2178bd9`
 
@@ -182,10 +183,10 @@ are application dependencies, not video transfer.
   samples/second and includes the range endpoints when possible. The adapter's
   actual returned presentation timestamp is authoritative and is what the
   worker/result stores.
-- R2A uses MediaPipe Pose Landmarker Lite. Try the GPU delegate first and retry
-  initialization once on CPU; this is an internal compatibility fallback, not
-  a user-facing model selector. Full/Heavy and MoveNet are absent from the
-  product path.
+- R2A's ordinary path uses MediaPipe Pose Landmarker Lite. Try the GPU delegate
+  first and retry initialization once on CPU; this is an internal compatibility
+  fallback. The subsequent calibration gate adds Full only as an explicit
+  advanced challenger. Heavy and MoveNet remain absent from the product path.
 - Process at most one decoded transferable frame per worker request. Publish a
   raw result immediately after every completed inference; throttle React progress
   presentation to at most 10 Hz without batching overlay availability.
@@ -387,9 +388,11 @@ video.
 - MediaBunny is dynamically loaded only when a file is chosen, reducing the
   initial production JavaScript from roughly 556 kB to 219 kB before gzip; its
   separate media chunk loads during local import.
-- The product uses only MediaPipe Lite at 30 requested samples/second. It tries
-  GPU first and retries CPU once. Raw samples include actual integer
-  presentation timestamps, model/delegate identity, visibility, and presence.
+- The ordinary product path uses MediaPipe Lite at 30 requested
+  samples/second. It tries GPU first and retries CPU once. Raw samples include
+  actual integer presentation timestamps, model/delegate identity, visibility,
+  and presence. The later calibration workspace can run Full as an explicit
+  challenger, but the bounded result did not justify changing the Lite default.
 - The three current acceptance fixtures are approximately 29.97 fps, so the
   30-sample default analyzes essentially every unique source frame. In a warm
   five-second `lache-send.MOV` laptop measurement, 15 samples/second analyzed
@@ -502,9 +505,10 @@ dimensions and stayed centered, and page-level pinch zoom remained disabled.
 The longer thermal, battery, sustained-analysis, and Lite/Full delegate matrix
 was intentionally not run; it remains R2D work.
 
-One previously observed alternating pose/unavailable flicker is deferred unless
-it becomes reproducible during the pose-quality calibration gate. This is only
-a future-investigation note; there is no runtime flicker-diagnostics feature.
+One previously observed alternating pose/unavailable flicker did not recur
+during the bounded pose-quality calibration. It remains only a
+future-investigation note if it becomes reproducible; there is no runtime
+flicker-diagnostics feature.
 
 ## First product-review follow-ups
 
@@ -527,8 +531,12 @@ wrists and other direct joints. A midpoint is missing whenever either source
 joint is rejected. Face detail is hidden; one accepted head anchor connects to
 the derived shoulder midpoint.
 
-The calibration work will tune global, body-group, and joint overrides over
-cached raw poses, then evaluate hysteresis, timestamp-based temporal rejection,
-and segment-local smoothing. The product will expose a simple quality preset by
-default and reserve detailed controls for Pose quality → Advanced. See
-[`pose-quality-calibration-plan.md`](./pose-quality-calibration-plan.md).
+The calibration work is complete. Balanced v1 is the ordinary default, with
+Strict and Permissive alternatives. Global, body-group, and joint overrides
+recompute derived views over immutable cached raw samples; acquisition/retention
+hysteresis, timestamp-based temporal rejection, and segment-local smoothing are
+inspectable under **Pose quality calibration**. Display and analytics policies
+remain separate, and the advanced workspace includes reason-coded previews,
+coverage/gap/lag metrics, manual labels, and JSON export. See the
+[`calibration plan`](./pose-quality-calibration-plan.md) and
+[`calibration report`](./pose-quality-calibration-report.md).

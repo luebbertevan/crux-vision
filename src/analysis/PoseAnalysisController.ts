@@ -1,6 +1,11 @@
 import type { BrowserMediaAdapter } from '../media/mediaAdapter';
 import { MediaPipeWorkerClient } from '../pose/mediapipeClient';
-import type { AnalysisRange, Delegate, RawPoseSample } from '../types';
+import type {
+  AnalysisRange,
+  Delegate,
+  PoseModelId,
+  RawPoseSample,
+} from '../types';
 import { analysisTimestamps, DEFAULT_SAMPLE_RATE } from './range';
 
 export type AnalysisAttempt = {
@@ -13,6 +18,7 @@ export type AnalysisAttempt = {
 export type PoseAnalysisOptions = {
   adapter: BrowserMediaAdapter;
   range: AnalysisRange;
+  model?: PoseModelId;
   completedRequestMicroseconds?: readonly number[];
   existingSamples?: readonly RawPoseSample[];
   onDelegate: (delegate: Delegate) => void;
@@ -31,6 +37,7 @@ export class PoseAnalysisController {
 
   async run(options: PoseAnalysisOptions): Promise<void> {
     const signal = this.abortController.signal;
+    const model = options.model ?? 'lite';
     const schedule = analysisTimestamps(options.range, DEFAULT_SAMPLE_RATE);
     const completedRequests = new Set(options.completedRequestMicroseconds ?? []);
     const remaining = schedule.filter((timestamp) => !completedRequests.has(timestamp));
@@ -43,7 +50,7 @@ export class PoseAnalysisController {
     let delegate: Delegate = 'GPU';
     try {
       try {
-        await this.worker.initialize('lite', delegate);
+        await this.worker.initialize(model, delegate);
       } catch (gpuError) {
         throwIfAborted(signal);
         // MediaPipe's loader and WebGL state are worker-global. A failed GPU
@@ -55,7 +62,7 @@ export class PoseAnalysisController {
         this.worker = new MediaPipeWorkerClient();
         delegate = 'CPU';
         try {
-          await this.worker.initialize('lite', delegate);
+          await this.worker.initialize(model, delegate);
         } catch (cpuError) {
           if (cpuError instanceof Error && gpuError instanceof Error) {
             (cpuError as Error & { cause?: unknown }).cause = gpuError;
@@ -86,7 +93,7 @@ export class PoseAnalysisController {
             sample = {
               requestedTimestampMicroseconds: frame.requestedTimestampMicroseconds,
               timestampMicroseconds: result.timestampMicroseconds,
-              model: 'lite',
+              model,
               delegate,
               landmarks: result.landmarks,
               worldLandmarks: result.worldLandmarks,

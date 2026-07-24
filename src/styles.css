@@ -581,6 +581,206 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 .trail-key-shoulder i { background: var(--cyan); }
 .trail-key-pose i { background: var(--lime); }
 
+.quality-section { margin-bottom: 14px; }
+.quality-preset-row {
+  display: grid;
+  gap: 7px;
+  padding: 11px 12px;
+  border: 1px solid #2e332c;
+  border-radius: 9px;
+  background: #111411;
+}
+.quality-preset-row label,
+.calibration-grid label,
+.calibration-select {
+  display: grid;
+  gap: 5px;
+  color: #858b81;
+  font-size: .6rem;
+  font-weight: 750;
+}
+.quality-preset-row label {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+.quality-preset-row select,
+.calibration-grid select,
+.calibration-select select,
+.calibration-number input {
+  min-height: 34px;
+  border: 1px solid #363b34;
+  border-radius: 7px;
+  color: #d8d7cf;
+  background: #20241f;
+  font: inherit;
+}
+.quality-preset-row select { min-width: 112px; padding: 0 28px 0 9px; }
+.quality-preset-row p {
+  margin: 0;
+  color: #6f756c;
+  font-size: .56rem;
+  line-height: 1.4;
+}
+.calibration-workspace {
+  margin-top: 8px;
+  border: 1px solid #30352e;
+  border-radius: 9px;
+  background: #151815;
+}
+.calibration-workspace > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 7px 11px;
+  color: #c7cabf;
+  cursor: pointer;
+}
+.calibration-workspace > summary span { display: grid; gap: 2px; margin-left: 5px; }
+.calibration-workspace > summary strong { font-size: .66rem; }
+.calibration-workspace > summary small { color: #6f756c; font-size: .53rem; font-weight: 500; }
+.calibration-body {
+  display: grid;
+  gap: 10px;
+  padding: 0 10px 10px;
+}
+.calibration-grid { display: grid; gap: 8px; }
+.calibration-grid select,
+.calibration-select select { width: 100%; padding: 0 8px; }
+.calibration-grid label small { color: #686e65; font-size: .51rem; line-height: 1.35; }
+.calibration-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.calibration-metrics span,
+.calibration-evidence > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 7px;
+  background: #1d211c;
+}
+.calibration-metrics small,
+.calibration-evidence small { color: #6e746a; font-size: .5rem; }
+.calibration-metrics strong,
+.calibration-evidence strong {
+  color: #d4d6cd;
+  font-size: .68rem;
+  font-variant-numeric: tabular-nums;
+}
+.group-coverage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 10px;
+  padding: 8px;
+  border: 1px solid #2d322b;
+  border-radius: 8px;
+}
+.group-coverage span {
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+.group-coverage small { overflow: hidden; color: #71776d; font-size: .5rem; text-overflow: ellipsis; white-space: nowrap; }
+.group-coverage strong { color: #bfc3b9; font-size: .53rem; font-variant-numeric: tabular-nums; }
+.calibration-fieldset {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #2d322b;
+  border-radius: 8px;
+}
+.calibration-fieldset legend {
+  padding: 0 4px;
+  color: #9ba096;
+  font-size: .56rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+.calibration-slider { display: grid; gap: 4px; }
+.calibration-slider > span,
+.calibration-number > span {
+  display: flex;
+  justify-content: space-between;
+  color: #7e847a;
+  font-size: .55rem;
+}
+.calibration-slider output {
+  color: #bec3b7;
+  font-variant-numeric: tabular-nums;
+}
+.calibration-slider input { width: 100%; accent-color: var(--lime); }
+.calibration-slider input:disabled,
+.calibration-number input:disabled { opacity: .4; }
+.calibration-toggle {
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9da298;
+  font-size: .56rem;
+  cursor: pointer;
+}
+.calibration-toggle input { accent-color: var(--lime); }
+.calibration-number {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  align-items: center;
+  gap: 8px;
+}
+.calibration-number input {
+  width: 100%;
+  padding: 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+.joint-decision {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 8px;
+  padding: 8px;
+  border-radius: 7px;
+  background: #1d211c;
+}
+.joint-decision strong { color: #d0d2c9; font-size: .61rem; }
+.joint-decision span { color: var(--lime); font-size: .55rem; text-transform: capitalize; }
+.joint-decision span[data-status="rejected"] { color: var(--amber); }
+.joint-decision span[data-status="missing"] { color: #858b81; }
+.joint-decision small { grid-column: 1 / -1; color: #72786e; font-size: .51rem; line-height: 1.35; }
+.calibration-labels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.calibration-labels button {
+  min-height: 34px;
+  border: 1px solid #343932;
+  border-radius: 7px;
+  color: #aeb2aa;
+  background: #20241f;
+  font-size: .55rem;
+  font-weight: 750;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+.calibration-labels button:disabled { opacity: .4; cursor: default; }
+.calibration-evidence {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.rejection-summary {
+  margin: 0;
+  color: #747a70;
+  font-size: .52rem;
+  line-height: 1.4;
+}
+.calibration-actions { display: grid; gap: 6px; }
+.calibration-actions .button-subtle { width: 100%; min-height: 38px; font-size: .61rem; }
+
 .analysis-status { min-height: 58px; display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 9px; padding: 9px; border-radius: 9px; background: #1a1e19; }
 .status-icon { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 8px; color: #8f9588; background: #262a24; }
 .analysis-status-partial .status-icon,
@@ -723,6 +923,11 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .range-section, .analysis-section { padding: 16px; border-radius: 12px; }
   .range-readout { margin-block: 17px 13px; }
   .analysis-preview { margin-top: 16px; }
+  .calibration-body select,
+  .calibration-number input,
+  .calibration-labels button,
+  .calibration-actions .button-subtle { min-height: 44px; }
+  .calibration-slider { min-height: 44px; justify-content: center; }
 }
 
 @media (max-width: 420px) {

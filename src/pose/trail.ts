@@ -16,10 +16,11 @@ export type TrailConfig = {
   maximumGapMicroseconds: number;
 };
 
-export function buildTrailSegments(
-  samples: readonly RawPoseSample[],
+export function buildTrailSegmentsWithResolver<T extends { timestampMicroseconds: number }>(
+  samples: readonly T[],
   presentationTimestampMicroseconds: number,
   config: TrailConfig,
+  resolvePoint: (sample: T, source: PosePointSource) => { x: number; y: number } | null,
 ): TrailSegment[] {
   const windowStart = presentationTimestampMicroseconds - config.durationMicroseconds;
   const windowLength = Math.max(1, config.durationMicroseconds);
@@ -31,7 +32,7 @@ export function buildTrailSegments(
     if (sample.timestampMicroseconds < windowStart) continue;
     if (sample.timestampMicroseconds > presentationTimestampMicroseconds) break;
 
-    const point = resolvePosePoint(sample, config.source);
+    const point = resolvePoint(sample, config.source);
     const hasLargeGap =
       previousRawTimestamp !== null &&
       sample.timestampMicroseconds - previousRawTimestamp > config.maximumGapMicroseconds;
@@ -58,4 +59,17 @@ export function buildTrailSegments(
   }
 
   return segments;
+}
+
+export function buildTrailSegments(
+  samples: readonly RawPoseSample[],
+  presentationTimestampMicroseconds: number,
+  config: TrailConfig,
+): TrailSegment[] {
+  return buildTrailSegmentsWithResolver(
+    samples,
+    presentationTimestampMicroseconds,
+    config,
+    resolvePosePoint,
+  );
 }

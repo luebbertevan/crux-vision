@@ -1,5 +1,5 @@
 export type Delegate = 'CPU' | 'GPU';
-export type PoseModelId = 'lite';
+export type PoseModelId = 'lite' | 'full';
 
 export type SourceMetadata = {
   fileName: string;

@@ -112,6 +112,9 @@ test('desktop portrait and landscape stages use the available review surface', a
   });
 
   await importVideo(page, landscapeFixture);
+  await expect
+    .poll(async () => (await getReviewBounds(page)).stage.width)
+    .toBeGreaterThanOrEqual(1_020);
   const landscape = await getReviewBounds(page);
   expect(landscape.stage.width).toBeGreaterThanOrEqual(1_020);
   expect(landscape.stage.height).toBeGreaterThanOrEqual(570);
@@ -187,6 +190,9 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   });
 
   await page.setViewportSize({ width: 393, height: 740 });
+  await expect
+    .poll(async () => (await getReviewBounds(page)).stage.width)
+    .toBeGreaterThanOrEqual(392);
   const withCollapsedViewport = await getReviewBounds(page);
   expect(withCollapsedViewport.stage.width).toBeGreaterThanOrEqual(392);
   expect(withCollapsedViewport.stage.height).toBeGreaterThanOrEqual(695);

@@ -45,6 +45,19 @@
           "notes": "Use for later wrist, ankle, wall-occlusion, and sustained thermal checks."
         }
       ]
+    },
+    {
+      "file": "landscape-climb.MOV",
+      "purpose": ["landscape", "full-body", "extended-movement", "calibration"],
+      "reviewRanges": [
+        {
+          "startSeconds": 15,
+          "endSeconds": 20,
+          "label": "landscape extended movement",
+          "expectedPose": true,
+          "notes": "Use for landscape pose-quality coverage, long reach, and end-effector continuity checks."
+        }
+      ]
     }
   ]
 }

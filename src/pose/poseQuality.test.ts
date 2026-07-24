@@ -1,0 +1,252 @@
+import { describe, expect, it } from 'vitest';
+
+import type { PoseLandmark, RawPoseSample } from '../types';
+import {
+  clonePoseQualityPolicy,
+  evaluateCalibrationLabels,
+  evaluatePoseQuality,
+  POSE_QUALITY_PROFILES,
+  resolveConfidenceThreshold,
+} from './poseQuality';
+
+const point = (
+  x: number,
+  visibility = 1,
+  presence: number | null = visibility,
+): PoseLandmark => ({
+  x,
+  y: 0.5,
+  z: 0,
+  visibility,
+  presence,
+});
+
+const sample = (
+  timestampMicroseconds: number,
+  wrist: PoseLandmark | null,
+): RawPoseSample => {
+  const landmarks: PoseLandmark[] = [];
+  landmarks[11] = { ...point(0.4), y: 0.3 };
+  landmarks[12] = { ...point(0.6), y: 0.3 };
+  landmarks[23] = { ...point(0.43), y: 0.6 };
+  landmarks[24] = { ...point(0.57), y: 0.6 };
+  if (wrist) landmarks[15] = wrist;
+  return {
+    requestedTimestampMicroseconds: timestampMicroseconds,
+    timestampMicroseconds,
+    model: 'lite',
+    delegate: 'CPU',
+    landmarks,
+    worldLandmarks: [],
+    inferenceMilliseconds: 1,
+  };
+};
+
+describe('pose-quality policy', () => {
+  it('resolves joint, body-group, torso fallback, and global thresholds in order', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.global = { visibility: 0.2, presence: 0.25 };
+    policy.bodyGroups = {
+      torso: { visibility: 0.4, presence: 0.45 },
+      wristsHands: { visibility: 0.6, presence: 0.65 },
+    };
+    policy.joints = {
+      15: { visibility: 0.8, presence: 0.85 },
+    };
+
+    expect(resolveConfidenceThreshold(policy, 15)).toEqual({
+      visibility: 0.8,
+      presence: 0.85,
+    });
+    expect(resolveConfidenceThreshold(policy, 16)).toEqual({
+      visibility: 0.6,
+      presence: 0.65,
+    });
+    expect(resolveConfidenceThreshold(policy, 11)).toEqual({
+      visibility: 0.4,
+      presence: 0.45,
+    });
+    expect(resolveConfidenceThreshold(policy, 13)).toEqual({
+      visibility: 0.2,
+      presence: 0.25,
+    });
+  });
+
+  it('keeps visibility and presence independently inspectable', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.temporal.enabled = false;
+    const evaluation = evaluatePoseQuality(
+      [
+        sample(0, point(0.2, 0.4, 0.9)),
+        sample(33_333, point(0.21, 0.9, 0.4)),
+      ],
+      policy,
+    );
+
+    expect(evaluation.samples[0].decisions[15].reasons).toContain('visibility');
+    expect(evaluation.samples[0].decisions[15].reasons).not.toContain('presence');
+    expect(evaluation.samples[1].decisions[15].reasons).toContain('presence');
+    expect(evaluation.samples[1].decisions[15].reasons).not.toContain('visibility');
+  });
+
+  it('uses acquire/keep hysteresis without bridging a rejected gap', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.temporal.enabled = false;
+    policy.smoothing.enabled = false;
+    const evaluation = evaluatePoseQuality(
+      [
+        sample(0, point(0.2, 0.61)),
+        sample(33_333, point(0.21, 0.52)),
+        sample(66_666, point(0.22, 0.46)),
+        sample(99_999, point(0.23, 0.56)),
+        sample(133_332, point(0.24, 0.62)),
+      ],
+      policy,
+    );
+
+    expect(
+      evaluation.samples.map((entry) =>
+        Boolean(entry.decisions[15].accepted),
+      ),
+    ).toEqual([true, true, false, false, true]);
+  });
+
+  it('rejects an isolated high-confidence slingshot using timestamps and body scale', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.smoothing.enabled = false;
+    const evaluation = evaluatePoseQuality(
+      [
+        sample(0, point(0.2)),
+        sample(33_333, point(0.9)),
+        sample(66_666, point(0.21)),
+      ],
+      policy,
+    );
+
+    expect(evaluation.samples[1].decisions[15].accepted).toBeNull();
+    expect(evaluation.samples[1].decisions[15].reasons).toContain(
+      'isolated-jump',
+    );
+    expect(evaluation.metrics.temporalRejectedJointSlots).toBeGreaterThan(0);
+  });
+
+  it('rejects excessive speed even when confidence is high', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.smoothing.enabled = false;
+    const evaluation = evaluatePoseQuality(
+      [sample(0, point(0.2)), sample(33_333, point(0.9))],
+      policy,
+    );
+
+    expect(evaluation.samples[1].decisions[15].reasons).toContain('velocity');
+  });
+
+  it('compares distal segment length with the previous parent sample', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.smoothing.enabled = false;
+    policy.temporal.maximumSpeedBodyLengthsPerSecond = 1_000;
+    policy.temporal.maximumAccelerationBodyLengthsPerSecondSquared = 10_000;
+    policy.temporal.maximumSegmentLengthChangeRatio = 0.2;
+    const first = sample(0, point(0.4));
+    const second = sample(33_333, point(0.7));
+    first.landmarks[13] = point(0.3);
+    second.landmarks[13] = point(0.3);
+
+    const evaluation = evaluatePoseQuality([first, second], policy);
+
+    expect(evaluation.samples[1].decisions[15].reasons).toContain(
+      'segment-length',
+    );
+  });
+
+  it('smooths only inside accepted segments and resets exactly at a gap', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.temporal.enabled = false;
+    const evaluation = evaluatePoseQuality(
+      [
+        sample(0, point(0.2)),
+        sample(33_333, point(0.4)),
+        sample(66_666, null),
+        sample(99_999, point(0.8)),
+      ],
+      policy,
+    );
+
+    expect(evaluation.samples[1].decisions[15].smoothed?.x).not.toBe(0.4);
+    expect(evaluation.samples[2].decisions[15].smoothed).toBeNull();
+    expect(evaluation.samples[3].decisions[15].smoothed?.x).toBe(0.8);
+  });
+
+  it('counts leading and never-acquired intervals as honest gaps, not reacquisitions', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.temporal.enabled = false;
+    const evaluation = evaluatePoseQuality(
+      [sample(0, null), sample(33_333, null), sample(66_666, point(0.3))],
+      policy,
+    );
+
+    expect(evaluation.metrics.longestGapMicroseconds).toBe(66_666);
+    expect(evaluation.metrics.reacquisitionCount).toBe(0);
+  });
+
+  it('keeps display and analytics acceptance policies separate', () => {
+    const display = clonePoseQualityPolicy(
+      POSE_QUALITY_PROFILES.balanced.display,
+    );
+    const analytics = clonePoseQualityPolicy(
+      POSE_QUALITY_PROFILES.balanced.analytics,
+    );
+    display.temporal.enabled = false;
+    analytics.temporal.enabled = false;
+    const raw = [sample(0, point(0.2, 0.62, 0.62))];
+
+    expect(evaluatePoseQuality(raw, display).samples[0].decisions[15].accepted)
+      .not.toBeNull();
+    expect(evaluatePoseQuality(raw, analytics).samples[0].decisions[15].accepted)
+      .toBeNull();
+  });
+
+  it('never mutates cached raw samples while recomputing a policy', () => {
+    const raw = [sample(0, point(0.2, 0.8, 0.8))];
+    const before = JSON.stringify(raw);
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.strict.display);
+    evaluatePoseQuality(raw, policy);
+    expect(JSON.stringify(raw)).toBe(before);
+  });
+
+  it('measures retained usable and false-visible labels against accepted views', () => {
+    const policy = clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display);
+    policy.hysteresis.enabled = false;
+    policy.temporal.enabled = false;
+    const evaluation = evaluatePoseQuality(
+      [sample(0, point(0.2, 0.8)), sample(33_333, point(0.3, 0.3))],
+      policy,
+    );
+    const metrics = evaluateCalibrationLabels(
+      [
+        {
+          sessionId: 1,
+          timestampMicroseconds: 0,
+          landmarkIndex: 15,
+          label: 'usable',
+        },
+        {
+          sessionId: 1,
+          timestampMicroseconds: 33_333,
+          landmarkIndex: 15,
+          label: 'wrong',
+        },
+      ],
+      evaluation,
+    );
+
+    expect(metrics.retainedUsableRate).toBe(1);
+    expect(metrics.falseVisibleRate).toBe(0);
+  });
+});

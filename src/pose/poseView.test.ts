@@ -6,6 +6,7 @@ import {
   isLandmarkAccepted,
   isSkeletonLandmarkVisible,
   resolvePosePoint,
+  resolvePosePointWithProvenance,
 } from './poseView';
 
 const landmark = (visibility = 1): PoseLandmark => ({
@@ -59,6 +60,21 @@ describe('accepted pose view', () => {
     expect(midpoint?.y).toBeCloseTo(0.6);
     sample.landmarks[24] = landmark(0.2);
     expect(resolvePosePoint(sample, source)).toBeNull();
+  });
+
+  it('retains versioned provenance for derived midpoint views', () => {
+    const sample = pose();
+    const resolved = resolvePosePointWithProvenance(sample, {
+      kind: 'midpoint',
+      firstLandmarkIndex: 23,
+      secondLandmarkIndex: 24,
+    });
+
+    expect(resolved?.provenance).toEqual({
+      kind: 'midpoint',
+      sourceLandmarkIndices: [23, 24],
+      derivedVersion: 'midpoint-v1',
+    });
   });
 
   it('renders one simplified head anchor and neck instead of face detail', () => {

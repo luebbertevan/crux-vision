@@ -11,6 +11,17 @@ export type PosePointSource =
       secondLandmarkIndex: number;
     };
 
+export type PosePointProvenance = {
+  kind: PosePointSource['kind'];
+  sourceLandmarkIndices: number[];
+  derivedVersion: 'direct-v1' | 'midpoint-v1';
+};
+
+export type ResolvedPosePoint = {
+  point: PoseLandmark;
+  provenance: PosePointProvenance;
+};
+
 export const POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
   [11, 12],
   [11, 13],
@@ -65,30 +76,65 @@ export type SkeletonSegment = {
   endIndex: number | 'shoulder-midpoint';
 };
 
+export function resolvePosePointFromGetter(
+  getLandmark: (landmarkIndex: number) => PoseLandmark | null | undefined,
+  source: PosePointSource,
+): ResolvedPosePoint | null {
+  if (source.kind === 'landmark') {
+    const point = getLandmark(source.landmarkIndex);
+    return point
+      ? {
+          point,
+          provenance: {
+            kind: 'landmark',
+            sourceLandmarkIndices: [source.landmarkIndex],
+            derivedVersion: 'direct-v1',
+          },
+        }
+      : null;
+  }
+
+  const first = getLandmark(source.firstLandmarkIndex);
+  const second = getLandmark(source.secondLandmarkIndex);
+  if (!first || !second) return null;
+  return {
+    point: {
+      x: (first.x + second.x) / 2,
+      y: (first.y + second.y) / 2,
+      z: (first.z + second.z) / 2,
+      visibility: Math.min(first.visibility, second.visibility),
+      presence:
+        first.presence === null && second.presence === null
+          ? null
+          : Math.min(first.presence ?? 1, second.presence ?? 1),
+    },
+    provenance: {
+      kind: 'midpoint',
+      sourceLandmarkIndices: [
+        source.firstLandmarkIndex,
+        source.secondLandmarkIndex,
+      ],
+      derivedVersion: 'midpoint-v1',
+    },
+  };
+}
+
+export function resolvePosePointWithProvenance(
+  sample: RawPoseSample | null,
+  source: PosePointSource,
+): ResolvedPosePoint | null {
+  if (!sample) return null;
+  return resolvePosePointFromGetter((landmarkIndex) => {
+    const landmark = sample.landmarks[landmarkIndex];
+    return isLandmarkAccepted(landmark) ? landmark : null;
+  }, source);
+}
+
 export function resolvePosePoint(
   sample: RawPoseSample | null,
   source: PosePointSource,
 ): PoseLandmark | null {
-  if (!sample) return null;
-  if (source.kind === 'landmark') {
-    const landmark = sample.landmarks[source.landmarkIndex];
-    return isLandmarkAccepted(landmark) ? landmark : null;
-  }
-
-  const first = sample.landmarks[source.firstLandmarkIndex];
-  const second = sample.landmarks[source.secondLandmarkIndex];
-  if (!isLandmarkAccepted(first) || !isLandmarkAccepted(second)) return null;
-
-  return {
-    x: (first.x + second.x) / 2,
-    y: (first.y + second.y) / 2,
-    z: (first.z + second.z) / 2,
-    visibility: Math.min(first.visibility, second.visibility),
-    presence:
-      first.presence === null && second.presence === null
-        ? null
-        : Math.min(first.presence ?? 1, second.presence ?? 1),
-  };
+  return resolvePosePointWithProvenance(sample, source)?.point ?? null;
 }
 
 export function isSkeletonLandmarkVisible(
@@ -100,21 +146,30 @@ export function isSkeletonLandmarkVisible(
 
 export function buildSkeletonSegments(sample: RawPoseSample | null): SkeletonSegment[] {
   if (!sample) return [];
+  return buildSkeletonSegmentsFromGetter((landmarkIndex) => {
+    const landmark = sample.landmarks[landmarkIndex];
+    return isLandmarkAccepted(landmark) ? landmark : null;
+  });
+}
+
+export function buildSkeletonSegmentsFromGetter(
+  getLandmark: (landmarkIndex: number) => PoseLandmark | null | undefined,
+): SkeletonSegment[] {
   const segments: SkeletonSegment[] = [];
   for (const [startIndex, endIndex] of POSE_CONNECTIONS) {
-    const start = sample.landmarks[startIndex];
-    const end = sample.landmarks[endIndex];
-    if (!isLandmarkAccepted(start) || !isLandmarkAccepted(end)) continue;
+    const start = getLandmark(startIndex);
+    const end = getLandmark(endIndex);
+    if (!start || !end) continue;
     segments.push({ start, end, startIndex, endIndex });
   }
 
-  const nose = sample.landmarks[0];
-  const shoulderMidpoint = resolvePosePoint(sample, {
+  const nose = getLandmark(0);
+  const shoulderMidpoint = resolvePosePointFromGetter(getLandmark, {
     kind: 'midpoint',
     firstLandmarkIndex: 11,
     secondLandmarkIndex: 12,
-  });
-  if (isLandmarkAccepted(nose) && shoulderMidpoint) {
+  })?.point;
+  if (nose && shoulderMidpoint) {
     segments.push({
       start: shoulderMidpoint,
       end: nose,

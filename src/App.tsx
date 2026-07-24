@@ -27,16 +27,34 @@ import {
   UploadIcon,
 } from './components/Icons';
 import { OverlayCanvas, type StageFeedback } from './components/OverlayCanvas';
+import { PoseQualityPanel } from './components/PoseQualityPanel';
 import { formatTime, RangeSelector } from './components/RangeSelector';
 import { useReviewStageSize } from './layout/useReviewStageSize';
 import type { BrowserMediaAdapter } from './media/mediaAdapter';
 import { PlayerController } from './player/PlayerController';
 import {
+  clonePoseQualityPolicy,
+  evaluateCalibrationLabels,
+  evaluatePoseQuality,
+  POSE_QUALITY_PROFILES,
+  type CalibrationLabel,
+  type CalibrationLabelRecord,
+  type PosePolicyTarget,
+  type PosePreviewMode,
+  type PoseQualityPresetId,
+} from './pose/poseQuality';
+import { POSE_MODELS } from './pose/modelCatalog';
+import {
   analysisReducer,
   initialAnalysisState,
   type AnalysisPhase,
 } from './state/analysisReducer';
-import type { AnalysisRange, SourceMetadata } from './types';
+import type {
+  AnalysisRange,
+  PoseModelId,
+  SourceMetadata,
+} from './types';
+import { nearestByTimestamp } from './analysis/timestamp';
 
 type SourceSession = {
   id: number;
@@ -88,6 +106,17 @@ export function App() {
   const [sourceError, setSourceError] = useState<string | null>(null);
   const [overlaysVisible, setOverlaysVisible] = useState(true);
   const [stageFeedback, setStageFeedback] = useState<StageFeedback>('none');
+  const [qualityPresetId, setQualityPresetId] =
+    useState<PoseQualityPresetId>('balanced');
+  const [policyTarget, setPolicyTarget] = useState<PosePolicyTarget>('display');
+  const [qualityPolicy, setQualityPolicy] = useState(() =>
+    clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display),
+  );
+  const [previewMode, setPreviewMode] = useState<PosePreviewMode>('smoothed');
+  const [selectedModel, setSelectedModel] = useState<PoseModelId>('lite');
+  const [calibrationLabels, setCalibrationLabels] = useState<
+    CalibrationLabelRecord[]
+  >([]);
 
   const adapterRef = useRef<BrowserMediaAdapter | null>(null);
   const objectUrlRef = useRef<string | null>(null);
@@ -190,6 +219,7 @@ export function App() {
         setRange(defaultAnalysisRange(candidate.metadata.durationMicroseconds));
         setStageFeedback('none');
         setOverlaysVisible(true);
+        setCalibrationLabels([]);
         autoplaySessionRef.current = null;
         dispatch({ type: 'reset', sessionId });
       } catch (error) {
@@ -289,6 +319,7 @@ export function App() {
       const current = analysisRef.current;
       const canResume =
         resume &&
+        current.model === selectedModel &&
         current.range?.startMicroseconds === range.startMicroseconds &&
         current.range?.endMicroseconds === range.endMicroseconds;
 
@@ -299,12 +330,14 @@ export function App() {
         range,
         total: schedule.length,
         resume: canResume,
+        model: selectedModel,
       });
 
       void controller
         .run({
           adapter,
           range,
+          model: selectedModel,
           completedRequestMicroseconds: canResume
             ? current.completedRequestMicroseconds
             : [],
@@ -338,8 +371,175 @@ export function App() {
           }
         });
     },
-    [range, source],
+    [range, selectedModel, source],
   );
+
+  const qualityEvaluation = useMemo(
+    () => evaluatePoseQuality(analysis.samples, qualityPolicy),
+    [analysis.samples, qualityPolicy],
+  );
+  const currentQualitySample = useMemo(
+    () =>
+      nearestByTimestamp(
+        qualityEvaluation.samples,
+        secondsToMicroseconds(playerSnapshot.currentTimeSeconds),
+        25_000,
+      ),
+    [playerSnapshot.currentTimeSeconds, qualityEvaluation.samples],
+  );
+  const calibrationLabelMetrics = useMemo(
+    () => evaluateCalibrationLabels(calibrationLabels, qualityEvaluation),
+    [calibrationLabels, qualityEvaluation],
+  );
+
+  const changeQualityPreset = useCallback((preset: PoseQualityPresetId) => {
+    setQualityPresetId(preset);
+    setPolicyTarget('display');
+    setQualityPolicy(clonePoseQualityPolicy(POSE_QUALITY_PROFILES[preset].display));
+    setPreviewMode('smoothed');
+  }, []);
+
+  const changePolicyTarget = useCallback(
+    (target: PosePolicyTarget) => {
+      setPolicyTarget(target);
+      setQualityPolicy(
+        clonePoseQualityPolicy(POSE_QUALITY_PROFILES[qualityPresetId][target]),
+      );
+      setPreviewMode(target === 'display' ? 'smoothed' : 'accepted');
+    },
+    [qualityPresetId],
+  );
+
+  const resetQualityPolicy = useCallback(() => {
+    setQualityPolicy(
+      clonePoseQualityPolicy(
+        POSE_QUALITY_PROFILES[qualityPresetId][policyTarget],
+      ),
+    );
+  }, [policyTarget, qualityPresetId]);
+
+  const updateQualityPolicy = useCallback(
+    (policy: typeof qualityPolicy) => {
+      setQualityPolicy({
+        ...policy,
+        id: `${qualityPresetId}-${policyTarget}-custom`,
+      });
+    },
+    [policyTarget, qualityPresetId],
+  );
+
+  const changeAnalysisModel = useCallback(
+    (model: PoseModelId) => {
+      if (model === selectedModel) return;
+      cancelAnalysis();
+      setSelectedModel(model);
+      setCalibrationLabels([]);
+      setStageFeedback('none');
+      if (source) dispatch({ type: 'reset', sessionId: source.id });
+    },
+    [cancelAnalysis, selectedModel, source],
+  );
+
+  const labelCurrentJoint = useCallback(
+    (
+      landmarkIndex: number,
+      label: CalibrationLabel,
+      timestampMicroseconds: number,
+    ) => {
+      if (!source) return;
+      setCalibrationLabels((current) => [
+        ...current.filter(
+          (entry) =>
+            !(
+              entry.sessionId === source.id &&
+              entry.timestampMicroseconds === timestampMicroseconds &&
+              entry.landmarkIndex === landmarkIndex
+            ),
+        ),
+        {
+          sessionId: source.id,
+          timestampMicroseconds,
+          landmarkIndex,
+          label,
+        },
+      ]);
+    },
+    [source],
+  );
+
+  const exportCalibration = useCallback(() => {
+    if (!source) return;
+    const payload = {
+      schemaVersion: 'crux-pose-calibration-v1',
+      exportedAt: new Date().toISOString(),
+      source: {
+        sessionId: source.id,
+        metadata: source.metadata,
+      },
+      range: analysis.range,
+      analysis: {
+        phase: analysis.phase,
+        completedRequests: analysis.completed,
+        scheduledRequests: analysis.total,
+        completedRequestMicroseconds: analysis.completedRequestMicroseconds,
+        storedRawSamples: analysis.samples.length,
+        requestsWithoutStoredSample: Math.max(
+          0,
+          analysis.completed - analysis.samples.length,
+        ),
+      },
+      model: selectedModel,
+      preset: qualityPresetId,
+      policyTarget,
+      previewMode,
+      policy: qualityPolicy,
+      metrics: qualityEvaluation.metrics,
+      labels: calibrationLabels,
+      labelMetrics: calibrationLabelMetrics,
+      rawSamples: analysis.samples,
+      qualitySamples: qualityEvaluation.samples.map((sample) => ({
+        requestedTimestampMicroseconds: sample.requestedTimestampMicroseconds,
+        timestampMicroseconds: sample.timestampMicroseconds,
+        decisions: sample.decisions.map((decision) => ({
+          landmarkIndex: decision.landmarkIndex,
+          bodyGroup: decision.bodyGroup,
+          status: decision.status,
+          reasons: decision.reasons,
+          threshold: decision.threshold,
+          accepted: decision.accepted,
+          smoothed: decision.smoothed,
+        })),
+      })),
+    };
+    const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    const baseName =
+      source.metadata.fileName.replace(/\.[^.]+$/, '').replace(/[^a-z0-9_-]+/gi, '-') ||
+      'pose-calibration';
+    anchor.href = url;
+    anchor.download = `${baseName}-${selectedModel}-${qualityPolicy.version}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }, [
+    analysis.completed,
+    analysis.completedRequestMicroseconds,
+    analysis.phase,
+    analysis.range,
+    analysis.samples,
+    analysis.total,
+    calibrationLabelMetrics,
+    calibrationLabels,
+    policyTarget,
+    previewMode,
+    qualityEvaluation,
+    qualityPolicy,
+    qualityPresetId,
+    selectedModel,
+    source,
+  ]);
 
   const progress =
     analysis.total > 0 ? Math.min(1, analysis.completed / analysis.total) : 0;
@@ -358,6 +558,7 @@ export function App() {
       ? (range.endMicroseconds / sourceDurationMicroseconds) * 100
       : 0;
   const sourceReady = Boolean(source && range);
+  const modelLabel = POSE_MODELS[analysis.model ?? selectedModel].label;
 
   const analysisStatus = (() => {
     if (!source?.metadata.browserCanDecode) return 'Pose analysis unavailable for this codec';
@@ -383,6 +584,37 @@ export function App() {
       className={`app-shell ${source ? 'has-source' : 'is-empty'}`}
       data-analysis-phase={analysis.phase}
       data-sample-count={analysis.samples.length}
+      data-quality-sample-count={qualityEvaluation.samples.length}
+      data-quality-policy={qualityPolicy.id}
+      data-analysis-model={analysis.model ?? selectedModel}
+      data-quality-coverage={qualityEvaluation.metrics.acceptedCoverage}
+      data-quality-observed={qualityEvaluation.metrics.structurallyObservedJointSlots}
+      data-quality-model-empty={qualityEvaluation.metrics.modelEmptySamples}
+      data-quality-confidence-rejects={
+        qualityEvaluation.metrics.confidenceRejectedJointSlots
+      }
+      data-quality-temporal-rejects={
+        qualityEvaluation.metrics.temporalRejectedJointSlots
+      }
+      data-analysis-mean-inference-ms={
+        qualityEvaluation.metrics.meanInferenceMilliseconds
+      }
+      data-analysis-p95-inference-ms={
+        qualityEvaluation.metrics.p95InferenceMilliseconds
+      }
+      data-quality-flicker={qualityEvaluation.metrics.flickerCount}
+      data-quality-longest-gap-us={
+        qualityEvaluation.metrics.longestGapMicroseconds
+      }
+      data-quality-mean-reacquisition-us={
+        qualityEvaluation.metrics.meanReacquisitionMicroseconds
+      }
+      data-quality-smoothing-displacement={
+        qualityEvaluation.metrics.meanSmoothingDisplacement
+      }
+      data-quality-group-coverage={JSON.stringify(
+        qualityEvaluation.metrics.groupCoverage,
+      )}
     >
       <header className="topbar">
         <a className="brand" href="/" aria-label="Crux Vision home">
@@ -503,6 +735,8 @@ export function App() {
                   videoRef={videoRef}
                   metadata={source.metadata}
                   analysis={analysis}
+                  quality={qualityEvaluation}
+                  previewMode={previewMode}
                   visible={overlaysVisible}
                   onFeedbackChange={setStageFeedback}
                 />
@@ -600,6 +834,27 @@ export function App() {
                 <span className="trail-key trail-key-pose"><i /> Skeleton</span>
               </div>
 
+              <PoseQualityPanel
+                presetId={qualityPresetId}
+                policyTarget={policyTarget}
+                policy={qualityPolicy}
+                previewMode={previewMode}
+                evaluation={qualityEvaluation}
+                currentSample={currentQualitySample}
+                selectedModel={selectedModel}
+                labelMetrics={calibrationLabelMetrics}
+                labelCount={calibrationLabels.length}
+                onPresetChange={changeQualityPreset}
+                onPolicyTargetChange={changePolicyTarget}
+                onPolicyChange={updateQualityPolicy}
+                onPreviewModeChange={setPreviewMode}
+                onModelChange={changeAnalysisModel}
+                onLabel={labelCurrentJoint}
+                onClearLabels={() => setCalibrationLabels([])}
+                onResetPolicy={resetQualityPolicy}
+                onExport={exportCalibration}
+              />
+
               <div
                 className={`analysis-status analysis-status-${analysis.phase}`}
                 aria-live="polite"
@@ -610,8 +865,8 @@ export function App() {
                   <strong>{analysisStatus}</strong>
                   <small>
                     {analysis.delegate
-                      ? `MediaPipe Lite · ${analysis.delegate}`
-                      : 'MediaPipe Lite · 30 samples/sec'}
+                      ? `${modelLabel} · ${analysis.delegate}`
+                      : `${POSE_MODELS[selectedModel].label} · 30 samples/sec`}
                   </small>
                 </span>
                 {analysis.total > 0 && (

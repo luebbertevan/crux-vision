@@ -4,6 +4,10 @@ import { DEFAULT_SAMPLE_RATE, secondsToMicroseconds } from '../analysis/range';
 import { nearestByTimestamp } from '../analysis/timestamp';
 import { computeContainTransform } from '../overlay/displayTransform';
 import { renderOverlay } from '../overlay/renderOverlay';
+import type {
+  PosePreviewMode,
+  PoseQualityEvaluation,
+} from '../pose/poseQuality';
 import type { AnalysisState } from '../state/analysisReducer';
 import type { SourceMetadata } from '../types';
 
@@ -13,6 +17,8 @@ type OverlayCanvasProps = {
   videoRef: RefObject<HTMLVideoElement | null>;
   metadata: SourceMetadata;
   analysis: AnalysisState;
+  quality: PoseQualityEvaluation;
+  previewMode: PosePreviewMode;
   visible: boolean;
   onFeedbackChange: (feedback: StageFeedback) => void;
 };
@@ -25,13 +31,15 @@ export function OverlayCanvas({
   videoRef,
   metadata,
   analysis,
+  quality,
+  previewMode,
   visible,
   onFeedbackChange,
 }: OverlayCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const stateRef = useRef({ metadata, analysis, visible });
+  const stateRef = useRef({ metadata, analysis, quality, previewMode, visible });
   const lastFeedbackRef = useRef<StageFeedback>('none');
-  stateRef.current = { metadata, analysis, visible };
+  stateRef.current = { metadata, analysis, quality, previewMode, visible };
 
   const publishFeedback = useCallback(
     (feedback: StageFeedback) => {
@@ -85,7 +93,7 @@ export function OverlayCanvas({
       }
 
       const currentSample = nearestByTimestamp(
-        state.analysis.samples,
+        state.quality.samples,
         timestamp,
         POSE_TOLERANCE_MICROSECONDS,
       );
@@ -100,9 +108,10 @@ export function OverlayCanvas({
         width,
         height,
         transform,
-        state.analysis.samples,
+        state.quality.samples,
         currentSample,
         timestamp,
+        state.previewMode,
       );
       publishFeedback(result.currentPoseAvailable ? 'none' : 'unavailable');
     },
@@ -133,7 +142,16 @@ export function OverlayCanvas({
   useEffect(() => {
     const video = videoRef.current;
     if (video) drawAt(video.currentTime);
-  }, [analysis.samples, analysis.phase, analysis.range, drawAt, visible, videoRef]);
+  }, [
+    analysis.samples,
+    analysis.phase,
+    analysis.range,
+    drawAt,
+    previewMode,
+    quality,
+    visible,
+    videoRef,
+  ]);
 
   return (
     <canvas
