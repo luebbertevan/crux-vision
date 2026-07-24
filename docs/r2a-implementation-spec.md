@@ -397,6 +397,9 @@ video.
   clamped completion fraction. The bar updates directly rather than restarting
   a transition on every quickly published sample, and exposes semantic progress
   values for assistive technology.
+- The primary playback scrubber includes a non-interactive amber band for the
+  selected analysis range. The normal elapsed-playback line, thumb, seeking,
+  keyboard behavior, and touch target remain available above that visual.
 - Skeleton segments require accepted endpoints in the same sample. Detailed
   face landmarks are hidden; one accepted nose anchor connects to the accepted
   shoulder midpoint. Hip and shoulder midpoint trails use independent

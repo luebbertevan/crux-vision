@@ -150,6 +150,18 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   expect(portrait.transport.bottom).toBeLessThanOrEqual(852);
   expectAligned(portrait.video, portrait.canvas);
   await expectNoHorizontalOverflow(page);
+  const analysisRange = page.getByTestId('playback-analysis-range');
+  await expect(analysisRange).toBeVisible();
+  const timeline = page.locator('.playback-timeline');
+  const rangeBounds = await analysisRange.boundingBox();
+  const timelineBounds = await timeline.boundingBox();
+  expect(rangeBounds).not.toBeNull();
+  expect(timelineBounds).not.toBeNull();
+  expect(rangeBounds!.width).toBeGreaterThan(0);
+  expect(rangeBounds!.x).toBeGreaterThanOrEqual(timelineBounds!.x - 1);
+  expect(rangeBounds!.x + rangeBounds!.width).toBeLessThanOrEqual(
+    timelineBounds!.x + timelineBounds!.width + 1,
+  );
   const playButton = page.getByRole('button', { name: /Play video|Pause video/ });
   expect((await playButton.boundingBox())?.height).toBeGreaterThanOrEqual(44);
   const analyzeButton = page.getByRole('button', { name: 'Analyze range' });

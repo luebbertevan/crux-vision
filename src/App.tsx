@@ -287,6 +287,19 @@ export function App() {
   const progress =
     analysis.total > 0 ? Math.min(1, analysis.completed / analysis.total) : 0;
   const playbackDuration = playerSnapshot.durationSeconds || source?.metadata.durationSeconds || 0;
+  const playbackPercent =
+    playbackDuration > 0
+      ? Math.min(100, Math.max(0, (playerSnapshot.currentTimeSeconds / playbackDuration) * 100))
+      : 0;
+  const sourceDurationMicroseconds = source?.metadata.durationMicroseconds ?? 0;
+  const analysisStartPercent =
+    range && sourceDurationMicroseconds > 0
+      ? (range.startMicroseconds / sourceDurationMicroseconds) * 100
+      : 0;
+  const analysisEndPercent =
+    range && sourceDurationMicroseconds > 0
+      ? (range.endMicroseconds / sourceDurationMicroseconds) * 100
+      : 0;
   const sourceReady = Boolean(source && range);
 
   const analysisStatus = (() => {
@@ -460,17 +473,34 @@ export function App() {
                 {formatTime(playerSnapshot.currentTimeSeconds)}
               </span>
               <label className="sr-only" htmlFor="playback-position">Video position</label>
-              <input
-                id="playback-position"
-                className="playback-slider"
-                type="range"
-                min={0}
-                max={playbackDuration || 1}
-                step={0.01}
-                value={Math.min(playerSnapshot.currentTimeSeconds, playbackDuration || 1)}
-                disabled={!playerSnapshot.ready}
-                onChange={(event) => player.seek(Number(event.currentTarget.value))}
-              />
+              <div
+                className="playback-timeline"
+                style={
+                  {
+                    '--playback-percent': `${playbackPercent}%`,
+                    '--analysis-start': `${analysisStartPercent}%`,
+                    '--analysis-end': `${analysisEndPercent}%`,
+                  } as CSSProperties
+                }
+              >
+                <span
+                  className="playback-analysis-range"
+                  data-testid="playback-analysis-range"
+                  aria-hidden="true"
+                />
+                <span className="playback-elapsed" aria-hidden="true" />
+                <input
+                  id="playback-position"
+                  className="playback-slider"
+                  type="range"
+                  min={0}
+                  max={playbackDuration || 1}
+                  step={0.01}
+                  value={Math.min(playerSnapshot.currentTimeSeconds, playbackDuration || 1)}
+                  disabled={!playerSnapshot.ready}
+                  onChange={(event) => player.seek(Number(event.currentTarget.value))}
+                />
+              </div>
               <span className="transport-time transport-duration">
                 {formatTime(playbackDuration)}
               </span>
