@@ -6,7 +6,8 @@ export type PoseWorkerDiagnostics = {
   userAgent: string | null;
   isSecureContext: boolean;
   crossOriginIsolated: boolean;
-  canvasCompatibilityApplied: boolean;
+  canvasStrategy: 'explicit-offscreen';
+  canvasSize: { width: number; height: number } | null;
   canvasGlobalsBefore: Record<string, string>;
   canvasGlobalsAfter: Record<string, string>;
 };

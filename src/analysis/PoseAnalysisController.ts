@@ -46,6 +46,13 @@ export class PoseAnalysisController {
         await this.worker.initialize('lite', delegate);
       } catch (gpuError) {
         throwIfAborted(signal);
+        // MediaPipe's loader and WebGL state are worker-global. A failed GPU
+        // initialization can leave ModuleFactory or its canvas unusable, so
+        // retry CPU in a fresh worker instead of reusing contaminated state.
+        this.worker.terminate(
+          gpuError instanceof Error ? gpuError : new Error(String(gpuError)),
+        );
+        this.worker = new MediaPipeWorkerClient();
         delegate = 'CPU';
         try {
           await this.worker.initialize('lite', delegate);

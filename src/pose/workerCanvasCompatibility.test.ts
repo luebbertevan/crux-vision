@@ -1,35 +1,42 @@
 import { describe, expect, it } from 'vitest';
 
-import { preferOffscreenCanvasInDocumentlessWorker } from './workerCanvasCompatibility';
+import { createMediaPipeWorkerCanvas } from './workerCanvasCompatibility';
 
 describe('MediaPipe worker canvas compatibility', () => {
-  it('forces the OffscreenCanvas path in a documentless WebKit-like worker', () => {
-    const globals = {
-      HTMLCanvasElement: class HTMLCanvasElement {},
-      OffscreenCanvas: class OffscreenCanvas {},
-    };
+  it('constructs an explicit one-pixel OffscreenCanvas', () => {
+    class FakeOffscreenCanvas {
+      constructor(
+        readonly width: number,
+        readonly height: number,
+      ) {}
+    }
 
-    expect(preferOffscreenCanvasInDocumentlessWorker(globals)).toBe(true);
-    expect(globals.HTMLCanvasElement).toBeUndefined();
+    const canvas = createMediaPipeWorkerCanvas({
+      OffscreenCanvas: FakeOffscreenCanvas,
+    });
+
+    expect(canvas).toBeInstanceOf(FakeOffscreenCanvas);
+    expect(canvas.width).toBe(1);
+    expect(canvas.height).toBe(1);
   });
 
-  it('does not alter a page environment with a document', () => {
-    const htmlCanvasElement = class HTMLCanvasElement {};
-    const globals = {
-      document: {},
-      HTMLCanvasElement: htmlCanvasElement,
-      OffscreenCanvas: class OffscreenCanvas {},
-    };
-
-    expect(preferOffscreenCanvasInDocumentlessWorker(globals)).toBe(false);
-    expect(globals.HTMLCanvasElement).toBe(htmlCanvasElement);
+  it('fails clearly when worker canvas support is unavailable', () => {
+    expect(() => createMediaPipeWorkerCanvas({})).toThrow(
+      'This browser does not support OffscreenCanvas pose analysis.',
+    );
   });
 
-  it('does not hide HTMLCanvasElement without an OffscreenCanvas fallback', () => {
-    const htmlCanvasElement = class HTMLCanvasElement {};
-    const globals = { HTMLCanvasElement: htmlCanvasElement };
+  it('creates a fresh canvas for each delegate initialization attempt', () => {
+    class FakeOffscreenCanvas {
+      constructor(
+        readonly width: number,
+        readonly height: number,
+      ) {}
+    }
+    const globals = { OffscreenCanvas: FakeOffscreenCanvas };
 
-    expect(preferOffscreenCanvasInDocumentlessWorker(globals)).toBe(false);
-    expect(globals.HTMLCanvasElement).toBe(htmlCanvasElement);
+    expect(createMediaPipeWorkerCanvas(globals)).not.toBe(
+      createMediaPipeWorkerCanvas(globals),
+    );
   });
 });

@@ -456,10 +456,13 @@ video.
   cancellation, replacement, and overlay-alignment behavior were exercised by
   visual or browser acceptance paths.
 - The physical iPhone 15 / Chrome-iOS gate is in progress. HTTPS access, video
-  import, and playback passed. The initial OffscreenCanvas compatibility change
-  did not resolve `Can't find variable: document`; the deployed diagnostic
-  retry now preserves both delegate failures, full stacks, and worker/page
-  canvas globals instead of applying another speculative fix.
+  import, and playback passed. The diagnostic retry mapped
+  `Can't find variable: document` to MediaPipe's canvas selection, which treats
+  `CriOS` as old Safari and ignores the worker's available `OffscreenCanvas`.
+  The worker now passes a fresh explicit canvas through MediaPipe's supported
+  `canvas` option for every GPU/CPU initialization attempt. CPU fallback starts
+  in a fresh worker after any GPU initialization failure so MediaPipe's
+  worker-global loader/WebGL state is not reused. The targeted retry is pending.
 
 ### Physical phone gate handoff
 

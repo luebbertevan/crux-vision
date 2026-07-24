@@ -25,21 +25,22 @@ architecture if this fails.
 The first physical run confirmed HTTPS access, portrait import, and playback,
 then exposed a WebKit worker mismatch in MediaPipe's generated canvas bridge:
 analysis fails with `Can't find variable: document` in the documentless worker.
-Forcing MediaPipe's intended `OffscreenCanvas` branch did not resolve the error,
-so do not continue guessing from the short message. The current build preserves
-the GPU and CPU failures, full stacks, and relevant worker/page globals in an
-on-page report.
+The captured stack identified MediaPipe's pre-task canvas selection, not its
+later WASM canvas bridge: MediaPipe mistakes the `CriOS` user agent for old
+Safari, ignores the available `OffscreenCanvas`, and tries
+`document.createElement()` in the worker. The current build passes a fresh
+explicit `OffscreenCanvas` through MediaPipe's supported `canvas` option for
+each GPU/CPU attempt. A failed GPU attempt is terminated before CPU starts in a
+fresh worker, avoiding contaminated MediaPipe loader/WebGL state. The build
+retains the copyable diagnostics if another failure appears.
 
-For the next diagnostic run:
-
-1. Fully close the existing Crux Vision tab, reopen the HTTPS production URL,
-   import a portrait clip, and run a 3–5 second analysis.
-2. After the error appears, expand **Diagnostic details**, tap **Copy
-   diagnostics**, and paste the complete report into the Codex task. The report
-   contains browser/runtime data and error stacks, not video pixels or pose
-   samples.
-3. If the clipboard button is unavailable, press and hold inside the report to
-   select/copy it, or send screenshots covering the complete report.
+For the next retry, fully close the existing Crux Vision tab, reopen the HTTPS
+production URL, import a portrait clip, and run a 3–5 second analysis. If it
+still fails, expand **Diagnostic details**, tap **Copy diagnostics**, and paste
+the complete report into the Codex task. The report contains browser/runtime
+data and error stacks, not video pixels or pose samples. If the clipboard
+button is unavailable, press and hold inside the report to select/copy it, or
+send screenshots covering the complete report.
 
 Chrome for iOS also has a limited built-in console collector. As a fallback,
 open `chrome://inspect` in one Chrome tab and leave it open, reproduce the

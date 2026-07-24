@@ -4,7 +4,7 @@ import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 
 import type { PoseLandmark } from '../types';
 import type { PoseWorkerRequest, PoseWorkerResponse } from './workerProtocol';
-import { preferOffscreenCanvasInDocumentlessWorker } from './workerCanvasCompatibility';
+import { createMediaPipeWorkerCanvas } from './workerCanvasCompatibility';
 
 const workerScope: DedicatedWorkerGlobalScope = self as DedicatedWorkerGlobalScope;
 const canvasGlobals = () => ({
@@ -19,15 +19,9 @@ const canvasGlobals = () => ({
   ).WebGL2RenderingContext,
 });
 const canvasGlobalsBefore = canvasGlobals();
-const canvasCompatibilityApplied = preferOffscreenCanvasInDocumentlessWorker(
-  globalThis as typeof globalThis & {
-    document?: unknown;
-    HTMLCanvasElement?: unknown;
-    OffscreenCanvas?: unknown;
-  },
-);
 const canvasGlobalsAfter = canvasGlobals();
 let landmarker: PoseLandmarker | null = null;
+let mediaPipeCanvas: OffscreenCanvas | null = null;
 
 const copyLandmarks = (
   landmarks: Array<{
@@ -59,6 +53,9 @@ workerScope.onmessage = async (event: MessageEvent<PoseWorkerRequest>) => {
       landmarker = null;
 
       const startedAt = performance.now();
+      // Pass the canvas explicitly so MediaPipe cannot misclassify Chrome on
+      // iOS as old Safari and attempt document.createElement() in this worker.
+      mediaPipeCanvas = createMediaPipeWorkerCanvas(globalThis);
       // Module workers cannot execute MediaPipe's classic importScripts loader.
       // The second argument selects its ESM loader, which installs ModuleFactory
       // on globalThis before task construction.
@@ -68,6 +65,7 @@ workerScope.onmessage = async (event: MessageEvent<PoseWorkerRequest>) => {
           modelAssetPath: request.modelUrl,
           delegate: request.delegate,
         },
+        canvas: mediaPipeCanvas,
         runningMode: 'VIDEO',
         numPoses: 1,
         minPoseDetectionConfidence: 0.5,
@@ -120,7 +118,10 @@ workerScope.onmessage = async (event: MessageEvent<PoseWorkerRequest>) => {
       userAgent: workerScope.navigator?.userAgent ?? null,
       isSecureContext: workerScope.isSecureContext,
       crossOriginIsolated: workerScope.crossOriginIsolated,
-      canvasCompatibilityApplied,
+      canvasStrategy: 'explicit-offscreen' as const,
+      canvasSize: mediaPipeCanvas
+        ? { width: mediaPipeCanvas.width, height: mediaPipeCanvas.height }
+        : null,
       canvasGlobalsBefore,
       canvasGlobalsAfter,
     };

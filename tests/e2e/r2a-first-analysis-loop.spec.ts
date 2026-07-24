@@ -175,12 +175,14 @@ test('preserves copyable diagnostics for worker initialization failures', async 
   await expect(page.getByRole('button', { name: 'Copy diagnostics' })).toBeVisible();
 
   const report = await page.locator('.analysis-diagnostics pre').textContent();
-  expect(report).toContain('"diagnosticRevision": "r2a1-phone-worker-2026-07-23-1"');
+  expect(report).toContain('"diagnosticRevision": "r2a1-phone-worker-2026-07-23-2"');
   expect(report).toContain('"errors"');
   expect(report).toContain('"delegate": "CPU"');
   expect(report).toContain('"delegate": "GPU"');
+  expect(report).toContain('"canvasStrategy": "explicit-offscreen"');
   expect(report).toContain('"canvasGlobalsBefore"');
   expect(report).toContain('"canvasGlobalsAfter"');
+  expect(report).not.toContain('ModuleFactory not set');
 });
 
 test('cancels progressive work, preserves partial results, and resumes', async ({ page }) => {

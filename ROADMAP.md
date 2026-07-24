@@ -132,8 +132,8 @@ Video and canvas still share identical bounds and `object-fit: contain`.
 
 **Timing:** Immediately after R2A.1, before advanced controls
 
-**Status:** In progress — import/playback passed; an instrumented WebKit worker
-failure report awaits the user-assisted analysis retry
+**Status:** In progress — import/playback passed; the targeted Chrome-iOS
+MediaPipe canvas fix awaits the user-assisted analysis retry
 
 On the iPhone 15 using Chrome/iOS WebKit, prove only that:
 
@@ -147,11 +147,15 @@ This is intentionally smaller than the original R1 benchmark plan. If it fails,
 decide the compatibility or pose-data-only server fallback before expanding R2.
 The longer thermal, battery, and model/delegate matrix moves to R2D.
 
-The first compatibility hypothesis—forcing MediaPipe's OffscreenCanvas branch
-inside the documentless worker—did not resolve the iPhone error. The phone build
-now preserves both GPU and CPU initialization failures, worker canvas/global
-state, and full stacks in a copyable on-page diagnostic report. The next retry
-is diagnostic rather than another speculative compatibility change.
+The copyable phone diagnostic mapped both delegate failures to MediaPipe's
+pre-task canvas selection. Its user-agent check mistakes Chrome iOS (`CriOS`)
+for pre-17 Safari, ignores the available `OffscreenCanvas`, and calls
+`document.createElement()` inside the documentless worker. The worker now
+passes a fresh explicit `OffscreenCanvas` through MediaPipe's supported
+`canvas` option for each initialization attempt, bypassing that faulty
+user-agent branch without adding a fake DOM. If GPU initialization fails, the
+single CPU fallback now starts in a fresh worker so MediaPipe's failed
+worker-global loader/WebGL state cannot contaminate it.
 
 ### R2 pose-quality calibration gate
 
