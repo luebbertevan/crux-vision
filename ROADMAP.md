@@ -179,8 +179,8 @@ added.
 
 ### R2 pose-quality calibration gate
 
-**Status:** Balanced v2 smoothing fix implemented — focused human re-smoke
-pending before broader calibration resumes
+**Status:** Balanced v2 still trails by one human-visible frame — exact analyzed
+frame navigation added; zero-lag display decision pending
 
 **Timing:** After the phone gate and before R2B
 
@@ -246,10 +246,19 @@ Euro smoothing path rather than the playback timestamp join. A same-cache lache
 sweep then showed that the original speed coefficient was too low: Balanced v2
 reduced median projected high-motion lag from 1.73 to 0.80 frames and the 90th
 percentile from 2.49 to 1.24 while still removing about 55% of aggregate
-frame-to-frame acceleration noise. The tuned causal smoother remains the
-ordinary display candidate pending one focused human re-smoke. Build a
-same-frame A/B tool or evaluate a gap-bounded centered/offline smoother only if
-that re-smoke still finds the remaining response objectionable.
+frame-to-frame acceleration noise. The tuned causal smoother then entered a
+focused human re-smoke, with a same-frame A/B tool or gap-bounded
+centered/offline smoother reserved for an objectionable remaining response.
+
+The focused v2 re-smoke still found one frame of visible Smoothed-versus-Accepted
+raw lag, and the reviewer prefers no lag. Calibration now includes
+previous/next analyzed-frame controls, direct analyzed-frame entry, and the
+exact stored presentation timestamp. These controls pause and seek by actual
+pose-sample presentation time rather than nominal FPS, so variable-frame-rate
+spacing remains honest. They do not claim access to source frames that were not
+analyzed. Use the exact-frame evidence to evaluate a gap-bounded
+centered/offline smoother before resuming broader calibration; do not begin the
+rest of R2B in this gate.
 
 ### R2B — Precision review controls
 

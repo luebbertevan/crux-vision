@@ -78,7 +78,9 @@ confidence acceptance, hysteresis, temporal rejection, and segment-local
 smoothing over immutable cached raw samples. Strict and Permissive alternatives
 expose documented coverage/continuity tradeoffs, while detailed policy controls
 and reason-coded debug views remain under the advanced disclosure. A focused
-human re-smoke of the responsive v2 smoother remains before final sign-off. See the
+human re-smoke still found one visible frame of lag, so the gate now includes
+exact analyzed-presentation-frame navigation and the zero-lag display decision
+remains open. See the
 [`calibration plan`](./pose-quality-calibration-plan.md) and
 [`calibration report`](./pose-quality-calibration-report.md).
 

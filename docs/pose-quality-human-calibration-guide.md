@@ -7,11 +7,11 @@ motion, hide obviously wrong geometry, and avoid visible smoothing lag.
 Record live observations in
 [`pose-quality-human-calibration-findings.md`](./pose-quality-human-calibration-findings.md).
 
-**Focused re-smoke first:** Human review found roughly 70 ms of lag with
-Balanced v1. Balanced v2 raises the fast-motion response and is expected to
-reduce that to roughly one frame or less for most high-motion lache samples.
-Replay the same swing with Accepted raw and Smoothed before beginning the
-broader procedure below.
+**Smoothing decision still open:** Human review found roughly 70 ms of lag with
+Balanced v1 and one visible frame with Balanced v2. The reviewer prefers no
+visible lag. Use the exact analyzed-frame controls to document the remaining
+difference between Accepted raw and Smoothed before beginning the broader
+procedure below.
 
 ## Recommended investment
 
@@ -34,6 +34,7 @@ change the Analytics policy unless the Display policy is already satisfactory.
 | Inference model | Lite or Full generates the raw pose. Changing it clears the raw cache and requires analysis again. | Keep Lite. Full did not improve the bounded comparison. |
 | Policy target | Display favors a stable, useful overlay. Analytics is stricter and unsmoothed for future measurements. | Calibrate Display first. Leave Analytics unchanged for now. |
 | Overlay preview | Raw model shows everything; Accepted raw shows retained points before smoothing; Rejected adds rejected points; Smoothed shows the final display. | Compare all four views at the same moment. |
+| Exact analyzed frames | Previous/next steps between stored pose presentation timestamps; direct entry seeks a numbered analyzed sample. | Use this for repeatable Accepted raw versus Smoothed checks. It is exact for analyzed pose frames, not unanalyzed source frames. |
 
 In the Rejected preview, amber points failed confidence checks and pink points
 failed motion-plausibility checks.

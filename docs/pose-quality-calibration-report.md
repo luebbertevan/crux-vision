@@ -1,6 +1,7 @@
 # Pose-quality calibration report: Balanced v2
 
-**Status:** Responsive smoothing fix implemented; human re-smoke pending
+**Status:** Balanced v2 remains one frame late in human review; exact-frame
+calibration navigation implemented
 
 **Policy version:** `balanced-v2-2026-07-24`
 
@@ -20,8 +21,10 @@ registered to the climber, isolating the problem to smoothing rather than
 playback timestamp lookup. A same-cache parameter sweep confirmed that the
 original One Euro speed response was too low for normalized climbing motion.
 Balanced v2 retains the original low-speed cutoff and raises only the speed
-coefficient. It is ready for a focused human re-smoke before broader manual
-calibration resumes.
+coefficient. The focused human re-smoke still found one visible frame of lag,
+which the reviewer considers objectionable. Broader manual calibration remains
+paused while exact-frame evidence is collected for a centered/offline smoother
+decision.
 
 MediaPipe Lite remains the product model default. Full was evaluated against
 Lite on the same difficult five-second range before any default change and did
@@ -190,7 +193,7 @@ coverage proves cached-policy recomputation, model-change invalidation,
 source-replacement cleanup, the three-range preset sweep, bounded Lite/Full
 comparison, and mobile-width advanced-control sizing.
 
-The final production build, all 37 unit tests, and all 15 Chrome Playwright
+The final production build, all 40 unit tests, and all 16 Chrome Playwright
 tests passed before publication.
 
 Remaining limitations:

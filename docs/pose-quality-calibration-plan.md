@@ -1,7 +1,7 @@
 # Pose-quality calibration plan
 
-**Status:** Balanced v2 implementation complete July 24, 2026; focused human
-smoothing re-smoke pending before R2B
+**Status:** Balanced v2 still has one human-visible frame of lag; exact analyzed
+frame evidence underway before the zero-lag display decision
 
 **Purpose:** Establish a trustworthy first acceptance and smoothing policy for
 MediaPipe pose data before pose-derived analysis expands.
@@ -212,8 +212,9 @@ labels, and a reproducible JSON export.
 The v2 follow-up retained the low-speed cutoff and raised the One Euro speed
 response after human review isolated roughly two frames of v1 lag to Smoothed.
 Automated and same-frame checks reduced measured high-motion lag to roughly one
-frame while retaining substantial jitter reduction. A focused human re-smoke
-remains before final display sign-off.
+frame while retaining substantial jitter reduction. The focused human re-smoke
+still found one objectionable frame of lag. Exact analyzed-frame navigation now
+supports the centered/offline smoother decision before final display sign-off.
 
 Three five-second real climbing ranges were calibrated on the reference laptop.
 Balanced accepted 55.1%, 93.5%, and 92.5% of all scheduled joint slots in the

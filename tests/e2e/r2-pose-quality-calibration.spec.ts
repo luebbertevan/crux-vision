@@ -205,6 +205,72 @@ test('records Strict, Balanced, and Permissive tradeoffs on representative cache
   });
 });
 
+test('seeks deterministic analyzed presentation frames for calibration', async ({
+  page,
+}) => {
+  test.setTimeout(150_000);
+  await page.goto('/');
+  await importVideo(page);
+  await setRange(page);
+  await page.getByRole('button', { name: 'Analyze range' }).click();
+  await expect(page.locator('main')).toHaveAttribute('data-analysis-phase', 'ready', {
+    timeout: 150_000,
+  });
+  await page.getByText('Pose quality calibration').click();
+
+  const sampleCount = Number(
+    await page.locator('main').getAttribute('data-sample-count'),
+  );
+  expect(sampleCount).toBeGreaterThan(10);
+  await expect(page.getByTestId('calibration-frame-navigator')).toContainText(
+    `/ ${sampleCount}`,
+  );
+
+  await page.locator('video').evaluate(async (element) => {
+    const video = element as HTMLVideoElement;
+    video.pause();
+    video.currentTime = 0;
+    await new Promise<void>((resolve) =>
+      video.addEventListener('seeked', () => resolve(), { once: true }),
+    );
+  });
+  const navigator = page.getByTestId('calibration-frame-navigator');
+  await expect(navigator).toHaveAttribute('data-frame-index', '');
+  await page.getByRole('button', { name: 'Next analyzed frame' }).click();
+  await expect(navigator).toHaveAttribute('data-frame-index', '0');
+
+  await page.getByLabel('Exact analyzed frame').fill('10');
+  await page.getByLabel('Exact analyzed frame').press('Enter');
+  await expect(navigator).toHaveAttribute('data-frame-index', '9');
+  const tenthTimestamp = Number(
+    await navigator.getAttribute('data-frame-timestamp-microseconds'),
+  );
+  expect(tenthTimestamp).toBeGreaterThan(0);
+  await expect
+    .poll(() =>
+      page
+        .locator('video')
+        .evaluate((video) => Math.round((video as HTMLVideoElement).currentTime * 1_000_000)),
+    )
+    .toBe(tenthTimestamp);
+  expect(
+    await page
+      .locator('video')
+      .evaluate((video) => (video as HTMLVideoElement).paused),
+  ).toBe(true);
+
+  await page.getByRole('button', { name: 'Next analyzed frame' }).click();
+  await expect(navigator).toHaveAttribute('data-frame-index', '10');
+  const eleventhTimestamp = Number(
+    await navigator.getAttribute('data-frame-timestamp-microseconds'),
+  );
+  expect(eleventhTimestamp).toBeGreaterThan(tenthTimestamp);
+
+  await page.getByRole('button', { name: 'Previous analyzed frame' }).click();
+  await expect(navigator).toHaveAttribute('data-frame-index', '9');
+  await expect(page.getByLabel('Exact analyzed frame')).toHaveValue('10');
+});
+
 test('keeps the advanced calibration workspace usable at iPhone width', async ({
   page,
 }) => {

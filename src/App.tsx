@@ -32,6 +32,7 @@ import { formatTime, RangeSelector } from './components/RangeSelector';
 import { useReviewStageSize } from './layout/useReviewStageSize';
 import type { BrowserMediaAdapter } from './media/mediaAdapter';
 import { PlayerController } from './player/PlayerController';
+import { nearestPresentationFrameIndex } from './player/frameNavigation';
 import {
   clonePoseQualityPolicy,
   evaluateCalibrationLabels,
@@ -54,7 +55,6 @@ import type {
   PoseModelId,
   SourceMetadata,
 } from './types';
-import { nearestByTimestamp } from './analysis/timestamp';
 
 type SourceSession = {
   id: number;
@@ -378,18 +378,32 @@ export function App() {
     () => evaluatePoseQuality(analysis.samples, qualityPolicy),
     [analysis.samples, qualityPolicy],
   );
-  const currentQualitySample = useMemo(
+  const calibrationFrameIndex = useMemo(
     () =>
-      nearestByTimestamp(
+      nearestPresentationFrameIndex(
         qualityEvaluation.samples,
         secondsToMicroseconds(playerSnapshot.currentTimeSeconds),
         25_000,
       ),
     [playerSnapshot.currentTimeSeconds, qualityEvaluation.samples],
   );
+  const currentQualitySample =
+    calibrationFrameIndex === null
+      ? null
+      : qualityEvaluation.samples[calibrationFrameIndex];
   const calibrationLabelMetrics = useMemo(
     () => evaluateCalibrationLabels(calibrationLabels, qualityEvaluation),
     [calibrationLabels, qualityEvaluation],
+  );
+
+  const seekToCalibrationFrame = useCallback(
+    (frameIndex: number) => {
+      const sample = qualityEvaluation.samples[frameIndex];
+      if (!sample) return;
+      player.pause();
+      player.seek(microsecondsToSeconds(sample.timestampMicroseconds));
+    },
+    [player, qualityEvaluation.samples],
   );
 
   const changeQualityPreset = useCallback((preset: PoseQualityPresetId) => {
@@ -844,6 +858,11 @@ export function App() {
                 selectedModel={selectedModel}
                 labelMetrics={calibrationLabelMetrics}
                 labelCount={calibrationLabels.length}
+                calibrationFrameIndex={calibrationFrameIndex}
+                calibrationFrameCount={qualityEvaluation.samples.length}
+                calibrationFrameTimestampMicroseconds={
+                  currentQualitySample?.timestampMicroseconds ?? null
+                }
                 onPresetChange={changeQualityPreset}
                 onPolicyTargetChange={changePolicyTarget}
                 onPolicyChange={updateQualityPolicy}
@@ -853,6 +872,7 @@ export function App() {
                 onClearLabels={() => setCalibrationLabels([])}
                 onResetPolicy={resetQualityPolicy}
                 onExport={exportCalibration}
+                onCalibrationFrameChange={seekToCalibrationFrame}
               />
 
               <div

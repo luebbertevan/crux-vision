@@ -532,8 +532,9 @@ joint is rejected. Face detail is hidden; one accepted head anchor connects to
 the derived shoulder midpoint.
 
 The calibration implementation is complete. Balanced v2 is the ordinary
-default, with Strict and Permissive alternatives; a focused human re-smoke of
-the responsive smoothing change remains before broader calibration resumes.
+default, with Strict and Permissive alternatives; its focused human re-smoke
+still found one objectionable frame of lag, so the zero-lag display decision
+remains open before broader calibration resumes.
 Global, body-group, and joint overrides
 recompute derived views over immutable cached raw samples; acquisition/retention
 hysteresis, timestamp-based temporal rejection, and segment-local smoothing are
@@ -542,3 +543,10 @@ remain separate, and the advanced workspace includes reason-coded previews,
 coverage/gap/lag metrics, manual labels, and JSON export. See the
 [`calibration plan`](./pose-quality-calibration-plan.md) and
 [`calibration report`](./pose-quality-calibration-report.md).
+
+After the v2 re-smoke still showed one objectionable frame of causal smoothing
+lag, the calibration workspace added exact analyzed-frame navigation. It pauses
+playback, steps previous/next, accepts direct one-based frame entry, and displays
+the stored presentation timestamp. Frame numbering is only a calibration
+address over timestamped pose samples; timestamps remain the identity and
+source frames above the analysis density are not implied.

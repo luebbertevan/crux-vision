@@ -130,6 +130,37 @@ Accepted raw and Smoothed. Record whether the remaining difference is
 imperceptible, acceptable (about one frame), or still objectionable. Do not
 begin broader threshold calibration until this check passes.
 
+## Balanced v2 re-smoke result — July 24, 2026
+
+**Result:** Smoothed still trails Accepted raw by one visible frame. The
+reviewer prefers no visible lag, so Balanced v2 has not passed human display
+sign-off. Broader confidence and temporal calibration remains paused.
+
+This result is consistent with the measured v2 response. A causal One Euro
+filter can reduce delay but cannot guarantee a zero-phase result while retaining
+smoothing. No additional smoothing parameter or ordinary preview default was
+changed from this observation alone.
+
+### Exact-frame calibration navigation
+
+The calibration workspace now provides:
+
+- previous and next analyzed-frame buttons;
+- direct one-based analyzed-frame entry;
+- the exact stored presentation timestamp to six decimal places;
+- automatic pause before every frame seek.
+
+The navigator uses actual stored pose-analysis presentation timestamps, not a
+nominal frame-rate calculation. This preserves correct spacing for
+variable-frame-rate footage. At source rates above the analysis density, it
+steps only frames that have pose samples and explicitly says so.
+
+Use these controls to record the exact frame where Accepted raw and Smoothed
+first diverge during the lache. If one-frame causal lag remains consistently
+objectionable, the next implementation candidate is a gap-bounded
+centered/offline display smoother, checked for pre-motion anticipation against
+the same exact frames.
+
 ## Comparison-tool recommendation
 
 A full pair of synchronized video players is not the first calibration tool to
