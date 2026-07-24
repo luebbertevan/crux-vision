@@ -76,7 +76,7 @@ gaps, cancel/resume, and stale-safe source replacement. Direct wrist sources
 remain in the joint-agnostic trail contract. MediaPipe tries GPU first and falls
 back once to CPU; model/delegate controls are not exposed as product UI.
 
-The laptop exit is verified by 20 focused Vitest tests, ten Chrome Playwright
+The laptop exit is verified by 23 focused Vitest tests, ten Chrome Playwright
 tests against real portrait/landscape fixtures, a production build, and visual
 inspection at 1440×900, 393×852, and 852×393. The R1 MediaBunny/MediaPipe
 contracts and evidence remain; MoveNet, TensorFlow, and diagnostic-only UI and
@@ -132,7 +132,8 @@ Video and canvas still share identical bounds and `object-fit: contain`.
 
 **Timing:** Immediately after R2A.1, before advanced controls
 
-**Status:** Ready for the user-assisted physical test
+**Status:** In progress — import/playback passed; WebKit worker initialization
+compatibility fix awaits the user-assisted analysis retry
 
 On the iPhone 15 using Chrome/iOS WebKit, prove only that:
 

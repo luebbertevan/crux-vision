@@ -22,6 +22,13 @@ short Lite analysis produces pose, the overlay aligns, interaction remains
 responsive, and the page does not crash or reload. Stop and revisit the
 architecture if this fails.
 
+The first physical run confirmed HTTPS access, portrait import, and playback,
+then exposed a WebKit worker mismatch in MediaPipe's generated canvas bridge:
+the worker selected a `document`-dependent canvas path even though workers do
+not have a document. The rebuild now forces MediaPipe's intended
+`OffscreenCanvas` branch in that specific documentless environment. Repeat the
+same short analysis after deployment before continuing this checklist.
+
 Run this exact short handoff:
 
 1. Open the HTTPS-served production build in Chrome on the iPhone 15.

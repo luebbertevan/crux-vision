@@ -4,8 +4,16 @@ import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 
 import type { PoseLandmark } from '../types';
 import type { PoseWorkerRequest, PoseWorkerResponse } from './workerProtocol';
+import { preferOffscreenCanvasInDocumentlessWorker } from './workerCanvasCompatibility';
 
 const workerScope: DedicatedWorkerGlobalScope = self as DedicatedWorkerGlobalScope;
+preferOffscreenCanvasInDocumentlessWorker(
+  globalThis as typeof globalThis & {
+    document?: unknown;
+    HTMLCanvasElement?: unknown;
+    OffscreenCanvas?: unknown;
+  },
+);
 let landmarker: PoseLandmarker | null = null;
 
 const copyLandmarks = (

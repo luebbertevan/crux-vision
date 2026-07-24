@@ -445,7 +445,7 @@ video.
 
 ### Verification completed
 
-- `npm test`: 6 files, 20 tests passed.
+- `npm test`: 7 files, 23 tests passed.
 - `npm run build`: passed; product shell, lazy media adapter, and module worker
   emitted successfully with no large-chunk warning.
 - `npm run test:e2e`: 10 tests passed in desktop Chrome against real fixtures.
@@ -454,8 +454,9 @@ video.
   imported, long-filename, retained-source error, ready, unavailable-pose,
   cancellation, replacement, and overlay-alignment behavior were exercised by
   visual or browser acceptance paths.
-- The physical iPhone 15 / Chrome-iOS gate has not been run, per the user's
-  instruction to wait for phone interaction.
+- The physical iPhone 15 / Chrome-iOS gate is in progress. HTTPS access, video
+  import, and playback passed; the analysis retry remains pending after
+  correcting MediaPipe's WebKit worker canvas-path selection.
 
 ### Physical phone gate handoff
 
