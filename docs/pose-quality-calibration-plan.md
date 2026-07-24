@@ -119,22 +119,10 @@ Use short, representative ranges from the private fixture corpus:
 - Overhang/body overlap.
 - Clean, slower movement as a control.
 
-Also rerun the same visible movement with the range start shifted by one or two
-requested sample intervals. A phone observation showed pose/unavailable
-flickering on roughly alternating frames for the first several seconds, then
-disappearing after a small range-start change. This can come from two different
-layers that must not be conflated:
-
-- the 30 Hz request grid can map adjacent requests to the same presentation
-  frame in variable- or lower-frame-rate footage; duplicate suppression can
-  then leave actual sample gaps wider than the current 25 ms display lookup
-  tolerance;
-- MediaPipe VIDEO mode is stateful, so a different first frame can seed
-  detection/tracking differently and change empty or low-confidence raw output.
-
-Capture actual timestamp spacing and raw landmark availability before applying
-hysteresis, a wider display hold, or another continuity treatment. Do not hide
-an honest model gap merely to remove the message flicker.
+If alternating pose/unavailable flicker becomes repeatable, rerun the movement
+with a one- or two-interval range-start shift and compare actual timestamp
+spacing, raw landmark availability, and confidence rejection before changing
+display continuity.
 
 For representative moments, label each evaluated joint as usable, visibly
 wrong/slingshotting, swapped, or unavailable. Full motion-capture ground truth

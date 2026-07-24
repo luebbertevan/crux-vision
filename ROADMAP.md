@@ -175,10 +175,9 @@ Build:
   explicit precedence;
 - evaluate confidence hysteresis, timestamp-based temporal plausibility, and
   smoothing that resets at honest gaps;
-- reproduce the observed range-start-sensitive alternating pose/unavailable
-  flicker by rerunning the same movement with small sampling-grid offsets, and
-  separate duplicate/missing presentation timestamps from empty model output
-  and confidence rejection before changing display continuity;
+- if range-start-sensitive alternating pose/unavailable flicker recurs often
+  enough to matter, separate timestamp gaps from model/confidence gaps before
+  changing display continuity;
 - preview raw, accepted, rejected, and smoothed samples without rerunning
   inference;
 - measure usable coverage, false-visible samples, flicker, gap duration, and

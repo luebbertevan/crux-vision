@@ -201,8 +201,11 @@ export function App() {
       const viewport = window.visualViewport;
       const width = viewport?.width ?? root.clientWidth;
       const offsetLeft = viewport?.offsetLeft ?? 0;
+      const centerOffset =
+        offsetLeft + width / 2 - root.clientWidth / 2;
       root.style.setProperty('--visual-viewport-width', `${width}px`);
       root.style.setProperty('--visual-viewport-left', `${offsetLeft}px`);
+      root.style.setProperty('--visual-viewport-center-offset', `${centerOffset}px`);
     };
 
     syncVisualViewport();
@@ -216,6 +219,7 @@ export function App() {
       window.visualViewport?.removeEventListener('scroll', syncVisualViewport);
       root.style.removeProperty('--visual-viewport-width');
       root.style.removeProperty('--visual-viewport-left');
+      root.style.removeProperty('--visual-viewport-center-offset');
     };
   }, []);
 

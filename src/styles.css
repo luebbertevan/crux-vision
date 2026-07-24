@@ -644,9 +644,6 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 
 @media (max-width: 719px) {
   .app-shell {
-    width: var(--visual-viewport-width, 100%);
-    margin-right: 0;
-    margin-left: var(--visual-viewport-left, 0px);
     padding:
       max(12px, env(safe-area-inset-top))
       max(12px, env(safe-area-inset-right))
@@ -693,7 +690,10 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .empty-visual { display: none; }
 
   .review-workspace { display: flex; flex-direction: column; gap: 14px; }
-  .review-main { width: 100%; }
+  .review-main {
+    width: var(--visual-viewport-width, 100%);
+    margin-left: var(--visual-viewport-left, 0px);
+  }
   .stage-heading { display: none; }
   .video-frame {
     border-right: 0;
@@ -709,13 +709,16 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   }
   .control-rail {
     position: static;
-    width: 100%;
+    width: min(calc(100% - 24px), 420px);
     max-height: none;
-    margin: 0;
-    padding-right: max(12px, env(safe-area-inset-right));
-    padding-left: max(12px, env(safe-area-inset-left));
+    margin: 0 auto;
+    padding-right: 0;
+    padding-left: 0;
     overflow: visible;
     gap: 10px;
+    transform: translateX(
+      clamp(-12px, var(--visual-viewport-center-offset, 0px), 12px)
+    );
   }
   .range-section, .analysis-section { padding: 16px; border-radius: 12px; }
   .range-readout { margin-block: 17px 13px; }

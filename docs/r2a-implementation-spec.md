@@ -446,13 +446,12 @@ video.
   single-line and ellipsized where the desktop heading is shown. Analysis cards
   remain below the stage and independently scrollable in the landscape-phone
   rail.
-- The phone control rail itself spans the viewport and uses internal safe-area
-  padding, giving its range and analysis cards equal left/right gutters. The
-  viewport meta lock, `touch-action`, and iOS gesture-event guard disable
-  page-level pinch scaling. The shell also follows
-  `visualViewport.width` and `visualViewport.offsetLeft` so a restored iOS
-  visual scale or horizontal offset cannot leave a one-sided gutter; the stage
-  and centered cards share that same visible frame.
+- The viewport meta lock, `touch-action`, and iOS gesture-event guard disable
+  page-level pinch scaling. On narrow phones, only the review main follows
+  `visualViewport.width` and `visualViewport.offsetLeft`, keeping the stage and
+  transport edge-to-edge without scaling the rest of the application. The
+  control rail retains normal phone dimensions and shifts its centerline by the
+  visual viewport's center offset, capped within its outer gutter.
 - The stage retains the upright source aspect ratio and `object-fit: contain`.
   Video and overlay canvas remain absolute siblings with identical CSS bounds;
   the existing contained-content transform, DPR cap, timestamp lookup, raw pose

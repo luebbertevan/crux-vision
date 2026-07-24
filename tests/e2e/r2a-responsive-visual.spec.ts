@@ -166,6 +166,7 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   await page.evaluate(() => {
     document.documentElement.style.setProperty('--visual-viewport-width', '360px');
     document.documentElement.style.setProperty('--visual-viewport-left', '18px');
+    document.documentElement.style.setProperty('--visual-viewport-center-offset', '1.5px');
   });
   await expect
     .poll(async () => (await getReviewBounds(page)).stage.width)
@@ -175,11 +176,14 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   expect(shiftedViewport.stage.right).toBeCloseTo(378, 0);
   const shiftedRangeCard = await page.locator('.range-section').boundingBox();
   expect(shiftedRangeCard).not.toBeNull();
-  expect(shiftedRangeCard!.x - 18).toBeCloseTo(12, 0);
-  expect(378 - shiftedRangeCard!.x - shiftedRangeCard!.width).toBeCloseTo(12, 0);
+  expect(shiftedRangeCard!.width).toBeGreaterThanOrEqual(368);
+  expect(
+    shiftedRangeCard!.x + shiftedRangeCard!.width / 2,
+  ).toBeCloseTo((18 + 378) / 2, 0);
   await page.evaluate(() => {
     document.documentElement.style.setProperty('--visual-viewport-width', '393px');
     document.documentElement.style.setProperty('--visual-viewport-left', '0px');
+    document.documentElement.style.setProperty('--visual-viewport-center-offset', '0px');
   });
 
   await page.setViewportSize({ width: 393, height: 740 });
