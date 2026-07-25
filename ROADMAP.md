@@ -125,11 +125,15 @@ video during scroll; secondary controls continue below when necessary. At wide
 desktop widths, a portrait stage is centered in the full review surface while
 the 330 px control rail occupies otherwise unused side space; landscape keeps a
 flexible main column beside the rail. At narrow widths, the rail follows the
-stage and transport in document order. At the reference viewports, the
-portrait stage is 378.5×673 px at 1440×900 and 393×698.5 px at 393×852; desktop
-landscape is 1025×576.5 px. The 852×393 layout keeps both portrait and landscape
-media plus basic transport inside the viewport without horizontal overflow.
-Video and canvas still share identical bounds and `object-fit: contain`.
+stage and transport in document order. A later desktop-density refinement moves
+the filename into the compact top bar, removes the separate stage heading, uses
+10 px source-review shell gutters, and reduces the desktop transport to a 46 px
+dock with a 36 px play button. At the reference viewports, the portrait stage
+is approximately 438.5×780 px at 1440×900 and remains 393×698.5 px at 393×852;
+desktop landscape is approximately 1072×603 px. The 852×393 layout keeps both
+portrait and landscape media plus 44 px basic transport targets inside the
+viewport without horizontal overflow. Video and canvas still share identical
+bounds and `object-fit: contain`.
 
 ### R2 phone gate — Minimal physical-device smoke test
 

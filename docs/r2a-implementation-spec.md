@@ -72,6 +72,8 @@ pending-analysis, and application-error messages must remain distinct.
 
 - A compact top bar contains the Crux Vision mark, current file, local-only
   status, and Open/Replace action.
+- The current filename is a quiet, single-line item in that top bar. There is no
+  separate stage heading or redundant duration above the video.
 - The video stage is the dominant surface. Its exact dimensions fit the upright
   source aspect ratio into the measured review width and the viewport height
   remaining below its actual top after transport and bottom safe padding are
@@ -80,8 +82,8 @@ pending-analysis, and application-error messages must remain distinct.
   and the 330 px control rail uses free space at the right instead of shifting
   or constraining the video. Landscape media keeps a flexible main column
   beside the rail.
-- Minimal transport sits directly below the stage: play/pause, current/duration,
-  and coarse seek.
+- Minimal transport sits directly below the stage: a compact 36 px desktop
+  play/pause control, current/duration, and coarse seek.
 - A 310–330 px right rail contains, in order, selected range, Analyze/Cancel,
   quiet progress, and one master **Overlays** switch. The rail is a review aid,
   not a metadata/benchmark dashboard.
@@ -436,19 +438,22 @@ video.
   height)` to desktop upright display dimensions. Below 720 px, sizing is
   deliberately width-only so iOS browser-bar changes cannot shrink the player
   during scroll; controls may continue below the initial viewport.
-- At 1440×900, the portrait fixture renders at 378.5×673 px, centered on the
-  overall review surface with the rail clear at the right. The landscape
-  fixture renders at 1025×576.5 px in the flexible main column.
+- At 1440×900, the later compact desktop refinement renders the portrait
+  fixture at approximately 438.5×780 px, centered on the overall review surface
+  with the rail clear at the right. The landscape fixture renders at
+  approximately 1072×603 px in the flexible main column. The filename moved to
+  the top bar, desktop shell gutters are 10 px, and the desktop transport is a
+  46 px dock with a 36 px play button.
 - At 393×852, the portrait fixture uses the full 393 px viewport width and is
-  698.5 px tall. The mobile-only stage heading is omitted, and the stage plus
-  transport are edge-to-edge while the header and secondary controls retain
-  safe-area padding. At 852×393, portrait and landscape
+  698.5 px tall. The separate stage heading is omitted at every width, and the
+  stage plus transport are edge-to-edge while the header and secondary controls
+  retain safe-area padding. At 852×393, portrait and landscape
   fixtures reserve 206 px of stage height and keep a full-column transport dock
-  inside the viewport without horizontal overflow.
+  with 44 px targets inside the viewport without horizontal overflow.
 - Source errors remain in desktop height measurement. On narrow portrait
   screens the stage stays full-width and basic transport remains immediately
   below it, reachable by normal vertical scrolling. Long file names remain
-  single-line and ellipsized where the desktop heading is shown. Analysis cards
+  single-line and ellipsized in the desktop top bar. Analysis cards
   remain below the stage and independently scrollable in the landscape-phone
   rail.
 - The viewport meta lock, `touch-action`, and iOS gesture-event guard disable

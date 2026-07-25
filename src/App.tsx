@@ -929,6 +929,12 @@ export function App() {
           </span>
         </a>
 
+        {source && (
+          <span className="source-filename" title={source.metadata.fileName}>
+            {source.metadata.fileName}
+          </span>
+        )}
+
         <div className="topbar-actions">
           <span className="local-status"><ShieldIcon /> Local only</span>
           {source && <FileButton compact label="Replace video" onFile={(file) => void openFile(file)} />}
@@ -957,7 +963,7 @@ export function App() {
               label={opening ? 'Opening video…' : 'Open a climbing video'}
               onFile={(file) => void openFile(file)}
             />
-            <span className="file-note">MOV, MP4, and common iPhone video · up to 20s per analysis</span>
+            <span className="file-note">MOV, MP4, and common iPhone video · up to 60s per analysis</span>
           </div>
           <div className="empty-visual" aria-hidden="true">
             <div className="route-line route-line-left" />
@@ -993,14 +999,6 @@ export function App() {
               } as CSSProperties
             }
           >
-            <div className="stage-heading">
-              <div>
-                <span className="eyebrow">Current session</span>
-                <h1 title={source.metadata.fileName}>{source.metadata.fileName}</h1>
-              </div>
-              <span className="source-duration">{formatTime(source.metadata.durationSeconds)}</span>
-            </div>
-
             <div ref={stageSlotRef} className="stage-slot">
               <div
                 className="video-frame"

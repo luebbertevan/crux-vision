@@ -100,11 +100,16 @@ test('desktop portrait and landscape stages use the available review surface', a
   await importVideo(page, portraitFixture);
 
   const portrait = await getReviewBounds(page);
-  expect(portrait.stage.height).toBeGreaterThanOrEqual(665);
-  expect(portrait.transport.bottom).toBeLessThanOrEqual(880);
+  expect(portrait.stage.height).toBeGreaterThanOrEqual(750);
+  expect(portrait.stage.y).toBeLessThanOrEqual(65);
+  expect(portrait.transport.bottom).toBeLessThanOrEqual(900);
   expect(Math.abs((portrait.stage.x + portrait.stage.right) / 2 - 720)).toBeLessThanOrEqual(1);
   expect(portrait.rail.x - portrait.stage.right).toBeGreaterThan(100);
   expectAligned(portrait.video, portrait.canvas);
+  await expect(page.locator('.source-filename')).toHaveText('portrait-test.MOV');
+  expect(
+    (await page.getByRole('button', { name: /Play video|Pause video/ }).boundingBox())?.height,
+  ).toBeLessThanOrEqual(38);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('desktop-portrait-imported.png'),
