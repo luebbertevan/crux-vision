@@ -143,6 +143,27 @@ test('desktop portrait and landscape stages use the available review surface', a
   });
   expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(38);
   expect((await page.locator('.file-button-compact').boundingBox())?.width).toBeGreaterThanOrEqual(90);
+  const railStack = await page.evaluate(() => {
+    const bounds = (selector: string) => {
+      const rect = document.querySelector(selector)!.getBoundingClientRect();
+      return { y: rect.y, bottom: rect.bottom };
+    };
+    return {
+      rail: bounds('.topbar'),
+      brand: bounds('.brand'),
+      filename: bounds('.source-filename'),
+      localStatus: bounds('.local-status'),
+      replace: bounds('.file-button-compact'),
+    };
+  });
+  expect(railStack.filename.y - railStack.brand.bottom).toBeLessThanOrEqual(24);
+  expect(
+    railStack.localStatus.y - railStack.filename.bottom,
+  ).toBeLessThanOrEqual(24);
+  expect(
+    railStack.replace.y - railStack.localStatus.bottom,
+  ).toBeLessThanOrEqual(12);
+  expect(railStack.replace.bottom - railStack.rail.y).toBeLessThanOrEqual(240);
   expect(
     (await page.getByRole('button', { name: /Play video|Pause video/ }).boundingBox())?.height,
   ).toBeLessThanOrEqual(36);

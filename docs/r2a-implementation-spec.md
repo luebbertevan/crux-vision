@@ -71,9 +71,10 @@ pending-analysis, and application-error messages must remain distinct.
 ### Desktop (981 px and wider)
 
 - Portrait review replaces the horizontal top bar with a 108 px left utility
-  rail containing the Crux Vision mark, a normally oriented wrapping filename,
-  local-only status, and labeled Replace action. This frees the top edge for
-  the video without rotating or compressing the rail content.
+  rail containing a compact top-aligned stack: the Crux Vision mark, a normally
+  oriented wrapping filename, local-only status, and labeled Replace action.
+  This frees the top edge for the video without rotating, compressing, or
+  vertically distributing the rail content.
 - Landscape review retains the compact horizontal top bar. There is no separate
   stage heading or redundant duration above the video in either orientation.
 - The video stage is the dominant surface. Its exact dimensions fit the upright
