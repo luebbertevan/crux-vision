@@ -122,10 +122,27 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(Math.abs((portrait.stage.x + portrait.stage.right) / 2 - 720)).toBeLessThanOrEqual(1);
   expect(portrait.rail.x - portrait.stage.right).toBeGreaterThan(100);
   expect(portrait.topbar.right).toBeLessThan(portrait.stage.x);
+  expect(portrait.topbar.width).toBeGreaterThanOrEqual(108);
   expect(portrait.topbar.height).toBeGreaterThanOrEqual(875);
   expectAligned(portrait.video, portrait.canvas);
   await expectPlaybackInputCentered(page);
   await expect(page.locator('.source-filename')).toHaveText('portrait-test.MOV');
+  expect(
+    await page.locator('.source-filename').evaluate((element) => {
+      const style = window.getComputedStyle(element);
+      return {
+        writingMode: style.writingMode,
+        transform: style.transform,
+        whiteSpace: style.whiteSpace,
+      };
+    }),
+  ).toEqual({
+    writingMode: 'horizontal-tb',
+    transform: 'none',
+    whiteSpace: 'normal',
+  });
+  expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(38);
+  expect((await page.locator('.file-button-compact').boundingBox())?.width).toBeGreaterThanOrEqual(90);
   expect(
     (await page.getByRole('button', { name: /Play video|Pause video/ }).boundingBox())?.height,
   ).toBeLessThanOrEqual(36);

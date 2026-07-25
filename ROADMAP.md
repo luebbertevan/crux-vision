@@ -126,8 +126,9 @@ video during scroll; secondary controls continue below when necessary. At wide
 desktop widths, a portrait stage is centered in the full review surface while
 the 330 px control rail occupies otherwise unused side space; landscape keeps a
 flexible main column beside the rail. At narrow widths, the rail follows the
-stage and transport in document order. Desktop portrait review uses a 48 px
-left utility rail instead of a top bar and overlays a 42 px translucent
+stage and transport in document order. Desktop portrait review uses a 108 px
+left utility rail with normally oriented text instead of a top bar and overlays
+a 42 px translucent
 transport inside the bottom of the stage, allowing the video to begin at the
 8 px shell gutter. Desktop landscape retains the compact horizontal top bar
 and the 46 px transport below the stage. At the reference viewports, the
