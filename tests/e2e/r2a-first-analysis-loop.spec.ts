@@ -82,7 +82,7 @@ test('preserves the landscape display contract', async ({ page }) => {
   await expect(stage).toHaveAttribute('data-rotation', '180');
 });
 
-test('publishes MediaPipe Lite progressively and draws a timestamped overlay', async ({ page }) => {
+test('publishes MediaPipe Full progressively and draws a timestamped overlay', async ({ page }) => {
   test.setTimeout(150_000);
   await page.goto('/');
   await importVideo(page, climbingFixture);
@@ -173,7 +173,7 @@ test('publishes MediaPipe Lite progressively and draws a timestamped overlay', a
 });
 
 test('preserves copyable diagnostics for worker initialization failures', async ({ page }) => {
-  await page.route('**/pose_landmarker_lite.task', (route) => route.abort());
+  await page.route('**/pose_landmarker_full.task', (route) => route.abort());
   await page.goto('/');
   await importVideo(page, climbingFixture);
   await setRange(page, 7_000_000, 8_000_000);

@@ -79,10 +79,10 @@ smoothing over immutable cached raw samples. Strict and Permissive alternatives
 expose documented coverage/continuity tradeoffs, while detailed policy controls
 and reason-coded debug views remain under the advanced disclosure. A focused
 human re-smoke still found one visible frame of lag, so the gate now includes
-exact analyzed-presentation-frame navigation plus a gap-bounded experimental
-Centered offline preview with one undoable radius control. The zero-lag display
-decision remains open because the centered candidate must be checked for
-pre-motion anticipation. Calibration policy edits and manual calibration seeks
+exact analyzed-presentation-frame navigation plus a gap-bounded Centered
+offline result with one undoable radius control. Human review selected centered
+at `66.667 ms` as the recorded-video display default; calibration must continue
+checking pre-motion anticipation. Calibration policy edits and manual seeks
 support standard undo/redo shortcuts, advanced setting families are
 independently collapsible, One Euro smoothed preview is unavailable when its
 filter is disabled, and developer-only controls expose full safe diagnostic
@@ -118,8 +118,10 @@ R2 starts with these decisions unless new evidence overturns them:
 - React, TypeScript, and Vite for the client.
 - The browser video element is the playback engine.
 - MediaBunny owns source metadata and offline timed-sample extraction.
-- MediaPipe Pose Landmarker Lite is the calibrated product default. Full remains
-  an advanced challenger and did not improve the bounded difficult-range result.
+- MediaPipe Pose Landmarker Full is the human-selected product default because
+  it visibly improved pose quality without a drastic analysis-time increase.
+  Lite remains the faster alternative. The phone thermal/model matrix is still
+  deferred to R2D.
 - Pose inference runs in a module worker and returns timed data only.
 - Canvas 2D renders live overlay layers.
 - Pose samples use presentation timestamps, not frame indexes.
@@ -213,6 +215,10 @@ choices may offer a lower-power 15 samples/second mode and a source-rate
 precision mode, capped by actual unique presentation frames and validated on
 the reference phone.
 
+The user-selected analysis range may span 0.5–60 seconds. The 60-second cap is
+available now; sustained Full-model phone behavior at that cap remains an R2D
+validation item.
+
 Built-in calibrated quality choices are core product behavior. User-named
 presets may first be local; accounts are needed only for later sync, sharing, or
 organization-managed profiles.
@@ -255,8 +261,8 @@ R2 is complete when:
 - Whether checkpoints appear directly on the main timeline or in a secondary
   lane.
 - How much pose progress detail normal users should see.
-- Whether later corpus or R2D phone evidence gives Full enough visible quality
-  improvement to justify broader exposure; the bounded calibration did not.
+- Whether R2D phone evidence requires a lower-power Lite or reduced-density
+  option for sustained analysis; Full remains the quality default meanwhile.
 - Whether later labeled ground-truth work should revise Balanced v2's calibrated
   joint/group thresholds, hysteresis, or smoothing.
 - The future layout and interaction model for comparing multiple videos.

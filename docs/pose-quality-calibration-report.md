@@ -1,7 +1,7 @@
 # Pose-quality calibration report: Balanced v2
 
-**Status:** Balanced v2 remains one frame late in human review; exact-frame
-calibration navigation implemented
+**Status:** Centered offline and MediaPipe Full selected as product defaults;
+broader pose calibration continues
 
 **Policy version:** `balanced-v2.1-product-landmarks-2026-07-24`
 
@@ -11,9 +11,10 @@ calibration navigation implemented
 
 ## Decision
 
-Balanced v2 is the implemented ordinary pose-quality display default. Strict
-and Permissive remain built-in alternatives with intentional coverage and
-continuity tradeoffs. Display and analytics policies are separate.
+Balanced v2 remains the ordinary pose-acceptance policy, with Strict and
+Permissive alternatives. Centered offline at `66.667 ms` is now the ordinary
+recorded-video display smoother. Display and analytics policies remain separate;
+Analytics stays unsmoothed.
 
 A subsequent human lache review confirmed that the default Smoothed view trails
 Accepted raw by roughly 70 ms during fast movement. Accepted raw remained
@@ -22,14 +23,19 @@ playback timestamp lookup. A same-cache parameter sweep confirmed that the
 original One Euro speed response was too low for normalized climbing motion.
 Balanced v2 retains the original low-speed cutoff and raises only the speed
 coefficient. The focused human re-smoke still found one visible frame of lag,
-which the reviewer considers objectionable. Broader manual calibration remains
-paused while exact-frame evidence is collected for a centered/offline smoother
-decision.
+which the reviewer considers objectionable. The subsequent centered preview
+looked best at its default radius and replaces One Euro as the ordinary display
+selection without changing the underlying acceptance policy.
 
-MediaPipe Lite remains the product model default. Full was evaluated against
-Lite on the same difficult five-second range before any default change and did
-not improve accepted coverage. The longer iPhone thermal, battery,
+MediaPipe Full is now the product model default. Although the original bounded
+comparison did not improve accepted coverage, later human review found a
+noticeable pose-quality improvement without a drastic analysis-time increase.
+Lite remains the faster alternative. The longer iPhone thermal, battery,
 delegate, and model matrix was not run and remains R2D work.
+
+The selectable analysis range cap is now 60 seconds rather than 20 seconds.
+This is a product-capability change, not a claim that a sustained 60-second Full
+analysis has passed the physical-phone thermal or reload gate.
 
 This gate calibrates a trustworthy first display policy. It is not
 motion-capture validation, a biomechanical accuracy claim, or evidence that
@@ -53,7 +59,7 @@ Raw `RawPoseSample` values remain immutable. A derived quality pass applies:
    acceleration, and distal segment-length checks;
 5. a segment-local One Euro display smoother that resets on rejection, missing
    pose, non-monotonic timestamps, or a gap over 50 ms;
-6. an independent experimental centered offline preview over the same accepted
+6. an independent centered offline display result over the same accepted
    segments.
 
 No interpolation is enabled. Analytics uses stricter confidence and temporal
@@ -138,7 +144,7 @@ accuracy against ground truth.
 Calibration JSON schema `crux-pose-calibration-v3` preserves all raw landmarks
 but emits derived quality decisions only for those 23 product landmarks. It
 records both smoother outputs and identifies centered smoothing as an
-experimental, non-default configuration.
+ordinary display configuration distinct from the acceptance policy.
 
 | Fixture and range | Purpose | Strict | Balanced | Permissive | Balanced confidence / temporal rejects |
 |---|---|---:|---:|---:|---:|
@@ -184,7 +190,7 @@ tests would fail the former `beta 0.7` default. A causal smoother cannot be
 perfectly zero-lag; the remaining sub-frame-to-one-frame response still needs
 human judgment on the intended display.
 
-### Centered offline experiment
+### Centered offline display decision
 
 After the focused re-smoke still found one visible frame of One Euro lag, the
 workspace added a timestamp-weighted centered moving average with a default
@@ -194,12 +200,12 @@ current sample. The radius shrinks symmetrically at segment boundaries, the
 boundary output remains Accepted raw, and no rejected, non-monotonic, or
 oversized gap is crossed.
 
-The radius is undoable developer-workspace state rather than part of the
-Balanced policy. `0 ms` exactly matches Accepted raw. A synthetic irregular-
+The radius is undoable workspace state rather than part of the Balanced
+acceptance policy. `0 ms` exactly matches Accepted raw. A synthetic irregular-
 timestamp constant-velocity regression verifies that the centered result does
 not inherit causal phase delay, while gap tests verify exact resets. Human
-sign-off remains pending because future-aware smoothing can trade trailing for
-pre-motion anticipation.
+review selected the default `66.667 ms` centered result as the best-looking
+option. Future calibration must still watch for pre-motion anticipation.
 
 No repeatable major raw slingshot or left/right swap appeared in the selected
 real-corpus moments, so this pass cannot honestly report a measured real-corpus
@@ -208,7 +214,7 @@ high-confidence one-frame slingshot and excessive velocity are rejected.
 Manual usable/wrong/swapped/unavailable labels and retained-usable /
 false-visible metrics are implemented for future larger-corpus calibration.
 
-## Lite versus Full challenger
+## Lite versus Full decision
 
 Both models analyzed `lache-send.MOV` from 7–12 seconds with the Balanced
 display policy on the same reference laptop:
@@ -218,13 +224,18 @@ display policy on the same reference laptop:
 | Lite | 151 | 49 | 49.7% | 616 | 5 | 11.9–14.1 ms |
 | Full | 151 | 49 | 48.9% | 649 | 0 | 12.2–13.6 ms |
 
-This single bounded challenger is enough to avoid changing the product default:
-Full showed no accepted-coverage gain. The short warm-cache timings changed
-order between repeats and are not treated as device-performance evidence. This
-is not a complete accuracy or performance comparison. Reconsider Full only
-with repeatable visible-quality gains on a larger labeled corpus and then
-validate those gains against the R2D physical-phone thermal and responsiveness
-costs.
+At the time, this single bounded challenger did not justify changing the product
+default because Full showed no accepted-coverage gain. The short warm-cache
+timings changed order between repeats and are not treated as device-performance
+evidence. This was not a complete accuracy or performance comparison; a
+repeatable visible-quality gain was the stated condition for reconsideration.
+
+Later human comparison did find a noticeable visible-quality gain from Full
+without a drastic analysis-time increase. Because accepted coverage measures
+availability rather than positional correctness, that direct visual evidence
+supersedes the coverage-only default decision. Full is now the product default;
+Lite remains available, and the R2D physical-phone cost validation is still
+required.
 
 ## Verification and limitations
 
@@ -233,8 +244,8 @@ independent visibility and presence, hysteresis, synthetic slingshot and
 velocity rejection, segment-local smoothing reset, attributed per-joint and
 whole-pose gaps, display/analytics separation, immutable raw recomputation,
 manual-label metrics, centered constant-motion alignment and jitter reduction,
-and derived-point provenance. Browser
-coverage proves cached-policy recomputation, model-change invalidation,
+and derived-point provenance. Browser coverage proves cached-policy
+recomputation, model-change invalidation,
 source-replacement cleanup, the three-range preset sweep, bounded Lite/Full
 comparison, full-domain developer calibration controls, and mobile-width
 advanced-control sizing.
@@ -254,6 +265,10 @@ Remaining limitations:
   every anatomically plausible left/right swap.
 - Analytics still needs metric-specific minimum-coverage requirements when
   pose-derived measurements begin; R2B was not started here.
-- The previously reported alternating pose/unavailable behavior did not recur.
-  There is no runtime flicker-diagnostics feature; investigate only if a
-  repeatable case appears.
+- Later review reproduced occasional one- or two-second raw-pose flicker clusters
+  that can move or disappear across fresh analyses. MediaPipe `VIDEO` tracking
+  state is recreated for every run, so settings comparisons must use one cached
+  raw analysis. This remains separate from renderer no-match intervals. There
+  is no runtime flicker-diagnostics feature.
+- The 60-second Full-model range cap has not completed the sustained physical-
+  phone thermal, memory, responsiveness, or reload validation reserved for R2D.

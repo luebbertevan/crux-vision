@@ -1,4 +1,5 @@
 import type { BrowserMediaAdapter } from '../media/mediaAdapter';
+import { DEFAULT_POSE_MODEL } from '../pose/modelCatalog';
 import { MediaPipeWorkerClient } from '../pose/mediapipeClient';
 import type {
   AnalysisRange,
@@ -37,7 +38,7 @@ export class PoseAnalysisController {
 
   async run(options: PoseAnalysisOptions): Promise<void> {
     const signal = this.abortController.signal;
-    const model = options.model ?? 'lite';
+    const model = options.model ?? DEFAULT_POSE_MODEL;
     const schedule = analysisTimestamps(options.range, DEFAULT_SAMPLE_RATE);
     const completedRequests = new Set(options.completedRequestMicroseconds ?? []);
     const remaining = schedule.filter((timestamp) => !completedRequests.has(timestamp));

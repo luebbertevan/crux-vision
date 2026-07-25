@@ -74,28 +74,13 @@ const collectEvidence = async (page: Page, wallMilliseconds: number) =>
     wallMilliseconds,
   );
 
-test('runs a bounded MediaPipe Full quality challenge against the Lite default', async ({
+test('runs the Full default and preserves a bounded Lite comparison', async ({
   page,
 }, testInfo) => {
   test.setTimeout(180_000);
   await page.goto('/');
   await importVideo(page);
   await setRange(page);
-
-  const liteStartedAt = Date.now();
-  await page.getByRole('button', { name: 'Analyze range' }).click();
-  await expect(page.locator('main')).toHaveAttribute('data-analysis-phase', 'ready', {
-    timeout: 150_000,
-  });
-  const lite = await collectEvidence(page, Date.now() - liteStartedAt);
-  expect(lite.model).toBe('lite');
-  expect(lite.rawSampleCount).toBeGreaterThan(0);
-  expect(lite.structurallyObservedJointSlots).toBeGreaterThan(0);
-
-  await page.getByText('Pose quality calibration').click();
-  await page.getByTestId('calibration-model').selectOption('full');
-  await expect(page.locator('main')).toHaveAttribute('data-analysis-model', 'full');
-  await expect(page.locator('main')).toHaveAttribute('data-sample-count', '0');
 
   const fullStartedAt = Date.now();
   await page.getByRole('button', { name: 'Analyze range' }).click();
@@ -106,6 +91,21 @@ test('runs a bounded MediaPipe Full quality challenge against the Lite default',
   expect(full.model).toBe('full');
   expect(full.rawSampleCount).toBeGreaterThan(0);
   expect(full.structurallyObservedJointSlots).toBeGreaterThan(0);
+
+  await page.getByText('Pose quality calibration').click();
+  await page.getByTestId('calibration-model').selectOption('lite');
+  await expect(page.locator('main')).toHaveAttribute('data-analysis-model', 'lite');
+  await expect(page.locator('main')).toHaveAttribute('data-sample-count', '0');
+
+  const liteStartedAt = Date.now();
+  await page.getByRole('button', { name: 'Analyze range' }).click();
+  await expect(page.locator('main')).toHaveAttribute('data-analysis-phase', 'ready', {
+    timeout: 150_000,
+  });
+  const lite = await collectEvidence(page, Date.now() - liteStartedAt);
+  expect(lite.model).toBe('lite');
+  expect(lite.rawSampleCount).toBeGreaterThan(0);
+  expect(lite.structurallyObservedJointSlots).toBeGreaterThan(0);
 
   const evidence = {
     fixture: 'lache-send.MOV',
@@ -330,7 +330,7 @@ test('prevents a misleading smoothed preview when its filter is disabled', async
   await page.getByText('Pose quality calibration').click();
 
   const preview = page.getByTestId('pose-preview-mode');
-  await expect(preview).toHaveValue('smoothed');
+  await expect(preview).toHaveValue('centered');
   await page.getByTestId('policy-target').selectOption('analytics');
   await expect(preview).toHaveValue('accepted');
   await expect(preview.locator('option[value="smoothed"]')).toHaveAttribute(

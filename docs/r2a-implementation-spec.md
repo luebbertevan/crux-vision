@@ -26,8 +26,8 @@ than restyling it.
 3. Watch or coarsely seek to the move. Use **Set start** and **Set end** at the
    current time, or adjust the two accessible range handles. The default is
    `0..min(duration, 10 seconds)` with a 0.5-second minimum range and a
-   20-second R2A analysis limit.
-4. Press **Analyze range**. MediaPipe Lite loads in the existing module-worker
+   60-second analysis limit.
+4. Press **Analyze range**. MediaPipe Full loads in the existing module-worker
    path and display-oriented samples are processed in ascending presentation
    time at 30 requested samples/second.
 5. Continue playing or seeking while results arrive one sample at a time. A
@@ -177,16 +177,16 @@ are application dependencies, not video transfer.
 - Internal time is integer microseconds. UI seconds are converted only at the
   boundary; frame index is never an identity or join key.
 - `normalizeRange(inUs, outUs, durationUs)` clamps to the source, enforces
-  `in < out`, a 500,000 µs minimum, and a 20,000,000 µs R2A maximum. Handle
+  `in < out`, a 500,000 µs minimum, and a 60,000,000 µs maximum. Handle
   crossing clamps the active handle instead of silently swapping meanings.
 - A committed analysis schedule is monotonically increasing at 30 requested
   samples/second and includes the range endpoints when possible. The adapter's
   actual returned presentation timestamp is authoritative and is what the
   worker/result stores.
-- R2A's ordinary path uses MediaPipe Pose Landmarker Lite. Try the GPU delegate
-  first and retry initialization once on CPU; this is an internal compatibility
-  fallback. The subsequent calibration gate adds Full only as an explicit
-  advanced challenger. Heavy and MoveNet remain absent from the product path.
+- The current ordinary path uses MediaPipe Pose Landmarker Full. Try the GPU
+  delegate first and retry initialization once on CPU; this is an internal
+  compatibility fallback. Lite remains the faster advanced alternative. Heavy
+  and MoveNet remain absent from the product path.
 - Process at most one decoded transferable frame per worker request. Publish a
   raw result immediately after every completed inference; throttle React progress
   presentation to at most 10 Hz without batching overlay availability.
@@ -276,7 +276,7 @@ destructive filtering or a claim of calibrated climbing accuracy.
   input without drag-and-drop.
 - Immediate playback is independent of analysis initialization. Inference and
   model loading never run on the main thread. UI input and playback must remain
-  responsive throughout a 20-second reference-laptop analysis.
+  responsive throughout an up-to-60-second reference-laptop analysis.
 - Keep one frame in flight, close transferable resources promptly, cap canvas
   DPR, resize only when bounds change, and avoid per-frame React/DOM work.
 - First pose becomes drawable as soon as the first inference returns; there is
@@ -304,7 +304,7 @@ destructive filtering or a claim of calibrated climbing accuracy.
 
 - Portrait 90° and landscape 180° fixtures import upright, use a local `blob:`
   source, expose the expected display size, and become playable before analysis.
-- MediaPipe Lite initializes in the module worker and publishes a first sample
+- MediaPipe Full initializes in the module worker and publishes a first sample
   before the full short range completes.
 - Progress increases monotonically; skeleton/trail canvas updates at matched
   presentation timestamps rather than result index.
@@ -367,7 +367,7 @@ Git history remains the runnable R1 checkpoint.
   additive.
 - **R2D:** final Review/Inspect/Timeline phone navigation, bottom sheets, PWA/offline
   work, sustained 20–30 second phone/delegate/thermal/battery measurements,
-  evaluation of a user-selected 60-second range cap, advanced analysis-density
+  validation of the selected 60-second range cap, advanced analysis-density
   choices around the 30 samples/second default, and gym-session refinement.
 - **Later:** persistence, export, accounts/cloud, uploads, baked overlay video,
   comparison, analytics, climbing-specific scoring, hold/contact detection, and
@@ -388,11 +388,12 @@ video.
 - MediaBunny is dynamically loaded only when a file is chosen, reducing the
   initial production JavaScript from roughly 556 kB to 219 kB before gzip; its
   separate media chunk loads during local import.
-- The ordinary product path uses MediaPipe Lite at 30 requested
+- The ordinary product path uses MediaPipe Full at 30 requested
   samples/second. It tries GPU first and retries CPU once. Raw samples include
   actual integer presentation timestamps, model/delegate identity, visibility,
-  and presence. The later calibration workspace can run Full as an explicit
-  challenger, but the bounded result did not justify changing the Lite default.
+  and presence. Lite remains a faster alternative. The initial bounded
+  availability comparison did not favor Full, but later human review found a
+  noticeable visible-quality improvement without a drastic time increase.
 - The three current acceptance fixtures are approximately 29.97 fps, so the
   30-sample default analyzes essentially every unique source frame. In a warm
   five-second `lache-send.MOV` laptop measurement, 15 samples/second analyzed
@@ -505,10 +506,10 @@ dimensions and stayed centered, and page-level pinch zoom remained disabled.
 The longer thermal, battery, sustained-analysis, and Lite/Full delegate matrix
 was intentionally not run; it remains R2D work.
 
-One previously observed alternating pose/unavailable flicker did not recur
-during the bounded pose-quality calibration. It remains only a
-future-investigation note if it becomes reproducible; there is no runtime
-flicker-diagnostics feature.
+Later calibration review reproduced occasional one- or two-second raw-pose
+flicker clusters whose exact occurrence can differ across fresh analyses. Each
+run creates a fresh MediaPipe `VIDEO` tracker, so setting comparisons now reuse
+one cached raw run. There is still no runtime flicker-diagnostics feature.
 
 ## First product-review follow-ups
 
@@ -571,16 +572,23 @@ disabled. Turning smoothing off while it is selected falls back to Accepted raw.
 Accepted raw remains selectable with smoothing enabled so it can serve as the
 unfiltered comparison without altering filter calibration.
 
-The calibration workspace also exposes **Centered offline · experimental** as a
-separate future-aware preview. It computes a presentation-timestamp-weighted
+The calibration workspace exposes **Centered offline · default** as a separate
+future-aware display result. It computes a presentation-timestamp-weighted
 moving average over equal past and future time within each accepted
 product-joint segment. Its default `66.667 ms` radius is undoable, `0 ms`
 matches Accepted raw, the window shrinks evenly to raw at segment boundaries,
 and it never crosses a rejected, non-monotonic, or oversized gap. It remains
 available when One Euro is disabled because it is not part of the active
-display/analytics policy. Balanced still defaults to the causal One Euro path;
-human review must check the centered candidate for pre-motion anticipation
-before any default change.
+display/analytics acceptance policy. Human review selected centered over the
+causal One Euro path at their default settings; continued calibration must
+still check pre-motion anticipation.
+
+Occasional raw-pose flicker can cluster within one or two seconds and differ
+after **Analyze again** because every run creates a fresh MediaPipe `VIDEO`
+tracking session. Calibration comparisons therefore reuse one immutable cached
+raw run. Renderer no-match intervals remain a separate possible source of
+visible flicker, and the existing flicker metric detects but does not repair
+short accepted/rejected joint gaps.
 
 Developer calibration exposes the full effective confidence and hysteresis
 domains. Nonnegative temporal and smoothing diagnostics have no artificial

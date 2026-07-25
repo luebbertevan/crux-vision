@@ -70,7 +70,7 @@ Build:
 **Exit:** The loop works on real climbing footage on the reference laptop.
 
 R2A delivered the real graphite/chalk product shell, local blob playback,
-accessible 0.5–20 second range selection, progressive MediaPipe Lite analysis
+accessible 0.5–60 second range selection, progressive MediaPipe Full analysis
 at 30 requested samples/second in the module worker, a presentation-timestamped
 live skeleton, 1.5-second hip- and shoulder-midpoint trails, confidence-aware
 gaps, cancel/resume, and stale-safe source replacement. Direct wrist sources
@@ -179,8 +179,8 @@ added.
 
 ### R2 pose-quality calibration gate
 
-**Status:** Centered offline calibration preview implemented; human zero-lag
-and anticipation comparison pending
+**Status:** Centered offline and MediaPipe Full selected as defaults; broader
+calibration and bounded flicker work continue
 
 **Timing:** After the phone gate and before R2B
 
@@ -197,7 +197,7 @@ Build:
 - if range-start-sensitive alternating pose/unavailable flicker recurs often
   enough to matter, separate timestamp gaps from model/confidence gaps before
   changing display continuity;
-- preview raw, accepted, rejected, causal One Euro, and experimental centered
+- preview raw, accepted, rejected, causal One Euro, and default centered
   samples without rerunning inference;
 - measure usable coverage, false-visible samples, flicker, gap duration, and
   smoothing lag on representative climbing ranges;
@@ -229,12 +229,14 @@ validation.
 
 A bounded Full-model challenger on the difficult range accepted 48.9% versus
 Lite's 49.7%. Repeated short warm-cache laptop timing changed order and was not
-treated as device-performance evidence. With no visible or coverage gain, the
-result does not justify changing the product default from Lite.
+treated as device-performance evidence. That availability-only comparison
+initially kept Lite, but later human review found Full noticeably improved pose
+quality without drastically increasing analysis time. Full is now the product
+default and Lite remains the faster alternative.
 The phone thermal/battery and delegate/model matrix remains R2D work and was not
-run. The previously reported pose/unavailable alternation did not recur in this
-calibration pass; it remains only a short future-investigation note if it
-becomes reproducible.
+run. The previously reported pose/unavailable alternation did not recur in the
+initial bounded pass; later review reproduced intermittent raw-pose flicker, as
+documented below.
 
 See the
 [`calibration plan`](./docs/pose-quality-calibration-plan.md) and
@@ -261,15 +263,28 @@ analyzed. Use the exact-frame evidence to evaluate a gap-bounded
 centered/offline smoother before resuming broader calibration; do not begin the
 rest of R2B in this gate.
 
-That candidate is now implemented as **Centered offline · experimental**. It
+That candidate is now implemented as **Centered offline · default**. It
 uses a presentation-timestamp-weighted symmetric moving average over each
 accepted product-joint segment, shrinks evenly to Accepted raw at segment
 boundaries, and never crosses a rejected, repeated/backward, or oversized gap.
 The default radius is `66.667 ms`, `0 ms` equals Accepted raw, and radius edits
 participate in calibration undo/redo. It is intentionally separate from the
-Balanced policy, which still defaults to causal One Euro smoothing. Human
-review must compare fast alignment, stationary jitter, motion onset,
-stopping/landing, and reacquisition boundaries before any default change.
+Balanced acceptance policy. Human review found it the best-looking default
+among the available views; ongoing calibration must still compare fast
+alignment, stationary jitter, motion onset, stopping/landing, and reacquisition
+boundaries.
+
+The selectable analysis cap is now 60 seconds rather than 20. This does not
+replace the R2D sustained physical-phone validation for Full-model heat, memory,
+responsiveness, or reload risk.
+
+Later review reproduced occasional raw-pose flicker concentrated within one or
+two seconds. Its exact location can change or disappear after **Analyze again**,
+which creates a fresh stateful MediaPipe `VIDEO` tracker. Calibration-setting
+comparisons therefore reuse one cached raw run. This model-run variability is
+separate from renderer nearest-sample gaps; bounded display interpolation
+remains a focused next candidate rather than an alteration of raw or analytics
+data.
 
 The calibration workspace also now supports bounded, coalescing undo/redo
 through visible controls and standard `Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`, and
@@ -337,10 +352,10 @@ Build and validate:
 - responsive layout, safe areas, touch behavior, and distraction-free review;
 - sustained 20–30 second phone analysis, responsiveness, heat, battery, and
   browser-reload observations;
-- evaluate raising the user-selected analysis-range cap from 20 seconds to 60
-  seconds after measuring phone memory, thermal behavior, cancellation, and
-  reload risk; keep 20 seconds as the current R2A safety cap;
-- Lite CPU/GPU and Full challenger measurements only if they affect the choice;
+- validate the selected 60-second range cap for phone memory, thermal behavior,
+  cancellation, and reload risk;
+- Full CPU/GPU measurements plus Lite fallback measurements where they affect
+  sustained responsiveness or power;
 - an advanced analysis-density setting informed by the phone measurements,
   with 30 samples/second as the ordinary default and lower/higher options only
   where source frame rate and device performance make them meaningful;

@@ -232,6 +232,46 @@ Minimum sign-off:
 - repeat the improvement on at least two clips before considering a default
   change.
 
+## Human default selections — July 24, 2026
+
+The reviewer selected these product defaults after direct visual comparison:
+
+- **Display smoother:** Centered offline at the existing `66.667 ms` radius. It
+  looked best among Raw, Accepted raw, One Euro, and centered options at their
+  default settings.
+- **Inference model:** MediaPipe Full. It produced a noticeable pose-quality
+  improvement without a drastic analysis-time increase. This visual result
+  supersedes the earlier coverage-only comparison, which did not capture the
+  quality difference.
+- **Maximum selectable range:** 60 seconds, increased from 20 seconds. Focused
+  calibration ranges should remain shorter even though ordinary review may use
+  the longer cap.
+
+Balanced confidence, hysteresis, temporal limits, the `66.667 ms` centered
+radius, 30 requested samples/second, and the separate unsmoothed Analytics
+policy remain unchanged.
+
+### Repeat-analysis flicker observation
+
+Occasional raw-pose flicker is concentrated in roughly one- or two-second
+sections and may move or disappear when the same range is analyzed again.
+`Analyze again` deliberately creates a fresh worker and a fresh MediaPipe
+`VIDEO` tracking session. The observed clustering is consistent with the
+stateful detector/tracker losing and reacquiring the pose around difficult
+motion or confidence boundaries; GPU numerical variation near those boundaries
+may change the exact run outcome.
+
+This is distinct from the renderer's nearest-sample tolerance, which can make
+ordinary playback expose gaps that exact analyzed-frame navigation skips. The
+current flicker count detects short per-joint accepted/rejected intervals but
+does not repair them and does not count renderer-only no-match moments.
+
+Calibration rule: analyze a model/range once, preserve its cached raw samples,
+and compare every policy/filter candidate against that same cache. Do not infer
+a setting improvement by comparing two independent inference runs. Keep
+short-gap display interpolation as the next focused flicker candidate; do not
+alter raw or analytics data.
+
 ## Comparison-tool recommendation
 
 A full pair of synchronized video players is not the first calibration tool to

@@ -47,7 +47,7 @@ import {
   type PoseQualityPresetId,
 } from './pose/poseQuality';
 import { CalibrationHistory } from './pose/calibrationHistory';
-import { POSE_MODELS } from './pose/modelCatalog';
+import { DEFAULT_POSE_MODEL, POSE_MODELS } from './pose/modelCatalog';
 import {
   analysisReducer,
   initialAnalysisState,
@@ -140,12 +140,13 @@ export function App() {
   const [qualityPolicy, setQualityPolicy] = useState(() =>
     clonePoseQualityPolicy(POSE_QUALITY_PROFILES.balanced.display),
   );
-  const [previewMode, setPreviewMode] = useState<PosePreviewMode>('smoothed');
+  const [previewMode, setPreviewMode] = useState<PosePreviewMode>('centered');
   const [
     centeredSmoothingRadiusMicroseconds,
     setCenteredSmoothingRadiusMicroseconds,
   ] = useState(DEFAULT_CENTERED_SMOOTHING_RADIUS_MICROSECONDS);
-  const [selectedModel, setSelectedModel] = useState<PoseModelId>('lite');
+  const [selectedModel, setSelectedModel] =
+    useState<PoseModelId>(DEFAULT_POSE_MODEL);
   const [calibrationWorkspaceOpen, setCalibrationWorkspaceOpen] = useState(false);
   const [, setCalibrationHistoryRevision] = useState(0);
   const [calibrationLabels, setCalibrationLabels] = useState<
@@ -586,7 +587,7 @@ export function App() {
           presetId: preset,
           policyTarget: 'display',
           policy: clonePoseQualityPolicy(POSE_QUALITY_PROFILES[preset].display),
-          previewMode: 'smoothed',
+          previewMode: 'centered',
           centeredSmoothingRadiusMicroseconds:
             calibrationSettingsRef.current.centeredSmoothingRadiusMicroseconds,
         },
@@ -605,7 +606,7 @@ export function App() {
           policy: clonePoseQualityPolicy(
             POSE_QUALITY_PROFILES[qualityPresetId][target],
           ),
-          previewMode: target === 'display' ? 'smoothed' : 'accepted',
+          previewMode: target === 'display' ? 'centered' : 'accepted',
           centeredSmoothingRadiusMicroseconds:
             calibrationSettingsRef.current.centeredSmoothingRadiusMicroseconds,
         },
@@ -775,7 +776,7 @@ export function App() {
       centeredSmoothing: {
         mode: 'timestamp-weighted-centered-moving-average',
         radiusMicroseconds: centeredSmoothingRadiusMicroseconds,
-        productDefault: false,
+        productDefault: true,
       },
       metrics: qualityEvaluation.metrics,
       labels: calibrationLabels,

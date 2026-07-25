@@ -323,8 +323,10 @@ export function PoseQualityPanel({
                   onModelChange(event.currentTarget.value as PoseModelId)
                 }
               >
-                <option value="lite">{POSE_MODELS.lite.label} · default</option>
-                <option value="full">{POSE_MODELS.full.label} · challenger</option>
+                <option value="full">{POSE_MODELS.full.label} · default</option>
+                <option value="lite">
+                  {POSE_MODELS.lite.label} · faster alternative
+                </option>
               </select>
               <small>Changing model clears raw pose and requires analysis.</small>
             </label>
@@ -354,9 +356,7 @@ export function PoseQualityPanel({
                   One Euro smoothed
                   {policy.smoothing.enabled ? '' : ' · filter disabled'}
                 </option>
-                <option value="centered">
-                  Centered offline · experimental
-                </option>
+                <option value="centered">Centered offline · default</option>
                 <option value="accepted">Accepted raw</option>
                 <option value="rejected">Accepted + rejected</option>
                 <option value="raw">Raw model</option>
@@ -890,9 +890,9 @@ export function PoseQualityPanel({
               }}
             />
             <small>
-              Experimental offline preview only. The symmetric window uses
-              presentation time and stops at every rejected or oversized gap.
-              Judge it after analysis completes.
+              The default recorded-video display uses this symmetric window.
+              It follows presentation time and stops at every rejected or
+              oversized gap. Judge it after analysis completes.
             </small>
             </div>
           </details>

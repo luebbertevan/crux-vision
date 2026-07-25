@@ -2,7 +2,7 @@ import type { AnalysisRange } from '../types';
 
 export const SECOND_MICROSECONDS = 1_000_000;
 export const MIN_RANGE_MICROSECONDS = 500_000;
-export const MAX_RANGE_MICROSECONDS = 20_000_000;
+export const MAX_RANGE_MICROSECONDS = 60_000_000;
 export const DEFAULT_RANGE_MICROSECONDS = 10_000_000;
 export const DEFAULT_SAMPLE_RATE = 30;
 

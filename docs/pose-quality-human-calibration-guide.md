@@ -7,11 +7,11 @@ motion, hide obviously wrong geometry, and avoid visible smoothing lag.
 Record live observations in
 [`pose-quality-human-calibration-findings.md`](./pose-quality-human-calibration-findings.md).
 
-**Smoothing decision still open:** Human review found roughly 70 ms of lag with
-Balanced v1 and one visible frame with Balanced v2. The reviewer prefers no
-visible lag. The workspace now includes a Centered offline experimental preview.
-Use the exact analyzed-frame controls to compare it with Accepted raw and One
-Euro smoothed before beginning the broader procedure below.
+**Current display decision:** Human review selected Centered offline at its
+default `66.667 ms` radius as the best-looking option. It is now the display
+default. Continue comparing it with Accepted raw and One Euro at exact analyzed
+frames to catch anticipation or boundary artifacts while broader calibration
+continues.
 
 ## Recommended investment
 
@@ -21,8 +21,17 @@ Do not freely tweak every control. Label the baseline first, change one setting
 family at a time, and keep a change only when it improves more than one clip
 without creating a new problem.
 
-Use MediaPipe Lite and the Display policy for this pass. Do not evaluate Full or
+Use MediaPipe Full and the Display policy for this pass. Full is now the product
+default after human comparison found noticeably better pose quality without a
+large analysis-time increase. Keep Lite only as a faster comparison. Do not
 change the Analytics policy unless the Display policy is already satisfactory.
+
+The selectable range can now be up to 60 seconds, but calibration comparisons
+should still use focused five-second sections. Analyze each model/range once
+and compare settings over that cached raw result. Re-running inference creates
+a fresh stateful MediaPipe video tracker; difficult one-to-two-second sections
+can lose and reacquire differently between runs, so separate analyses are not a
+controlled settings comparison.
 
 ## Controls in plain language
 
@@ -31,9 +40,9 @@ change the Analytics policy unless the Display policy is already satisfactory.
 | Control | Meaning | Recommendation |
 |---|---|---|
 | Pose quality | Strict rejects more, Balanced is the proposed default, and Permissive retains more uncertain points. | Start with Balanced. Compare the other presets only after labeling Balanced. |
-| Inference model | Lite or Full generates the raw pose. Changing it clears the raw cache and requires analysis again. | Keep Lite. Full did not improve the bounded comparison. |
+| Inference model | Full or Lite generates the raw pose. Changing it clears the raw cache and requires analysis again. | Start with Full. It is the human-selected quality default; Lite remains the faster alternative. |
 | Policy target | Display favors a stable, useful overlay. Analytics is stricter and unsmoothed for future measurements. | Calibrate Display first. Leave Analytics unchanged for now. |
-| Overlay preview | Raw model shows everything; Accepted raw shows retained points before smoothing; Rejected adds rejected points; One Euro smoothed is the causal display candidate; Centered offline is the experimental future-aware candidate. | Compare Accepted raw, One Euro smoothed, and Centered offline at the same exact frames. |
+| Overlay preview | Raw model shows everything; Accepted raw shows retained points before smoothing; Rejected adds rejected points; One Euro smoothed is causal; Centered offline is the future-aware display default. | Compare Accepted raw, One Euro smoothed, and Centered offline at the same exact frames. |
 | Exact analyzed frames | Previous/next steps between stored pose presentation timestamps; direct entry seeks a numbered analyzed sample. | Use this for repeatable same-frame smoothing checks. It is exact for analyzed pose frames, not unanalyzed source frames. |
 | Undo / redo change | Reverts or reapplies the last calibration-setting change or manual seek made while the workspace is open. Quick slider and timeline movement is grouped into one history step; exact-frame steps remain individual. | Use the buttons or `Cmd/Ctrl+Z`; redo with `Cmd/Ctrl+Shift+Z` or `Ctrl+Y`. Model changes and labels are excluded. |
 
@@ -43,9 +52,8 @@ smoothing—are independently collapsible. Keep only the family currently being
 tested open.
 
 The One Euro smoothed preview is unavailable whenever One Euro display
-smoothing is off. Centered offline remains available because it is an
-independent calibration experiment, not the product policy. Accepted raw
-deliberately bypasses both filters.
+smoothing is off. Centered offline remains available because it is independent
+of the causal One Euro policy. Accepted raw deliberately bypasses both filters.
 
 In the Rejected preview, amber points failed confidence checks and pink points
 failed motion-plausibility checks.
@@ -97,7 +105,7 @@ Neither smoother fills a rejected gap.
 |---|---|---|
 | Minimum cutoff | Makes slow movement more responsive and less smoothed. | Raise by about `0.2` if the whole skeleton feels delayed; lower if slow/still pose jitters. |
 | Speed coefficient | Makes the filter follow fast movement more quickly. | Raise by about `2` if hands/feet lag during fast moves; lower if fast motion remains too nervous. Balanced v2 starts at `12`. |
-| Centered radius (ms) | Widens the experimental symmetric time window, usually removing more jitter but increasing the chance of visible pre-motion anticipation. | Check the default `66.667 ms` first. `0` exactly matches Accepted raw. |
+| Centered radius (ms) | Widens the symmetric time window, usually removing more jitter but increasing the chance of visible pre-motion anticipation. | Keep the selected default `66.667 ms` unless multi-clip evidence justifies a change. `0` exactly matches Accepted raw. |
 
 Do not judge smoothing from a paused frame alone. Play or scrub through the move.
 Minimum cutoff and Speed coefficient accept any finite nonnegative value. Very
@@ -173,7 +181,7 @@ Include portrait and landscape footage if possible.
 
 For each range:
 
-1. Select Lite, Display, and Balanced.
+1. Select Full, Display, and Balanced.
 2. Analyze once.
 3. Compare Raw model, Accepted raw, Rejected, One Euro smoothed, and Centered
    offline.
@@ -282,6 +290,6 @@ Record one changed value per row.
 - Evidence that improved:
 - Regressions checked:
 - Known failures that remain:
-- Should Lite remain the default:
+- Should Full remain the default:
 - Should Analytics be calibrated next:
 - Exported JSON filenames:

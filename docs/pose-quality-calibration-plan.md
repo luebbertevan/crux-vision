@@ -87,8 +87,9 @@ The first calibrated policy will apply these stages in order:
    separately marked and bounded. Balanced v2 does not interpolate; analytics
    also defaults to no interpolation.
 
-The centered experiment is not a product default. It must be checked for
-pre-motion anticipation before any display-policy change.
+Human review selected the centered result as the recorded-video display default
+at `66.667 ms`. It remains distinct from the acceptance policy and must continue
+to be checked for pre-motion anticipation.
 
 ## Temporary calibration workspace
 
@@ -106,7 +107,7 @@ Controls:
 - Temporal plausibility, causal One Euro smoothing, and one centered-window
   radius control.
 - Display-policy and analytics-policy preview.
-- Raw, accepted, rejected, One Euro smoothed, and experimental centered
+- Raw, accepted, rejected, One Euro smoothed, and centered
   overlays; rejected samples are color-coded by reason.
 - Reset and JSON export for reproducible calibration runs.
 
@@ -134,6 +135,10 @@ If alternating pose/unavailable flicker becomes repeatable, rerun the movement
 with a one- or two-interval range-start shift and compare actual timestamp
 spacing, raw landmark availability, and confidence rejection before changing
 display continuity.
+
+Fresh runs can differ because each analysis creates a new stateful MediaPipe
+`VIDEO` tracking session. Use repeat runs only to investigate model stability;
+evaluate calibration-setting changes against one immutable cached raw run.
 
 For representative moments, label each evaluated joint as usable, visibly
 wrong/slingshotting, swapped, or unavailable. Full motion-capture ground truth
@@ -213,7 +218,7 @@ filtering and honest uncertainty remain available to every user.
 
 Balanced v2 is the ordinary display candidate, with Strict and Permissive
 alternatives. The advanced workspace recomputes raw, accepted, rejected, One
-Euro smoothed, and experimental centered views from immutable cached samples
+Euro smoothed, and centered views from immutable cached samples
 and exposes separate display and analytics targets, threshold precedence, joint
 overrides, temporal and
 smoothing controls, reason-coded decisions, coverage/gap/lag metrics, manual
@@ -225,8 +230,8 @@ Automated and same-frame checks reduced measured high-motion lag to roughly one
 frame while retaining substantial jitter reduction. The focused human re-smoke
 still found one objectionable frame of lag. Exact analyzed-frame navigation now
 supports a gap-bounded, timestamp-weighted centered/offline preview with an
-undoable radius control before final display sign-off. This experiment has not
-changed the product default.
+undoable radius control. Human review selected its default `66.667 ms` result
+as the ordinary display.
 
 Three five-second real climbing ranges were calibrated on the reference laptop.
 Balanced accepted 49.7%, 90.7%, and 89.2% of the 23 scheduled product-joint
@@ -243,17 +248,22 @@ high-confidence one-frame slingshot and excessive velocity are rejected, and
 visual tuning verified that plausible fast limbs are not broadly removed.
 Manual labels remain available for later, larger corpus work.
 
-MediaPipe Full was evaluated as a bounded challenger before any default change.
-On the difficult dynamic portrait range it accepted 48.9% of scheduled
-product-joint slots versus Lite's 49.7%. Repeated short warm-cache laptop timings
-changed order, so they are not used as device-performance evidence. With no
-visible or coverage gain, Lite remains the product default. The longer physical
-phone thermal, battery, delegate, and model matrix remains explicitly deferred
-to R2D.
+MediaPipe Full was initially evaluated as a bounded challenger. On the difficult
+dynamic portrait range it accepted 48.9% of scheduled product-joint slots versus
+Lite's 49.7%; availability alone did not justify a change. Later human review
+found a noticeable positional-quality improvement without a drastic analysis-
+time increase, so Full is now the product default and Lite the faster
+alternative. The longer physical-phone thermal, battery, delegate, and model
+matrix remains explicitly deferred to R2D.
 
-The previously reported alternating pose/unavailable behavior did not recur.
-No runtime flicker-diagnostics feature was introduced; investigate only if a
-repeatable case appears.
+The selectable analysis cap is now 60 seconds. Calibration still uses focused
+five-second ranges, and sustained 60-second Full analysis remains part of the
+R2D phone validation rather than a completed thermal claim.
+
+Later review reproduced intermittent one- or two-second raw-pose flicker
+clusters that may change or disappear across fresh analyses. There is no runtime
+flicker-diagnostics feature; investigate with repeat runs while comparing
+settings only against one cached raw result.
 
 ## Explicit non-goals
 

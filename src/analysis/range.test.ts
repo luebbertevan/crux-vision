@@ -29,13 +29,14 @@ describe('analysis ranges', () => {
     ).toEqual({ startMicroseconds: 9_500_000, endMicroseconds: 10_000_000 });
 
     const normalized = normalizeRange(
-      { startMicroseconds: 2_000_000, endMicroseconds: 29_000_000 },
-      30_000_000,
+      { startMicroseconds: 2_000_000, endMicroseconds: 90_000_000 },
+      100_000_000,
       'end',
     );
     expect(normalized.endMicroseconds - normalized.startMicroseconds).toBe(
       MAX_RANGE_MICROSECONDS,
     );
+    expect(MAX_RANGE_MICROSECONDS).toBe(60_000_000);
   });
 
   it('moves the opposite edge when setting a playhead outside the current range', () => {

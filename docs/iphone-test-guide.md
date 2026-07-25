@@ -8,6 +8,11 @@ browser environment—not desktop Chrome with a narrow viewport.
 **R2A smoke status:** Complete — passed July 24, 2026 on the reference iPhone
 15 in Chrome for iOS. The exact Chrome version was not recorded.
 
+**Post-gate default change:** Later laptop calibration selected MediaPipe Full,
+Centered offline smoothing, and a 60-second selectable range. The completed
+physical smoke below remains valid evidence for Lite and a short range; it is
+not evidence that sustained 60-second Full analysis has passed the phone gate.
+
 ## Before testing
 
 - Serve the built app from a trusted HTTPS origin. A local `http://` address is
@@ -61,10 +66,11 @@ The final smoke run used production Sites version 9 from commit
   short smoke test.
 
 The longer thermal/battery run and Lite/Full delegate matrix were intentionally
-not run. One previously observed alternating pose/unavailable flicker did not
-recur during the later bounded desktop pose-quality calibration. It remains
-deferred unless it becomes reproducible; no runtime flicker-diagnostics feature
-exists.
+not run. Later desktop review reproduced occasional one- or two-second raw-pose
+flicker clusters that can change or disappear across fresh analyses. Each run
+starts a new stateful MediaPipe `VIDEO` tracker, while renderer nearest-sample
+gaps remain a separate possible display effect. No runtime flicker-diagnostics
+feature exists.
 
 Chrome for iOS also has a limited built-in console collector. As a fallback,
 open `chrome://inspect` in one Chrome tab and leave it open, reproduce the
@@ -97,10 +103,10 @@ Choose a five-second interval where the full climber is visible. The product
 keeps model/delegate selection internal; use a development measurement harness
 only if the R2A phone result makes comparison necessary. Compare:
 
-1. MediaPipe Lite / CPU
-2. MediaPipe Lite / GPU
-3. MediaPipe Full / CPU
-4. MediaPipe Full / GPU
+1. MediaPipe Full / GPU
+2. MediaPipe Full / CPU
+3. MediaPipe Lite / GPU
+4. MediaPipe Lite / CPU
 
 After every run:
 
@@ -111,8 +117,9 @@ After every run:
 
 ## R2D sustained run
 
-Run Lite with the better delegate over 20–30 seconds at the 30 samples/sec
-default. Record:
+Run Full with the better delegate over 20–30 seconds at the 30 samples/sec
+default. If that remains stable, repeat with the selected 60-second range cap.
+Record:
 
 - wall time and average inference time;
 - whether the browser becomes warm or reloads the page;
@@ -124,11 +131,11 @@ default. Record:
 
 The client-only mobile path passes if portrait import, display orientation,
 frame extraction, pose inference, and live overlay all work without a browser
-crash; the skeleton is registered to the displayed video; and Lite processes at
-a practical rate on the reference phone. Full remains a candidate only if its
-visible quality gain
-justifies its latency and thermal cost. If neither local path is practical, the
-fallback decision must be documented before R2B expands the interaction system.
+crash; the skeleton is registered to the displayed video; and Full processes at
+a practical rate on the reference phone. Full is the quality default; Lite is
+the lower-cost fallback if sustained latency, heat, or reload behavior is not
+acceptable. If neither local path is practical, the fallback decision must be
+documented before R2B expands the interaction system.
 
 The minimal R2A client-only mobile gate passed. The remaining sustained and
 model-comparison evidence belongs to R2D rather than this completed smoke test.
