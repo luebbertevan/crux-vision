@@ -56,9 +56,11 @@ export function useReviewStageSize({
       const shellStyle = window.getComputedStyle(shell);
       const viewportHeight =
         window.visualViewport?.height ?? document.documentElement.clientHeight;
+      const transportIsOverlay = transportStyle.position === 'absolute';
       const reservedBelowStage =
-        transport.offsetHeight +
-        pixelValue(transportStyle.marginTop) +
+        (transportIsOverlay
+          ? 0
+          : transport.offsetHeight + pixelValue(transportStyle.marginTop)) +
         pixelValue(shellStyle.paddingBottom);
       const availableHeight = Math.max(
         1,

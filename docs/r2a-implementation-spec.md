@@ -68,27 +68,29 @@ pending-analysis, and application-error messages must remain distinct.
 
 ## Layout and visual direction
 
-### Desktop (1024 px and wider)
+### Desktop (981 px and wider)
 
-- A compact top bar contains the Crux Vision mark, current file, local-only
-  status, and Open/Replace action.
-- The current filename is a quiet, single-line item in that top bar. There is no
-  separate stage heading or redundant duration above the video.
+- Portrait review replaces the horizontal top bar with a slim 48 px left
+  utility rail containing the Crux Vision mark, a quiet vertical filename,
+  local-only status, and Replace action. This frees the top edge for the video.
+- Landscape review retains the compact horizontal top bar. There is no separate
+  stage heading or redundant duration above the video in either orientation.
 - The video stage is the dominant surface. Its exact dimensions fit the upright
   source aspect ratio into the measured review width and the viewport height
-  remaining below its actual top after transport and bottom safe padding are
-  reserved.
+  remaining below its actual top after non-overlaid transport and bottom safe
+  padding are reserved.
 - At 1200 px and wider, portrait media is centered in the full review surface
   and the 330 px control rail uses free space at the right instead of shifting
   or constraining the video. Landscape media keeps a flexible main column
   beside the rail.
-- Minimal transport sits directly below the stage: a compact 36 px desktop
-  play/pause control, current/duration, and coarse seek.
+- Portrait transport is a compact, translucent 42 px dock over the bottom
+  8 px inset of the stage, with a 34 px play/pause control. Landscape transport
+  remains directly below the stage with a 36 px play/pause control.
 - A 310–330 px right rail contains, in order, selected range, Analyze/Cancel,
   quiet progress, and one master **Overlays** switch. The rail is a review aid,
   not a metadata/benchmark dashboard.
-- At shorter desktop heights, the rail may scroll independently; stage and
-  transport stay visible.
+- At shorter desktop heights, the right control rail may scroll independently;
+  stage and transport stay visible.
 
 ### iPhone/narrow (below 720 px)
 
@@ -438,22 +440,27 @@ video.
   height)` to desktop upright display dimensions. Below 720 px, sizing is
   deliberately width-only so iOS browser-bar changes cannot shrink the player
   during scroll; controls may continue below the initial viewport.
-- At 1440×900, the later compact desktop refinement renders the portrait
-  fixture at approximately 438.5×780 px, centered on the overall review surface
-  with the rail clear at the right. The landscape fixture renders at
-  approximately 1072×603 px in the flexible main column. The filename moved to
-  the top bar, desktop shell gutters are 10 px, and the desktop transport is a
-  46 px dock with a 36 px play button.
+- At 1440×900, desktop portrait review renders the fixture at approximately
+  496×882 px, centered on the overall review surface with the right control rail
+  clear. Its 48 px left utility rail replaces the top bar, and a translucent
+  42 px transport with a 34 px play button overlays the bottom of the video.
+  The landscape fixture remains approximately 1072×603 px in the flexible main
+  column with the compact horizontal top bar and a 46 px transport below it.
+  Desktop source-review shell gutters are 10 px, with the portrait stage
+  beginning at the 8 px top gutter.
 - At 393×852, the portrait fixture uses the full 393 px viewport width and is
   698.5 px tall. The separate stage heading is omitted at every width, and the
   stage plus transport are edge-to-edge while the header and secondary controls
   retain safe-area padding. At 852×393, portrait and landscape
   fixtures reserve 206 px of stage height and keep a full-column transport dock
-  with 44 px targets inside the viewport without horizontal overflow.
+  with 44 px targets inside the viewport without horizontal overflow. The
+  desktop portrait rail and over-video transport apply only above 980 px, so
+  phone layouts are unchanged.
 - Source errors remain in desktop height measurement. On narrow portrait
   screens the stage stays full-width and basic transport remains immediately
   below it, reachable by normal vertical scrolling. Long file names remain
-  single-line and ellipsized in the desktop top bar. Analysis cards
+  ellipsized in the desktop landscape top bar and clipped within the portrait
+  utility rail. Analysis cards
   remain below the stage and independently scrollable in the landscape-phone
   rail.
 - The viewport meta lock, `touch-action`, and iOS gesture-event guard disable

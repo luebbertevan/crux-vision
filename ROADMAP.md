@@ -119,21 +119,24 @@ footage remains large and balanced at both viewports.
 
 R2A.1 sizes desktop stages by fitting the upright display dimensions into the
 review column's measured width and the viewport height remaining below the
-actual stage top after transport and safe-area padding are reserved. Narrow
+actual stage top after non-overlaid transport and safe-area padding are
+reserved. Narrow
 phone stages are width-driven so changing iOS browser chrome cannot resize the
 video during scroll; secondary controls continue below when necessary. At wide
 desktop widths, a portrait stage is centered in the full review surface while
 the 330 px control rail occupies otherwise unused side space; landscape keeps a
 flexible main column beside the rail. At narrow widths, the rail follows the
-stage and transport in document order. A later desktop-density refinement moves
-the filename into the compact top bar, removes the separate stage heading, uses
-10 px source-review shell gutters, and reduces the desktop transport to a 46 px
-dock with a 36 px play button. At the reference viewports, the portrait stage
-is approximately 438.5×780 px at 1440×900 and remains 393×698.5 px at 393×852;
-desktop landscape is approximately 1072×603 px. The 852×393 layout keeps both
-portrait and landscape media plus 44 px basic transport targets inside the
-viewport without horizontal overflow. Video and canvas still share identical
-bounds and `object-fit: contain`.
+stage and transport in document order. Desktop portrait review uses a 48 px
+left utility rail instead of a top bar and overlays a 42 px translucent
+transport inside the bottom of the stage, allowing the video to begin at the
+8 px shell gutter. Desktop landscape retains the compact horizontal top bar
+and the 46 px transport below the stage. At the reference viewports, the
+portrait stage is approximately 496×882 px at 1440×900 and remains
+393×698.5 px at 393×852; desktop landscape is approximately 1072×603 px. The
+852×393 layout keeps both portrait and landscape media plus 44 px basic
+transport targets inside the viewport without horizontal overflow. The
+desktop-portrait change is intentionally excluded from the mobile breakpoints.
+Video and canvas still share identical bounds and `object-fit: contain`.
 
 ### R2 phone gate — Minimal physical-device smoke test
 

@@ -54,6 +54,7 @@ const getReviewBounds = async (page: Page) =>
       video: bounds('video'),
       canvas: bounds('[data-testid="overlay-canvas"]'),
       transport: bounds('.transport'),
+      topbar: bounds('.topbar'),
       rail: bounds('.control-rail'),
       main: bounds('.review-main'),
     };
@@ -100,16 +101,19 @@ test('desktop portrait and landscape stages use the available review surface', a
   await importVideo(page, portraitFixture);
 
   const portrait = await getReviewBounds(page);
-  expect(portrait.stage.height).toBeGreaterThanOrEqual(750);
-  expect(portrait.stage.y).toBeLessThanOrEqual(65);
-  expect(portrait.transport.bottom).toBeLessThanOrEqual(900);
+  expect(portrait.stage.height).toBeGreaterThanOrEqual(875);
+  expect(portrait.stage.y).toBeLessThanOrEqual(10);
+  expect(portrait.transport.y).toBeGreaterThanOrEqual(portrait.stage.bottom - 55);
+  expect(portrait.transport.bottom).toBeLessThanOrEqual(portrait.stage.bottom - 4);
   expect(Math.abs((portrait.stage.x + portrait.stage.right) / 2 - 720)).toBeLessThanOrEqual(1);
   expect(portrait.rail.x - portrait.stage.right).toBeGreaterThan(100);
+  expect(portrait.topbar.right).toBeLessThan(portrait.stage.x);
+  expect(portrait.topbar.height).toBeGreaterThanOrEqual(875);
   expectAligned(portrait.video, portrait.canvas);
   await expect(page.locator('.source-filename')).toHaveText('portrait-test.MOV');
   expect(
     (await page.getByRole('button', { name: /Play video|Pause video/ }).boundingBox())?.height,
-  ).toBeLessThanOrEqual(38);
+  ).toBeLessThanOrEqual(36);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('desktop-portrait-imported.png'),
@@ -125,10 +129,35 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(landscape.stage.height).toBeGreaterThanOrEqual(570);
   expect(landscape.stage.right).toBeLessThan(landscape.rail.x);
   expect(landscape.transport.bottom).toBeLessThan(900);
+  expect(landscape.topbar.width).toBeGreaterThan(1_000);
+  expect(landscape.transport.y).toBeGreaterThanOrEqual(landscape.stage.bottom);
   expectAligned(landscape.video, landscape.canvas);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('desktop-landscape-imported.png'),
+    fullPage: true,
+  });
+
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await importVideo(page, portraitFixture);
+  await expect
+    .poll(async () => (await getReviewBounds(page)).stage.height)
+    .toBeGreaterThanOrEqual(745);
+  const compactDesktopPortrait = await getReviewBounds(page);
+  expect(compactDesktopPortrait.stage.height).toBeGreaterThanOrEqual(745);
+  expect(compactDesktopPortrait.stage.y).toBeLessThanOrEqual(10);
+  expect(compactDesktopPortrait.topbar.right).toBeLessThan(
+    compactDesktopPortrait.stage.x,
+  );
+  expect(compactDesktopPortrait.stage.right).toBeLessThan(
+    compactDesktopPortrait.rail.x,
+  );
+  expect(compactDesktopPortrait.transport.y).toBeGreaterThanOrEqual(
+    compactDesktopPortrait.stage.bottom - 55,
+  );
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({
+    path: testInfo.outputPath('compact-desktop-portrait-imported.png'),
     fullPage: true,
   });
 });

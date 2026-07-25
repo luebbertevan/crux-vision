@@ -107,7 +107,11 @@ function FileButton({
   onFile: (file: File) => void;
 }) {
   return (
-    <label className={compact ? 'file-button file-button-compact' : 'file-button'}>
+    <label
+      className={compact ? 'file-button file-button-compact' : 'file-button'}
+      aria-label={label}
+      title={compact ? label : undefined}
+    >
       <UploadIcon />
       <span>{label}</span>
       <input
@@ -849,6 +853,9 @@ export function App() {
       ? (range.endMicroseconds / sourceDurationMicroseconds) * 100
       : 0;
   const sourceReady = Boolean(source && range);
+  const sourceIsPortrait = Boolean(
+    source && source.metadata.displayHeight > source.metadata.displayWidth,
+  );
   const modelLabel = POSE_MODELS[analysis.model ?? selectedModel].label;
 
   const analysisStatus = (() => {
@@ -872,7 +879,13 @@ export function App() {
 
   return (
     <main
-      className={`app-shell ${source ? 'has-source' : 'is-empty'}`}
+      className={`app-shell ${source ? 'has-source' : 'is-empty'} ${
+        sourceIsPortrait
+          ? 'has-portrait-source'
+          : source
+            ? 'has-landscape-source'
+            : ''
+      }`}
       data-analysis-phase={analysis.phase}
       data-sample-count={analysis.samples.length}
       data-quality-sample-count={qualityEvaluation.samples.length}
@@ -979,15 +992,9 @@ export function App() {
       ) : (
         <section
           className={`review-workspace ${
-            source.metadata.displayHeight > source.metadata.displayWidth
-              ? 'is-portrait'
-              : 'is-landscape'
+            sourceIsPortrait ? 'is-portrait' : 'is-landscape'
           }`}
-          data-video-orientation={
-            source.metadata.displayHeight > source.metadata.displayWidth
-              ? 'portrait'
-              : 'landscape'
-          }
+          data-video-orientation={sourceIsPortrait ? 'portrait' : 'landscape'}
         >
           <div
             ref={reviewMainRef}
