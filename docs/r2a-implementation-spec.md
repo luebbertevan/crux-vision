@@ -433,6 +433,10 @@ video.
 - R1 evidence and reports are preserved. MoveNet/TensorFlow, benchmark UI,
   diagnostic globals/downloads, benchmark scripts, and their dependencies are
   absent from the product build.
+- The lazily loaded browser media adapter uses a stable, non-cached production
+  module URL. The Sites worker maps older hashed media-adapter requests to that
+  current module, so a review tab left open during a deployment can still
+  import a video instead of failing on a removed chunk.
 
 ### R2A.1 sizing completion
 

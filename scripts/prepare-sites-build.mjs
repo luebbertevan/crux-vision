@@ -25,8 +25,29 @@ await writeFile(
       });
     }
 
-    const response = await env.ASSETS.fetch(request);
-    if (response.status !== 404) return response;
+    const requestUrl = new URL(request.url);
+    const isMediaAdapterModule =
+      requestUrl.pathname === '/assets/mediaAdapter.js' ||
+      (
+        requestUrl.pathname.startsWith('/assets/mediaAdapter-') &&
+        requestUrl.pathname.endsWith('.js')
+      );
+    const assetRequest = isMediaAdapterModule
+      ? new Request(new URL('/assets/mediaAdapter.js', request.url), request)
+      : request;
+    const response = await env.ASSETS.fetch(assetRequest);
+    if (response.status !== 404) {
+      if (!isMediaAdapterModule) return response;
+
+      const headers = new Headers(response.headers);
+      headers.set('Cache-Control', 'no-store, max-age=0');
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    }
+    if (requestUrl.pathname.startsWith('/assets/')) return response;
 
     const fallbackUrl = new URL('/index.html', request.url);
     return env.ASSETS.fetch(new Request(fallbackUrl, request));
