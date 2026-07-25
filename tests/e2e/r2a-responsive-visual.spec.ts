@@ -67,6 +67,20 @@ const expectAligned = (video: Bounds, canvas: Bounds) => {
   expect(Math.abs(video.height - canvas.height)).toBeLessThanOrEqual(0.5);
 };
 
+const expectPlaybackInputCentered = async (page: Page) => {
+  const [timeline, input] = await Promise.all([
+    page.locator('.playback-timeline').boundingBox(),
+    page.locator('.playback-slider').boundingBox(),
+  ]);
+  expect(timeline).not.toBeNull();
+  expect(input).not.toBeNull();
+  expect(
+    Math.abs(
+      timeline!.y + timeline!.height / 2 - (input!.y + input!.height / 2),
+    ),
+  ).toBeLessThanOrEqual(0.5);
+};
+
 const expectNoHorizontalOverflow = async (page: import('@playwright/test').Page) => {
   expect(
     await page.evaluate(() => ({
@@ -110,6 +124,7 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(portrait.topbar.right).toBeLessThan(portrait.stage.x);
   expect(portrait.topbar.height).toBeGreaterThanOrEqual(875);
   expectAligned(portrait.video, portrait.canvas);
+  await expectPlaybackInputCentered(page);
   await expect(page.locator('.source-filename')).toHaveText('portrait-test.MOV');
   expect(
     (await page.getByRole('button', { name: /Play video|Pause video/ }).boundingBox())?.height,
@@ -189,10 +204,12 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   expect(portrait.stage.height).toBeGreaterThanOrEqual(695);
   expect(portrait.stage.x).toBeLessThanOrEqual(0.5);
   expect(portrait.stage.right).toBeGreaterThanOrEqual(392.5);
-  expect(portrait.transport.x).toBeLessThanOrEqual(0.5);
-  expect(portrait.transport.right).toBeGreaterThanOrEqual(392.5);
-  expect(portrait.transport.bottom).toBeLessThanOrEqual(852);
+  expect(portrait.transport.x).toBeGreaterThanOrEqual(7.5);
+  expect(portrait.transport.right).toBeLessThanOrEqual(385.5);
+  expect(portrait.transport.y).toBeGreaterThanOrEqual(portrait.stage.bottom - 70);
+  expect(portrait.transport.bottom).toBeLessThanOrEqual(portrait.stage.bottom - 4);
   expectAligned(portrait.video, portrait.canvas);
+  await expectPlaybackInputCentered(page);
   await expectNoHorizontalOverflow(page);
   const rangeCard = await page.locator('.range-section').boundingBox();
   expect(rangeCard).not.toBeNull();
@@ -268,7 +285,8 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   await expectNoHorizontalOverflow(page);
   const withError = await getReviewBounds(page);
   expect(withError.stage.width).toBeGreaterThanOrEqual(392);
-  expect(withError.transport.y).toBeGreaterThanOrEqual(withError.stage.bottom);
+  expect(withError.transport.y).toBeGreaterThanOrEqual(withError.stage.bottom - 70);
+  expect(withError.transport.bottom).toBeLessThanOrEqual(withError.stage.bottom - 4);
   await page.screenshot({
     path: testInfo.outputPath('iphone-import-error-with-source.png'),
     fullPage: true,

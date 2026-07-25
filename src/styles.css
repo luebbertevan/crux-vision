@@ -395,8 +395,8 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   background: var(--lime);
   cursor: pointer;
 }
-.transport-time { color: #c8c6bd; font-size: .72rem; font-variant-numeric: tabular-nums; }
-.transport-duration { color: #696e66; }
+.transport-time { color: #e3e1d9; font-size: .72rem; font-variant-numeric: tabular-nums; }
+.transport-duration { color: #a4aaa0; }
 .playback-timeline {
   position: relative;
   min-width: 0;
@@ -416,7 +416,8 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   left: 0;
   right: 0;
   height: 4px;
-  background: #3a3f37;
+  background: rgba(229, 236, 224, .32);
+  box-shadow: 0 0 0 1px rgba(5, 8, 5, .24);
 }
 .playback-analysis-range {
   left: var(--analysis-start);
@@ -434,13 +435,16 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 .playback-slider {
   position: absolute;
   z-index: 1;
-  inset: 0;
+  top: 50%;
+  right: 0;
+  left: 0;
   width: 100%;
   height: 32px;
   margin: 0;
   appearance: none;
   background: transparent;
   cursor: pointer;
+  transform: translateY(-50%);
 }
 .playback-slider::-webkit-slider-runnable-track {
   height: 4px;
@@ -1004,10 +1008,10 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
     gap: 8px;
     margin: 0;
     padding: 3px 6px;
-    border-color: rgba(255,255,255,.14);
-    background: rgba(12,15,12,.72);
+    border-color: rgba(255,255,255,.22);
+    background: rgba(8,12,9,.48);
     box-shadow: 0 8px 30px rgba(0,0,0,.34);
-    backdrop-filter: blur(14px);
+    backdrop-filter: blur(16px) saturate(1.1);
     transform: translateX(-50%);
   }
   .has-portrait-source .play-button {
@@ -1015,6 +1019,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
     height: 34px;
   }
   .has-portrait-source .playback-timeline { height: 26px; }
+  .has-portrait-source .stage-feedback { bottom: 62px; }
 }
 
 @media (max-width: 980px) {
@@ -1095,6 +1100,23 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
     border-left: 0;
     border-radius: 0;
   }
+  .has-portrait-source .review-main { position: relative; }
+  .has-portrait-source .transport {
+    position: absolute;
+    z-index: 4;
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 14px;
+    background: rgba(8,12,9,.48);
+    box-shadow: 0 8px 30px rgba(0,0,0,.34);
+    backdrop-filter: blur(16px) saturate(1.1);
+  }
+  .has-portrait-source .stage-feedback { bottom: 72px; }
   .play-button { width: 44px; height: 44px; }
   .playback-timeline { height: 32px; }
   .control-rail {

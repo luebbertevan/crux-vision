@@ -97,9 +97,11 @@ pending-analysis, and application-error messages must remain distinct.
 - Safe-area-aware compact header, then the widest possible stage.
 - Portrait media takes the full content width whenever width is the limiting
   dimension; secondary range and analysis cards continue below transport.
-- Transport is a one-row dock immediately below the stage with 44 px minimum
-  targets. Range controls follow in one compact card; Analyze is a full-width
-  primary action.
+- For portrait review, transport is a translucent inset dock over the bottom of
+  the stage with 44 px minimum targets. Its seek track stays high-contrast over
+  changing footage. Landscape-phone transport remains immediately below the
+  stage to avoid covering the shorter video surface. Range controls follow in
+  one compact card; Analyze is a full-width primary action.
 - Analysis status occupies one line and never pushes the stage offscreen.
 - No permanent side rail, dense inspector, hover dependency, or tiny two-column
   form. The DOM order remains stage, transport, range, analysis.
@@ -450,15 +452,16 @@ video.
   beginning at the 8 px top gutter.
 - At 393×852, the portrait fixture uses the full 393 px viewport width and is
   698.5 px tall. The separate stage heading is omitted at every width, and the
-  stage plus transport are edge-to-edge while the header and secondary controls
-  retain safe-area padding. At 852×393, portrait and landscape
+  stage is edge-to-edge while the transport is inset 8 px over its bottom edge;
+  the header and secondary controls retain safe-area padding. At 852×393,
+  portrait and landscape
   fixtures reserve 206 px of stage height and keep a full-column transport dock
   with 44 px targets inside the viewport without horizontal overflow. The
-  desktop portrait rail and over-video transport apply only above 980 px, so
-  phone layouts are unchanged.
+  portrait phone transport is inset over the video; the desktop left utility
+  rail remains restricted to widths above 980 px.
 - Source errors remain in desktop height measurement. On narrow portrait
-  screens the stage stays full-width and basic transport remains immediately
-  below it, reachable by normal vertical scrolling. Long file names remain
+  screens the stage stays full-width and basic transport remains overlaid at its
+  bottom edge. Long file names remain
   ellipsized in the desktop landscape top bar and clipped within the portrait
   utility rail. Analysis cards
   remain below the stage and independently scrollable in the landscape-phone
@@ -466,7 +469,8 @@ video.
 - The viewport meta lock, `touch-action`, and iOS gesture-event guard disable
   page-level pinch scaling. On narrow phones, only the review main follows
   `visualViewport.width` and `visualViewport.offsetLeft`, keeping the stage and
-  transport edge-to-edge without scaling the rest of the application. The
+  inset transport aligned to the visual viewport without scaling the rest of
+  the application. The
   control rail retains normal phone dimensions and shifts its centerline by the
   visual viewport's center offset, capped within its outer gutter.
 - The stage retains the upright source aspect ratio and `object-fit: contain`.

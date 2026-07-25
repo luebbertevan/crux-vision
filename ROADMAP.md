@@ -135,7 +135,10 @@ portrait stage is approximately 496×882 px at 1440×900 and remains
 393×698.5 px at 393×852; desktop landscape is approximately 1072×603 px. The
 852×393 layout keeps both portrait and landscape media plus 44 px basic
 transport targets inside the viewport without horizontal overflow. The
-desktop-portrait change is intentionally excluded from the mobile breakpoints.
+left utility rail remains desktop-only; portrait phone review now shares the
+translucent, inset over-video transport while retaining 44 px touch targets and
+its existing compact header. Landscape phone transport remains below the stage
+to avoid obscuring a short video surface.
 Video and canvas still share identical bounds and `object-fit: contain`.
 
 ### R2 phone gate — Minimal physical-device smoke test
