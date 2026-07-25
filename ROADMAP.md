@@ -172,10 +172,10 @@ readable and centered, and page-level pinch zoom stayed disabled. No unusual
 heat was reported during this short smoke test.
 
 The longer thermal/battery and delegate/model matrix was not run and remains in
-R2D. No compatibility fallback is required by this gate. One previously
-observed alternating pose/unavailable flicker remains a future investigation
-only if it becomes reproducible; no runtime flicker-diagnostics feature was
-added.
+R2D. No compatibility fallback is required by this gate. The previously
+observed alternating pose/unavailable flicker was later reproduced and fixed as
+a fractional source-timestamp lookup boundary in the calibration gate; no
+runtime flicker-diagnostics feature was added.
 
 ### R2 pose-quality calibration gate
 
@@ -278,13 +278,14 @@ The selectable analysis cap is now 60 seconds rather than 20. This does not
 replace the R2D sustained physical-phone validation for Full-model heat, memory,
 responsiveness, or reload risk.
 
-Later review reproduced occasional raw-pose flicker concentrated within one or
-two seconds. Its exact location can change or disappear after **Analyze again**,
-which creates a fresh stateful MediaPipe `VIDEO` tracker. Calibration-setting
-comparisons therefore reuse one cached raw run. This model-run variability is
-separate from renderer nearest-sample gaps; bounded display interpolation
-remains a focused next candidate rather than an alteration of raw or analytics
-data.
+A captured `yellow-v0` case isolated the reported raw-pose flicker upstream of
+MediaPipe. Integer-microsecond schedule times could fall fractionally before a
+real source-frame presentation timestamp; MediaBunny then returned the previous
+frame again, duplicate suppression left a hole, and the renderer honestly
+reported pose unavailable. A one-microsecond lookup bias now recovers the
+intended real frame. The exact regression covered all 371 source frames and
+played without unavailable intervals; no pose holding or interpolation was
+added. Calibration-setting comparisons still reuse one cached raw run.
 
 The calibration workspace also now supports bounded, coalescing undo/redo
 through visible controls and standard `Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`, and

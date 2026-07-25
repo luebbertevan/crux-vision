@@ -66,11 +66,11 @@ The final smoke run used production Sites version 9 from commit
   short smoke test.
 
 The longer thermal/battery run and Lite/Full delegate matrix were intentionally
-not run. Later desktop review reproduced occasional one- or two-second raw-pose
-flicker clusters that can change or disappear across fresh analyses. Each run
-starts a new stateful MediaPipe `VIDEO` tracker, while renderer nearest-sample
-gaps remain a separate possible display effect. No runtime flicker-diagnostics
-feature exists.
+not run. A later captured desktop flicker was traced to fractional source-frame
+presentation timestamps falling just beyond rounded analysis requests. The
+one-microsecond media-lookup correction restored every real frame in the exact
+regression without interpolation. No runtime flicker-diagnostics feature
+exists.
 
 Chrome for iOS also has a limited built-in console collector. As a fallback,
 open `chrome://inspect` in one Chrome tab and leave it open, reproduce the

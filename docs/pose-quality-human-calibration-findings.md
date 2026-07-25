@@ -251,26 +251,31 @@ Balanced confidence, hysteresis, temporal limits, the `66.667 ms` centered
 radius, 30 requested samples/second, and the separate unsmoothed Analytics
 policy remain unchanged.
 
-### Repeat-analysis flicker observation
+### Captured raw-pose flicker diagnosis — July 25, 2026
 
-Occasional raw-pose flicker is concentrated in roughly one- or two-second
-sections and may move or disappear when the same range is analyzed again.
-`Analyze again` deliberately creates a fresh worker and a fresh MediaPipe
-`VIDEO` tracking session. The observed clustering is consistent with the
-stateful detector/tracker losing and reacquiring the pose around difficult
-motion or confidence boundaries; GPU numerical variation near those boundaries
-may change the exact run outcome.
+The `yellow-v0` recording, screen capture, and calibration export reproduced the
+two-second Raw-model flicker from about 15.3 seconds. The export already
+contained the immutable MediaPipe landmarks; no additional model-output feature
+was required.
 
-This is distinct from the renderer's nearest-sample tolerance, which can make
-ordinary playback expose gaps that exact analyzed-frame navigation skips. The
-current flicker count detects short per-joint accepted/rejected intervals but
-does not repair them and does not count renderer-only no-match moments.
+The selected range scheduled 372 requests. Seventeen requests from 15.283333 to
+16.883333 seconds had no stored sample at a regular 100 ms cadence, while
+the neighboring samples contained valid full-model landmarks. Reproducing the
+same range start showed that integer-microsecond request times could fall less
+than one microsecond before a rational source-frame presentation timestamp.
+MediaBunny consequently returned the preceding frame again, and Crux's duplicate
+suppression correctly skipped it before MediaPipe inference.
+
+The media lookup now receives a one-microsecond forward boundary bias, clamped
+to the source duration. The exact regression then stored 371 unique samples for
+the 371 real source frames in range, and Raw playback from 15.2–17.1 seconds
+produced no unavailable frames. This uses the real decoded frames; it does not
+hold, interpolate, or fabricate pose coordinates.
 
 Calibration rule: analyze a model/range once, preserve its cached raw samples,
-and compare every policy/filter candidate against that same cache. Do not infer
-a setting improvement by comparing two independent inference runs. Keep
-short-gap display interpolation as the next focused flicker candidate; do not
-alter raw or analytics data.
+and compare every policy/filter candidate against that same cache. If future
+flicker appears, first distinguish a missing stored sample from a stored sample
+whose landmark arrays are empty before changing continuity behavior.
 
 ## Comparison-tool recommendation
 

@@ -29,9 +29,9 @@ change the Analytics policy unless the Display policy is already satisfactory.
 The selectable range can now be up to 60 seconds, but calibration comparisons
 should still use focused five-second sections. Analyze each model/range once
 and compare settings over that cached raw result. Re-running inference creates
-a fresh stateful MediaPipe video tracker; difficult one-to-two-second sections
-can lose and reacquire differently between runs, so separate analyses are not a
-controlled settings comparison.
+a fresh MediaPipe video session, so separate analyses are not a controlled
+settings comparison. The captured range-start-sensitive raw flicker was fixed
+in source-frame lookup and did not require display interpolation.
 
 ## Controls in plain language
 

@@ -136,9 +136,12 @@ with a one- or two-interval range-start shift and compare actual timestamp
 spacing, raw landmark availability, and confidence rejection before changing
 display continuity.
 
-Fresh runs can differ because each analysis creates a new stateful MediaPipe
-`VIDEO` tracking session. Use repeat runs only to investigate model stability;
-evaluate calibration-setting changes against one immutable cached raw run.
+The captured `yellow-v0` regression proved why that separation matters:
+fractional source-frame presentation times sat just above rounded integer-
+microsecond requests, causing duplicate frame retrieval before MediaPipe ran.
+The media lookup now uses a one-microsecond boundary bias. Fresh inference can
+still differ because it creates a new MediaPipe `VIDEO` session, so evaluate
+calibration-setting changes against one immutable cached raw run.
 
 For representative moments, label each evaluated joint as usable, visibly
 wrong/slingshotting, swapped, or unavailable. Full motion-capture ground truth
@@ -260,10 +263,10 @@ The selectable analysis cap is now 60 seconds. Calibration still uses focused
 five-second ranges, and sustained 60-second Full analysis remains part of the
 R2D phone validation rather than a completed thermal claim.
 
-Later review reproduced intermittent one- or two-second raw-pose flicker
-clusters that may change or disappear across fresh analyses. There is no runtime
-flicker-diagnostics feature; investigate with repeat runs while comparing
-settings only against one cached raw result.
+The captured `yellow-v0` flicker was fixed at media-frame lookup: the exact
+regression now analyzes all 371 real source frames in the selected range and
+plays without unavailable intervals. No runtime flicker-diagnostics feature or
+display interpolation was added.
 
 ## Explicit non-goals
 

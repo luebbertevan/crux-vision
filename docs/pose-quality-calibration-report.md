@@ -265,10 +265,11 @@ Remaining limitations:
   every anatomically plausible left/right swap.
 - Analytics still needs metric-specific minimum-coverage requirements when
   pose-derived measurements begin; R2B was not started here.
-- Later review reproduced occasional one- or two-second raw-pose flicker clusters
-  that can move or disappear across fresh analyses. MediaPipe `VIDEO` tracking
-  state is recreated for every run, so settings comparisons must use one cached
-  raw analysis. This remains separate from renderer no-match intervals. There
-  is no runtime flicker-diagnostics feature.
+- A captured `yellow-v0` raw-pose flicker was not a MediaPipe outage. Seventeen
+  integer-microsecond requests landed fractionally before their intended source
+  frames, so MediaBunny returned a prior frame twice and duplicate suppression
+  left renderer-visible holes. A one-microsecond lookup bias restored all 371
+  source frames in the exact regression with no interpolation. There is no
+  runtime flicker-diagnostics feature.
 - The 60-second Full-model range cap has not completed the sustained physical-
   phone thermal, memory, responsiveness, or reload validation reserved for R2D.

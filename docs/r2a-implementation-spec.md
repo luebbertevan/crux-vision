@@ -506,10 +506,11 @@ dimensions and stayed centered, and page-level pinch zoom remained disabled.
 The longer thermal, battery, sustained-analysis, and Lite/Full delegate matrix
 was intentionally not run; it remains R2D work.
 
-Later calibration review reproduced occasional one- or two-second raw-pose
-flicker clusters whose exact occurrence can differ across fresh analyses. Each
-run creates a fresh MediaPipe `VIDEO` tracker, so setting comparisons now reuse
-one cached raw run. There is still no runtime flicker-diagnostics feature.
+Later calibration review captured a repeatable raw-pose flicker. Integer-
+microsecond lookup times could fall fractionally before rational source-frame
+timestamps, causing MediaBunny to return a prior frame twice. A one-microsecond
+lookup bias fixed the exact regression without pose interpolation. Setting
+comparisons still reuse one cached raw run.
 
 ## First product-review follow-ups
 
@@ -583,12 +584,13 @@ display/analytics acceptance policy. Human review selected centered over the
 causal One Euro path at their default settings; continued calibration must
 still check pre-motion anticipation.
 
-Occasional raw-pose flicker can cluster within one or two seconds and differ
-after **Analyze again** because every run creates a fresh MediaPipe `VIDEO`
-tracking session. Calibration comparisons therefore reuse one immutable cached
-raw run. Renderer no-match intervals remain a separate possible source of
-visible flicker, and the existing flicker metric detects but does not repair
-short accepted/rejected joint gaps.
+The captured `yellow-v0` raw-pose flicker occurred before MediaPipe inference.
+For 17 requests, a fractional source presentation timestamp landed just above
+the rounded integer-microsecond lookup, MediaBunny returned the preceding frame
+again, and duplicate suppression left a renderer-visible hole. The lookup now
+uses a one-microsecond boundary bias. The exact selected range subsequently
+covered all 371 real source frames and played without unavailable intervals;
+raw and analytics data remain uninterpolated.
 
 Developer calibration exposes the full effective confidence and hysteresis
 domains. Nonnegative temporal and smoothing diagnostics have no artificial

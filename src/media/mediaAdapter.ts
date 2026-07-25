@@ -15,6 +15,24 @@ export type TimedCanvas = {
   canvas: HTMLCanvasElement | OffscreenCanvas | null;
 };
 
+const FRAME_LOOKUP_EPSILON_MICROSECONDS = 1;
+
+export function mediaFrameLookupSeconds(
+  requestedTimestampMicroseconds: number,
+  durationMicroseconds: number,
+): number {
+  // MediaBunny returns the last frame whose presentation timestamp is less
+  // than or equal to the lookup time. Source timestamps can fall fractionally
+  // above our integer-microsecond schedule, so a one-microsecond forward bias
+  // prevents the preceding frame from being returned twice at that boundary.
+  return (
+    Math.min(
+      durationMicroseconds,
+      requestedTimestampMicroseconds + FRAME_LOOKUP_EPSILON_MICROSECONDS,
+    ) / 1_000_000
+  );
+}
+
 export class BrowserMediaAdapter {
   readonly file: File;
   readonly input: Input<BlobSource>;
@@ -133,7 +151,8 @@ export class BrowserMediaAdapter {
   ): AsyncGenerator<TimedCanvas> {
     const sink = this.createSampleSink();
     const timestampsSeconds = timestampsMicroseconds.map(
-      (timestamp) => timestamp / 1_000_000,
+      (timestamp) =>
+        mediaFrameLookupSeconds(timestamp, this.metadata.durationMicroseconds),
     );
     const iterator = sink.canvasesAtTimestamps(timestampsSeconds)[Symbol.asyncIterator]();
 
