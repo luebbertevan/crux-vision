@@ -16,7 +16,9 @@ phone layouts.
 - Playback presets are `0.25×`, `0.5×`, and `1×`.
 - Loop constrains playback to the selected range without changing that range.
 - Previous/next analyzed frame is the deliberate fine jog. It uses stored pose
-  presentation timestamps and pauses before seeking.
+  presentation timestamps and pauses before seeking. A normal tap or click
+  moves once; holding for `350 ms` starts a five-frames-per-second repeat that
+  stops immediately on release, cancellation, or an unavailable direction.
 - Named checkpoints can be added at the playhead, renamed, selected directly,
   removed, and reached with previous/next navigation.
 - Checkpoints are source-session state. Replacing the video clears them;
@@ -63,8 +65,9 @@ remains independently scrollable.
 - 55 Vitest tests cover timestamp navigation, range behavior, pose quality,
   smoothing, transforms, worker compatibility, history, and state.
 - 22 Chrome Playwright tests cover the full analysis loop, calibration,
-  playback speeds, loop restart and disable behavior, frame jog, checkpoint
-  naming/navigation, source replacement, and responsive layout.
+  playback speeds, loop restart and disable behavior, single-step and
+  press-and-hold frame jog, release behavior, checkpoint naming/navigation,
+  source replacement, and responsive layout.
 - Real portrait and landscape fixtures were visually inspected at `1440×900`,
   `393×852`, and `852×393`.
 - The production TypeScript and Vite build passes.

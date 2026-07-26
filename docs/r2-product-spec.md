@@ -98,10 +98,11 @@ missing joint from being described as a pose-wide outage. See the
 
 Complete. The ordinary review surface now combines the existing coarse timeline
 and In/Out controls with `0.25×`, `0.5×`, and `1×` speed presets, selected-range
-looping, analyzed-presentation-frame jog, and editable in-memory checkpoints.
-Every action has a touch-sized control; desktop shortcuts provide the same fast
-path. Checkpoints deliberately reset with source replacement until local
-session persistence arrives in R3.
+looping, single-step and five-frames-per-second press-and-hold
+analyzed-presentation-frame jog, and editable in-memory checkpoints. Every
+action has a touch-sized control; desktop shortcuts provide the same fast path.
+Checkpoints deliberately reset with source replacement until local session
+persistence arrives in R3.
 
 ### R2C — Visual inspection
 

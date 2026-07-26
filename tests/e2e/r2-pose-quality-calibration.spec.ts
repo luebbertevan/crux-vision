@@ -246,13 +246,46 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
   });
   await page.getByRole('button', { name: 'Next analyzed frame' }).click();
   await expect(precisionControls).toHaveAttribute('data-current-frame-index', '0');
-  await page.getByRole('button', { name: 'Next analyzed frame' }).click();
+  const nextFrameButton = page.getByRole('button', {
+    name: 'Next analyzed frame',
+  });
+  await nextFrameButton.click();
   await expect(precisionControls).toHaveAttribute('data-current-frame-index', '1');
+
+  await nextFrameButton.hover();
+  await page.mouse.down();
+  await page.waitForTimeout(1_050);
+  await expect(nextFrameButton).toHaveAttribute(
+    'data-hold-repeating',
+    'true',
+  );
+  await page.mouse.up();
+  const indexAfterHold = Number(
+    await precisionControls.getAttribute('data-current-frame-index'),
+  );
+  expect(indexAfterHold).toBeGreaterThanOrEqual(5);
+  expect(indexAfterHold).toBeLessThanOrEqual(7);
+  await page.waitForTimeout(450);
+  await expect(precisionControls).toHaveAttribute(
+    'data-current-frame-index',
+    String(indexAfterHold),
+  );
+  await expect(nextFrameButton).toHaveAttribute(
+    'data-hold-repeating',
+    'false',
+  );
+
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await page.keyboard.press('ArrowRight');
-  await expect(precisionControls).toHaveAttribute('data-current-frame-index', '2');
+  await expect(precisionControls).toHaveAttribute(
+    'data-current-frame-index',
+    String(indexAfterHold + 1),
+  );
   await page.getByRole('button', { name: 'Previous analyzed frame' }).click();
-  await expect(precisionControls).toHaveAttribute('data-current-frame-index', '1');
+  await expect(precisionControls).toHaveAttribute(
+    'data-current-frame-index',
+    String(indexAfterHold),
+  );
 
   await page.getByText('Pose quality calibration').click();
   await expect(page.getByTestId('calibration-frame-navigator')).toContainText(

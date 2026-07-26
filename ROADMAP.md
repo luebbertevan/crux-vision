@@ -348,9 +348,11 @@ Build:
 
 R2B adds a compact precision-review strip beside the existing In/Out controls:
 `0.25×`, `0.5×`, and `1×` playback, selected-range looping, and previous/next
-analyzed-presentation-frame jog. The loop is checked against presented video
-frames when the browser exposes them, with media events as a fallback. It
-never changes the selected analysis range or pose timestamps.
+analyzed-presentation-frame jog. A tap or click moves one frame; holding either
+frame button begins a rapid jog at five analyzed frames per second and stops on
+release or pointer cancellation. The loop is checked against presented video
+frames when the browser exposes them, with media events as a fallback. It never
+changes the selected analysis range or pose timestamps.
 
 Named, editable checkpoints are stored in the current in-memory source session,
 ordered by presentation time, and cleared on source replacement. They support
