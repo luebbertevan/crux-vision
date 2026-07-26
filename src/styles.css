@@ -178,6 +178,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 }
 .file-button:hover { background: #c8ff89; }
 .file-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.file-button-label-short { display: none; }
 .file-button-compact {
   min-height: 44px;
   padding: 0 15px;
@@ -350,6 +351,14 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   letter-spacing: .17em;
   pointer-events: none;
 }
+.stage-topline-context {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+.stage-source-filename { display: none; }
 .pose-live-dot { display: inline-flex; align-items: center; gap: 7px; }
 .pose-live-dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 10px rgba(188,255,112,.8); }
 .stage-feedback {
@@ -947,13 +956,13 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
     position: absolute;
     z-index: 10;
     inset: 8px auto 10px 8px;
-    width: 108px;
+    width: clamp(108px, 9vw, 132px);
     min-height: 0;
     margin: 0;
-    padding: 8px;
+    padding: 10px;
     flex-direction: column;
     justify-content: flex-start;
-    gap: 12px;
+    gap: 14px;
     border: 1px solid rgba(255,255,255,.11);
     border-radius: 12px;
     background: rgba(15,18,15,.82);
@@ -963,46 +972,46 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .has-portrait-source .brand {
     width: 100%;
     flex-direction: column;
-    gap: 7px;
+    gap: 8px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,.09);
     text-align: center;
   }
-  .has-portrait-source .brand-mark { flex: 0 0 38px; }
+  .has-portrait-source .brand-mark {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+  }
   .has-portrait-source .brand > span:not(.brand-mark) { display: block; }
   .has-portrait-source .brand strong {
-    font-size: .7rem;
+    font-size: .82rem;
     line-height: 1.15;
   }
-  .has-portrait-source .brand small { display: none; }
-  .has-portrait-source .source-filename {
-    width: 100%;
-    min-height: 0;
-    flex: none;
-    margin: 0;
-    padding: 8px 2px;
+  .has-portrait-source .brand small {
     display: block;
-    color: #888e84;
-    font-size: .66rem;
-    line-height: 1.35;
-    letter-spacing: .01em;
-    text-align: center;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    writing-mode: horizontal-tb;
-    transform: none;
+    margin-top: 4px;
+    font-size: .48rem;
+    letter-spacing: .1em;
   }
+  .has-portrait-source .topbar > .source-filename { display: none; }
   .has-portrait-source .topbar-actions {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 10px;
   }
   .has-portrait-source .local-status {
     width: 100%;
-    height: 34px;
-    justify-content: center;
-    gap: 5px;
-    font-size: .62rem;
+    min-height: 30px;
+    padding-inline: 4px;
+    justify-content: flex-start;
+    gap: 6px;
+    color: #8e958a;
+    font-size: .56rem;
     line-height: 1.1;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    white-space: nowrap;
   }
   .has-portrait-source .local-status svg {
     flex: 0 0 auto;
@@ -1011,15 +1020,39 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   }
   .has-portrait-source .file-button-compact {
     width: 100%;
-    min-height: 42px;
+    min-height: 44px;
     gap: 6px;
-    padding: 6px;
+    padding: 7px 8px;
   }
-  .has-portrait-source .file-button-compact svg { flex: 0 0 auto; }
-  .has-portrait-source .file-button-compact span {
+  .has-portrait-source .file-button-compact svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+  }
+  .has-portrait-source .file-button-compact .file-button-label-full {
+    display: none;
+  }
+  .has-portrait-source .file-button-compact .file-button-label-short {
     display: inline;
-    font-size: .61rem;
+    font-size: .64rem;
     line-height: 1.1;
+    white-space: nowrap;
+  }
+  .has-portrait-source .stage-source-filename {
+    max-width: min(220px, 58%);
+    display: block;
+    padding: 4px 7px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 999px;
+    color: rgba(238,236,228,.68);
+    background: rgba(7,10,7,.38);
+    font-size: .56rem;
+    font-weight: 750;
+    letter-spacing: .02em;
+    text-overflow: ellipsis;
+    text-transform: none;
+    white-space: nowrap;
   }
   .has-portrait-source .review-main { position: relative; }
   .has-portrait-source .transport {

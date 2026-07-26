@@ -100,10 +100,12 @@ const isAbortError = (error: unknown) =>
 function FileButton({
   compact,
   label,
+  shortLabel,
   onFile,
 }: {
   compact?: boolean;
   label: string;
+  shortLabel?: string;
   onFile: (file: File) => void;
 }) {
   return (
@@ -113,7 +115,12 @@ function FileButton({
       title={compact ? label : undefined}
     >
       <UploadIcon />
-      <span>{label}</span>
+      <span className="file-button-label-full">{label}</span>
+      {shortLabel && (
+        <span className="file-button-label-short" aria-hidden="true">
+          {shortLabel}
+        </span>
+      )}
       <input
         data-testid="video-input"
         type="file"
@@ -950,7 +957,14 @@ export function App() {
 
         <div className="topbar-actions">
           <span className="local-status"><ShieldIcon /> Local only</span>
-          {source && <FileButton compact label="Replace video" onFile={(file) => void openFile(file)} />}
+          {source && (
+            <FileButton
+              compact
+              label="Replace video"
+              shortLabel="Replace"
+              onFile={(file) => void openFile(file)}
+            />
+          )}
         </div>
       </header>
 
@@ -1045,9 +1059,19 @@ export function App() {
                   visible={overlaysVisible}
                   onFeedbackChange={setStageFeedback}
                 />
-                <div className="stage-topline" aria-hidden="true">
+                <div className="stage-topline">
                   <span>REVIEW</span>
-                  {analysis.phase !== 'idle' && <span className="pose-live-dot">POSE</span>}
+                  <span className="stage-topline-context">
+                    {sourceIsPortrait && (
+                      <span
+                        className="stage-source-filename"
+                        title={source.metadata.fileName}
+                      >
+                        {source.metadata.fileName}
+                      </span>
+                    )}
+                    {analysis.phase !== 'idle' && <span className="pose-live-dot">POSE</span>}
+                  </span>
                 </div>
                 {feedbackLabel && <div className="stage-feedback">{feedbackLabel}</div>}
               </div>

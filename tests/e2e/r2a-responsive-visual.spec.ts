@@ -122,27 +122,27 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(Math.abs((portrait.stage.x + portrait.stage.right) / 2 - 720)).toBeLessThanOrEqual(1);
   expect(portrait.rail.x - portrait.stage.right).toBeGreaterThan(100);
   expect(portrait.topbar.right).toBeLessThan(portrait.stage.x);
-  expect(portrait.topbar.width).toBeGreaterThanOrEqual(108);
+  expect(portrait.topbar.width).toBeGreaterThanOrEqual(128);
   expect(portrait.topbar.height).toBeGreaterThanOrEqual(875);
   expectAligned(portrait.video, portrait.canvas);
   await expectPlaybackInputCentered(page);
-  await expect(page.locator('.source-filename')).toHaveText('portrait-test.MOV');
-  expect(
-    await page.locator('.source-filename').evaluate((element) => {
-      const style = window.getComputedStyle(element);
-      return {
-        writingMode: style.writingMode,
-        transform: style.transform,
-        whiteSpace: style.whiteSpace,
-      };
-    }),
-  ).toEqual({
-    writingMode: 'horizontal-tb',
-    transform: 'none',
-    whiteSpace: 'normal',
-  });
-  expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(38);
-  expect((await page.locator('.file-button-compact').boundingBox())?.width).toBeGreaterThanOrEqual(90);
+  await expect(page.locator('.topbar > .source-filename')).toBeHidden();
+  await expect(page.locator('.stage-source-filename')).toHaveText('portrait-test.MOV');
+  await expect(page.locator('.stage-source-filename')).toBeVisible();
+  await expect(page.locator('.file-button-label-short')).toHaveText('Replace');
+  await expect(page.locator('.file-button-label-short')).toBeVisible();
+  await expect(page.locator('.file-button-label-full')).toBeHidden();
+  expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(44);
+  expect((await page.locator('.file-button-compact').boundingBox())?.width).toBeGreaterThanOrEqual(105);
+  const railTypography = await page.evaluate(() => ({
+    brand: Number.parseFloat(
+      window.getComputedStyle(document.querySelector('.brand strong')!).fontSize,
+    ),
+    status: Number.parseFloat(
+      window.getComputedStyle(document.querySelector('.local-status')!).fontSize,
+    ),
+  }));
+  expect(railTypography.brand - railTypography.status).toBeGreaterThanOrEqual(3);
   const railStack = await page.evaluate(() => {
     const bounds = (selector: string) => {
       const rect = document.querySelector(selector)!.getBoundingClientRect();
@@ -151,19 +151,15 @@ test('desktop portrait and landscape stages use the available review surface', a
     return {
       rail: bounds('.topbar'),
       brand: bounds('.brand'),
-      filename: bounds('.source-filename'),
       localStatus: bounds('.local-status'),
       replace: bounds('.file-button-compact'),
     };
   });
-  expect(railStack.filename.y - railStack.brand.bottom).toBeLessThanOrEqual(24);
-  expect(
-    railStack.localStatus.y - railStack.filename.bottom,
-  ).toBeLessThanOrEqual(24);
+  expect(railStack.localStatus.y - railStack.brand.bottom).toBeLessThanOrEqual(24);
   expect(
     railStack.replace.y - railStack.localStatus.bottom,
   ).toBeLessThanOrEqual(12);
-  expect(railStack.replace.bottom - railStack.rail.y).toBeLessThanOrEqual(240);
+  expect(railStack.replace.bottom - railStack.rail.y).toBeLessThanOrEqual(220);
   expect(
     (await page.getByRole('button', { name: /Play video|Pause video/ }).boundingBox())?.height,
   ).toBeLessThanOrEqual(36);
@@ -185,6 +181,9 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(landscape.topbar.width).toBeGreaterThan(1_000);
   expect(landscape.transport.y).toBeGreaterThanOrEqual(landscape.stage.bottom);
   expectAligned(landscape.video, landscape.canvas);
+  await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
+  await expect(page.locator('.file-button-label-full')).toBeVisible();
+  await expect(page.locator('.file-button-label-short')).toBeHidden();
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('desktop-landscape-imported.png'),

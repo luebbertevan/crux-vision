@@ -70,11 +70,11 @@ pending-analysis, and application-error messages must remain distinct.
 
 ### Desktop (981 px and wider)
 
-- Portrait review replaces the horizontal top bar with a 108 px left utility
-  rail containing a compact top-aligned stack: the Crux Vision mark, a normally
-  oriented wrapping filename, local-only status, and labeled Replace action.
-  This frees the top edge for the video without rotating, compressing, or
-  vertically distributing the rail content.
+- Portrait review replaces the horizontal top bar with a responsive 108–132 px
+  left utility rail. A larger brand lockup and small product subtitle are
+  separated from quieter local-only and Replace utilities; the current
+  filename moves to a truncated pill on the stage's top edge. This frees the
+  top edge for the video without giving every rail item equal visual weight.
 - Landscape review retains the compact horizontal top bar. There is no separate
   stage heading or redundant duration above the video in either orientation.
 - The video stage is the dominant surface. Its exact dimensions fit the upright
@@ -450,7 +450,8 @@ video.
   during scroll; controls may continue below the initial viewport.
 - At 1440×900, desktop portrait review renders the fixture at approximately
   496×882 px, centered on the overall review surface with the right control rail
-  clear. Its 108 px left utility rail replaces the top bar, and a translucent
+  clear. Its responsive 108–132 px left utility rail replaces the top bar, and
+  the filename appears on the stage rather than inside the rail. A translucent
   42 px transport with a 34 px play button overlays the bottom of the video.
   The landscape fixture remains approximately 1072×603 px in the flexible main
   column with the compact horizontal top bar and a 46 px transport below it.
