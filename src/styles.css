@@ -1007,6 +1007,11 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 }
 
 @media (min-width: 981px) {
+  .has-landscape-source .source-filename {
+    margin-right: 0;
+    text-align: right;
+  }
+
   .has-portrait-source.app-shell { position: relative; }
 
   .has-portrait-source .topbar {
