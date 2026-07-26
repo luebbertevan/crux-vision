@@ -56,6 +56,8 @@ const getReviewBounds = async (page: Page) =>
       transport: bounds('.transport'),
       topbar: bounds('.topbar'),
       rail: bounds('.control-rail'),
+      rangeCard: bounds('.range-section'),
+      poseCard: bounds('.analysis-section'),
       main: bounds('.review-main'),
     };
   });
@@ -120,7 +122,8 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(portrait.transport.y).toBeGreaterThanOrEqual(portrait.stage.bottom - 55);
   expect(portrait.transport.bottom).toBeLessThanOrEqual(portrait.stage.bottom - 4);
   expect(Math.abs((portrait.stage.x + portrait.stage.right) / 2 - 720)).toBeLessThanOrEqual(1);
-  expect(portrait.rail.x - portrait.stage.right).toBeGreaterThan(70);
+  expect(portrait.rangeCard.right).toBeLessThan(portrait.stage.x);
+  expect(portrait.poseCard.x - portrait.stage.right).toBeGreaterThan(70);
   expect(portrait.topbar.right).toBeLessThan(portrait.stage.x);
   expect(portrait.topbar.width).toBeGreaterThanOrEqual(220);
   expect(portrait.topbar.height).toBeLessThanOrEqual(140);
@@ -137,7 +140,7 @@ test('desktop portrait and landscape stages use the available review surface', a
   await expect(page.locator('.analysis-section [data-testid="analysis-status"]')).toHaveCount(0);
   await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
   await expect(page.locator('.file-button-label-full')).toBeVisible();
-  expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(38);
+  expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(47);
   const portraitShell = await page.locator('.topbar').evaluate((element) => {
     const styles = window.getComputedStyle(element);
     return {

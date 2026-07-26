@@ -75,10 +75,12 @@ pending-analysis, and application-error messages must remain distinct.
   landscape header without secondary utilities. The Clip selection card uses
   Analysis range as its title and holds readiness plus the analysis actions;
   Replace video sits beneath Analyze range and matches that action's full width
-  and height. At laptop widths of 1100 px and above, both right-side cards and
-  their complete contents render at 125% scale in a 380 px rail. Narrower
-  desktop and mobile layouts keep their established sizing. The current
-  filename moves to a truncated pill on the stage's top edge. At compact
+  and height. At laptop widths of 1100 px and above, both review cards and
+  their complete contents render at 125% scale as 380 px-wide surfaces. Narrower
+  desktop and mobile layouts keep their established sizing. At wide portrait
+  widths, Clip selection moves into the open space beneath a 125%-scale brand
+  lockup at the left of the player; On-device pose remains at the right. The
+  current filename moves to a truncated pill on the stage's top edge. At compact
   desktop widths, the stage aligns to the
   right of its review column so the wider brand does not reduce portrait video
   height. This frees the top edge without giving sparse utilities the weight of

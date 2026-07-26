@@ -133,8 +133,10 @@ utilities. Analysis readiness and actions live with the range controls in the
 Clip selection card: Replace video sits beneath Analyze range and matches the
 primary action's full width and height. At laptop widths of 1100 px and above,
 the Clip selection and On-device pose cards and their complete contents render
-at 125% scale in a 380 px rail; narrower desktop and mobile layouts retain their
-established sizing. The filename moves to a
+at 125% scale as 380 px-wide surfaces; narrower desktop and mobile layouts retain their
+established sizing. For wide portrait review, Clip selection uses the open
+space beneath an enlarged brand lockup at the left of the player, while
+On-device pose remains at the right. The filename moves to a
 quiet pill on the stage's top edge. At compact desktop
 widths the stage aligns to the right of its review column so the wider brand
 does not reduce portrait video height. A 42 px translucent transport overlays

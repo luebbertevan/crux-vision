@@ -950,8 +950,29 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .review-workspace.is-portrait .review-main { width: 100%; }
   .review-workspace.is-portrait .control-rail {
     position: absolute;
-    inset: 0 0 auto auto;
+    inset: 0;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    pointer-events: none;
+    zoom: 1;
+  }
+  .review-workspace.is-portrait .range-section,
+  .review-workspace.is-portrait .analysis-section {
+    position: absolute;
     width: 304px;
+    pointer-events: auto;
+    zoom: 1.25;
+  }
+  .review-workspace.is-portrait .range-section {
+    top: 74px;
+    left: 0;
+  }
+  .review-workspace.is-portrait .analysis-section {
+    top: 0;
+    right: 0;
+    max-height: calc(80dvh - 32px);
+    overflow-y: auto;
   }
 }
 
@@ -983,6 +1004,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
     padding: 0;
     border: 0;
     text-align: left;
+    zoom: 1.25;
   }
   .has-portrait-source .brand-mark {
     width: 38px;
