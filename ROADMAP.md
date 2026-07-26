@@ -126,18 +126,21 @@ video during scroll; secondary controls continue below when necessary. At wide
 desktop widths, a portrait stage is centered in the full review surface while
 the 330 px control rail occupies otherwise unused side space; landscape keeps a
 flexible main column beside the rail. At narrow widths, the rail follows the
-stage and transport in document order. Desktop portrait review uses a
-responsive 108–132 px left utility rail with a visually separated, top-aligned
-brand and utility stack instead of a top bar. The filename moves to a quiet
-pill on the stage's top edge, and a 42 px translucent transport overlays the
-transport inside the bottom of the stage, allowing the video to begin at the
-8 px shell gutter. Desktop landscape retains the compact horizontal top bar
+stage and transport in document order. Desktop portrait review uses an unboxed
+190–230 px side utility cluster instead of a top bar. Its horizontal
+icon-and-wordmark lockup matches the landscape header, with a lightweight
+Local only and Replace video stack beneath the complete brand lockup. The
+filename moves to a quiet pill on the stage's top edge. At compact desktop
+widths the stage aligns to the right of its review column so the wider brand
+does not reduce portrait video height. A 42 px translucent transport overlays
+the bottom of the stage, allowing the video to begin at the 8 px shell gutter.
+Desktop landscape retains the compact horizontal top bar
 and the 46 px transport below the stage. At the reference viewports, the
 portrait stage is approximately 496×882 px at 1440×900 and remains
 393×698.5 px at 393×852; desktop landscape is approximately 1072×603 px. The
 852×393 layout keeps both portrait and landscape media plus 44 px basic
 transport targets inside the viewport without horizontal overflow. The
-left utility rail remains desktop-only; portrait phone review now shares the
+side utility cluster remains desktop-only; portrait phone review now shares the
 translucent, inset over-video transport while retaining 44 px touch targets and
 its existing compact header. Landscape phone transport remains below the stage
 to avoid obscuring a short video surface.

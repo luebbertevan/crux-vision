@@ -100,12 +100,10 @@ const isAbortError = (error: unknown) =>
 function FileButton({
   compact,
   label,
-  shortLabel,
   onFile,
 }: {
   compact?: boolean;
   label: string;
-  shortLabel?: string;
   onFile: (file: File) => void;
 }) {
   return (
@@ -116,11 +114,6 @@ function FileButton({
     >
       <UploadIcon />
       <span className="file-button-label-full">{label}</span>
-      {shortLabel && (
-        <span className="file-button-label-short" aria-hidden="true">
-          {shortLabel}
-        </span>
-      )}
       <input
         data-testid="video-input"
         type="file"
@@ -961,7 +954,6 @@ export function App() {
             <FileButton
               compact
               label="Replace video"
-              shortLabel="Replace"
               onFile={(file) => void openFile(file)}
             />
           )}

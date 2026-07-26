@@ -70,11 +70,14 @@ pending-analysis, and application-error messages must remain distinct.
 
 ### Desktop (981 px and wider)
 
-- Portrait review replaces the horizontal top bar with a responsive 108–132 px
-  left utility rail. A larger brand lockup and small product subtitle are
-  separated from quieter local-only and Replace utilities; the current
-  filename moves to a truncated pill on the stage's top edge. This frees the
-  top edge for the video without giving every rail item equal visual weight.
+- Portrait review replaces the horizontal top bar with an unboxed 190–230 px
+  side utility cluster. Its icon-left, two-line brand lockup matches the
+  landscape header, while a quieter Local only and Replace video stack sits
+  beneath the complete lockup; the current filename moves to a truncated pill
+  on the stage's top edge. At compact desktop widths, the stage aligns to the
+  right of its review column so the wider brand does not reduce portrait video
+  height. This frees the top edge without giving sparse utilities the weight of
+  a full-height rail.
 - Landscape review retains the compact horizontal top bar. There is no separate
   stage heading or redundant duration above the video in either orientation.
 - The video stage is the dominant surface. Its exact dimensions fit the upright
@@ -450,8 +453,8 @@ video.
   during scroll; controls may continue below the initial viewport.
 - At 1440×900, desktop portrait review renders the fixture at approximately
   496×882 px, centered on the overall review surface with the right control rail
-  clear. Its responsive 108–132 px left utility rail replaces the top bar, and
-  the filename appears on the stage rather than inside the rail. A translucent
+  clear. Its unboxed 190–230 px side utility cluster replaces the top bar, and
+  the filename appears on the stage rather than inside the cluster. A translucent
   42 px transport with a 34 px play button overlays the bottom of the video.
   The landscape fixture remains approximately 1072×603 px in the flexible main
   column with the compact horizontal top bar and a 46 px transport below it.
@@ -464,13 +467,13 @@ video.
   portrait and landscape
   fixtures reserve 206 px of stage height and keep a full-column transport dock
   with 44 px targets inside the viewport without horizontal overflow. The
-  portrait phone transport is inset over the video; the desktop left utility
-  rail remains restricted to widths above 980 px.
+  portrait phone transport is inset over the video; the desktop side utility
+  cluster remains restricted to widths above 980 px.
 - Source errors remain in desktop height measurement. On narrow portrait
   screens the stage stays full-width and basic transport remains overlaid at its
   bottom edge. Long file names remain
-  ellipsized in the desktop landscape top bar and clipped within the portrait
-  utility rail. Analysis cards
+  ellipsized in the desktop landscape top bar and on the portrait stage.
+  Analysis cards
   remain below the stage and independently scrollable in the landscape-phone
   rail.
 - The viewport meta lock, `touch-action`, and iOS gesture-event guard disable

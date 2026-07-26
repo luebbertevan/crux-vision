@@ -122,18 +122,30 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(Math.abs((portrait.stage.x + portrait.stage.right) / 2 - 720)).toBeLessThanOrEqual(1);
   expect(portrait.rail.x - portrait.stage.right).toBeGreaterThan(100);
   expect(portrait.topbar.right).toBeLessThan(portrait.stage.x);
-  expect(portrait.topbar.width).toBeGreaterThanOrEqual(128);
-  expect(portrait.topbar.height).toBeGreaterThanOrEqual(875);
+  expect(portrait.topbar.width).toBeGreaterThanOrEqual(220);
+  expect(portrait.topbar.height).toBeLessThanOrEqual(140);
   expectAligned(portrait.video, portrait.canvas);
   await expectPlaybackInputCentered(page);
   await expect(page.locator('.topbar > .source-filename')).toBeHidden();
   await expect(page.locator('.stage-source-filename')).toHaveText('portrait-test.MOV');
   await expect(page.locator('.stage-source-filename')).toBeVisible();
-  await expect(page.locator('.file-button-label-short')).toHaveText('Replace');
-  await expect(page.locator('.file-button-label-short')).toBeVisible();
-  await expect(page.locator('.file-button-label-full')).toBeHidden();
-  expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(44);
-  expect((await page.locator('.file-button-compact').boundingBox())?.width).toBeGreaterThanOrEqual(105);
+  await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
+  await expect(page.locator('.file-button-label-full')).toBeVisible();
+  expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(38);
+  expect((await page.locator('.file-button-compact').boundingBox())?.width).toBeGreaterThanOrEqual(120);
+  const portraitShell = await page.locator('.topbar').evaluate((element) => {
+    const styles = window.getComputedStyle(element);
+    return {
+      background: styles.backgroundColor,
+      border: styles.borderTopWidth,
+      shadow: styles.boxShadow,
+    };
+  });
+  expect(portraitShell).toEqual({
+    background: 'rgba(0, 0, 0, 0)',
+    border: '0px',
+    shadow: 'none',
+  });
   const railTypography = await page.evaluate(() => ({
     brand: Number.parseFloat(
       window.getComputedStyle(document.querySelector('.brand strong')!).fontSize,
@@ -142,7 +154,7 @@ test('desktop portrait and landscape stages use the available review surface', a
       window.getComputedStyle(document.querySelector('.local-status')!).fontSize,
     ),
   }));
-  expect(railTypography.brand - railTypography.status).toBeGreaterThanOrEqual(3);
+  expect(railTypography.brand - railTypography.status).toBeGreaterThanOrEqual(4);
   const railStack = await page.evaluate(() => {
     const bounds = (selector: string) => {
       const rect = document.querySelector(selector)!.getBoundingClientRect();
@@ -183,7 +195,6 @@ test('desktop portrait and landscape stages use the available review surface', a
   expectAligned(landscape.video, landscape.canvas);
   await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
   await expect(page.locator('.file-button-label-full')).toBeVisible();
-  await expect(page.locator('.file-button-label-short')).toBeHidden();
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('desktop-landscape-imported.png'),
@@ -206,6 +217,12 @@ test('desktop portrait and landscape stages use the available review surface', a
   );
   expect(compactDesktopPortrait.transport.y).toBeGreaterThanOrEqual(
     compactDesktopPortrait.stage.bottom - 55,
+  );
+  expect(compactDesktopPortrait.transport.right).toBeLessThanOrEqual(
+    compactDesktopPortrait.stage.right - 7,
+  );
+  expect(compactDesktopPortrait.transport.right).toBeGreaterThanOrEqual(
+    compactDesktopPortrait.stage.right - 9,
   );
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
