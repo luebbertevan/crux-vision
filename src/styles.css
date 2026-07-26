@@ -890,6 +890,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 .analysis-status-ready .status-icon { color: var(--lime); background: #252d20; }
 .analysis-status strong { display: block; color: #dedbd1; font-size: .72rem; }
 .analysis-status small { display: block; margin-top: 3px; color: #73786f; font-size: .58rem; }
+.range-section > .analysis-status { margin-top: 15px; }
 .status-percent { color: var(--lime); font-size: .7rem; font-weight: 850; }
 .analysis-progress { height: 3px; margin: 9px 2px 0; overflow: hidden; border-radius: 99px; background: #31362f; }
 .analysis-progress span { display: block; height: 100%; border-radius: inherit; background: var(--lime); }

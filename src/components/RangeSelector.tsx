@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 import {
   microsecondsToSeconds,
@@ -13,6 +13,7 @@ type RangeSelectorProps = {
   playheadMicroseconds: number;
   progress: number;
   disabled?: boolean;
+  children?: ReactNode;
   onChange: (range: AnalysisRange) => void;
 };
 
@@ -30,6 +31,7 @@ export function RangeSelector({
   playheadMicroseconds,
   progress,
   disabled = false,
+  children,
   onChange,
 }: RangeSelectorProps) {
   const duration = Math.max(1, durationMicroseconds);
@@ -59,8 +61,8 @@ export function RangeSelector({
     <section className="range-section" aria-labelledby="range-title">
       <div className="section-heading">
         <div>
-          <span className="section-kicker">Analysis range</span>
-          <h2 id="range-title">Choose the move</h2>
+          <span className="section-kicker">Clip selection</span>
+          <h2 id="range-title">Analysis range</h2>
         </div>
         <span className="range-duration">
           {(microsecondsToSeconds(range.endMicroseconds - range.startMicroseconds)).toFixed(1)}s
@@ -138,6 +140,8 @@ export function RangeSelector({
           Set end
         </button>
       </div>
+
+      {children}
     </section>
   );
 }

@@ -1120,7 +1120,103 @@ export function App() {
                 progress={progress}
                 disabled={opening}
                 onChange={changeRange}
-              />
+              >
+                <div
+                  className={`analysis-status analysis-status-${analysis.phase}`}
+                  aria-live="polite"
+                  data-testid="analysis-status"
+                >
+                  <span className="status-icon"><SparkIcon /></span>
+                  <span>
+                    <strong>{analysisStatus}</strong>
+                    <small>
+                      {analysis.delegate
+                        ? `${modelLabel} · ${analysis.delegate}`
+                        : `${POSE_MODELS[selectedModel].label} · 30 samples/sec`}
+                    </small>
+                  </span>
+                  {analysis.total > 0 && (
+                    <span className="status-percent">{Math.round(progress * 100)}%</span>
+                  )}
+                </div>
+
+                {analysis.total > 0 && (
+                  <div
+                    className="analysis-progress"
+                    role="progressbar"
+                    aria-label="Analysis progress"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(progress * 100)}
+                    data-testid="analysis-progress"
+                  >
+                    <span style={{ width: `${Math.min(100, progress * 100)}%` }} />
+                  </div>
+                )}
+
+                {analysis.error && (
+                  <>
+                    <p className="analysis-error" role="alert">{analysis.error}</p>
+                    {analysis.errorDetails && (
+                      <details className="analysis-diagnostics">
+                        <summary>Diagnostic details</summary>
+                        <pre>{analysis.errorDetails}</pre>
+                        <button
+                          type="button"
+                          className="button-subtle"
+                          onClick={() =>
+                            void navigator.clipboard?.writeText(analysis.errorDetails ?? '')
+                          }
+                        >
+                          Copy diagnostics
+                        </button>
+                      </details>
+                    )}
+                  </>
+                )}
+                {!source.metadata.browserCanDecode && (
+                  <p className="analysis-error" role="alert">
+                    This browser can preview the clip, but cannot decode frames for local analysis.
+                  </p>
+                )}
+
+                <div className="analysis-actions">
+                  {isRunning(analysis.phase) ? (
+                    <button type="button" className="button-secondary" onClick={cancelAnalysis}>
+                      Cancel analysis
+                    </button>
+                  ) : analysis.phase === 'cancelled' || analysis.phase === 'error' ? (
+                    <>
+                      <button
+                        type="button"
+                        className="button-primary"
+                        disabled={!source.metadata.browserCanDecode}
+                        onClick={() => runAnalysis(true)}
+                      >
+                        <SparkIcon /> Resume analysis
+                      </button>
+                      <button type="button" className="button-subtle" onClick={() => runAnalysis(false)}>
+                        Start over
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="button-primary"
+                      disabled={!sourceReady || !source.metadata.browserCanDecode}
+                      onClick={() => runAnalysis(false)}
+                    >
+                      <SparkIcon /> {analysis.phase === 'ready' ? 'Analyze again' : 'Analyze range'}
+                    </button>
+                  )}
+                  <FileButton
+                    compact
+                    label="Replace video"
+                    onFile={(file) => void openFile(file)}
+                  />
+                </div>
+                <p className="privacy-note"><ShieldIcon /> Video and pose stay on this device.</p>
+              </RangeSelector>
             )}
 
             <section className="analysis-section" aria-labelledby="analysis-title">
@@ -1184,101 +1280,6 @@ export function App() {
                 onWorkspaceToggle={setCalibrationWorkspaceOpen}
               />
 
-              <div
-                className={`analysis-status analysis-status-${analysis.phase}`}
-                aria-live="polite"
-                data-testid="analysis-status"
-              >
-                <span className="status-icon"><SparkIcon /></span>
-                <span>
-                  <strong>{analysisStatus}</strong>
-                  <small>
-                    {analysis.delegate
-                      ? `${modelLabel} · ${analysis.delegate}`
-                      : `${POSE_MODELS[selectedModel].label} · 30 samples/sec`}
-                  </small>
-                </span>
-                {analysis.total > 0 && (
-                  <span className="status-percent">{Math.round(progress * 100)}%</span>
-                )}
-              </div>
-
-              {analysis.total > 0 && (
-                <div
-                  className="analysis-progress"
-                  role="progressbar"
-                  aria-label="Analysis progress"
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={Math.round(progress * 100)}
-                  data-testid="analysis-progress"
-                >
-                  <span style={{ width: `${Math.min(100, progress * 100)}%` }} />
-                </div>
-              )}
-
-              {analysis.error && (
-                <>
-                  <p className="analysis-error" role="alert">{analysis.error}</p>
-                  {analysis.errorDetails && (
-                    <details className="analysis-diagnostics">
-                      <summary>Diagnostic details</summary>
-                      <pre>{analysis.errorDetails}</pre>
-                      <button
-                        type="button"
-                        className="button-subtle"
-                        onClick={() =>
-                          void navigator.clipboard?.writeText(analysis.errorDetails ?? '')
-                        }
-                      >
-                        Copy diagnostics
-                      </button>
-                    </details>
-                  )}
-                </>
-              )}
-              {!source.metadata.browserCanDecode && (
-                <p className="analysis-error" role="alert">
-                  This browser can preview the clip, but cannot decode frames for local analysis.
-                </p>
-              )}
-
-              <div className="analysis-actions">
-                {isRunning(analysis.phase) ? (
-                  <button type="button" className="button-secondary" onClick={cancelAnalysis}>
-                    Cancel analysis
-                  </button>
-                ) : analysis.phase === 'cancelled' || analysis.phase === 'error' ? (
-                  <>
-                    <button
-                      type="button"
-                      className="button-primary"
-                      disabled={!source.metadata.browserCanDecode}
-                      onClick={() => runAnalysis(true)}
-                    >
-                      <SparkIcon /> Resume analysis
-                    </button>
-                    <button type="button" className="button-subtle" onClick={() => runAnalysis(false)}>
-                      Start over
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    className="button-primary"
-                    disabled={!sourceReady || !source.metadata.browserCanDecode}
-                    onClick={() => runAnalysis(false)}
-                  >
-                    <SparkIcon /> {analysis.phase === 'ready' ? 'Analyze again' : 'Analyze range'}
-                  </button>
-                )}
-                <FileButton
-                  compact
-                  label="Replace video"
-                  onFile={(file) => void openFile(file)}
-                />
-              </div>
-              <p className="privacy-note"><ShieldIcon /> Video and pose stay on this device.</p>
             </section>
           </aside>
         </section>

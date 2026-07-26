@@ -129,8 +129,9 @@ flexible main column beside the rail. At narrow widths, the rail follows the
 stage and transport in document order. Desktop portrait review uses an unboxed
 190–230 px side brand lockup instead of a top bar. Its horizontal
 icon-and-wordmark lockup matches the landscape header without secondary
-utilities. Replace video moves beneath Analyze range in the analysis card,
-matching the primary action's full width and height. The filename moves to a
+utilities. Analysis readiness and actions live with the range controls in the
+Clip selection card: Replace video sits beneath Analyze range and matches the
+primary action's full width and height. The filename moves to a
 quiet pill on the stage's top edge. At compact desktop
 widths the stage aligns to the right of its review column so the wider brand
 does not reduce portrait video height. A 42 px translucent transport overlays

@@ -131,6 +131,10 @@ test('desktop portrait and landscape stages use the available review surface', a
   await expect(page.locator('.stage-source-filename')).toBeVisible();
   await expect(page.locator('.topbar-actions')).toHaveCount(0);
   await expect(page.getByText('Local only')).toHaveCount(0);
+  await expect(page.locator('.range-section .section-kicker')).toHaveText('Clip selection');
+  await expect(page.locator('.range-section h2')).toHaveText('Analysis range');
+  await expect(page.locator('.range-section [data-testid="analysis-status"]')).toBeVisible();
+  await expect(page.locator('.analysis-section [data-testid="analysis-status"]')).toHaveCount(0);
   await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
   await expect(page.locator('.file-button-label-full')).toBeVisible();
   expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(38);
@@ -149,7 +153,7 @@ test('desktop portrait and landscape stages use the available review surface', a
   });
   const [analyzeBounds, replaceBounds] = await Promise.all([
     page.getByRole('button', { name: 'Analyze range' }).boundingBox(),
-    page.locator('.analysis-actions .file-button-compact').boundingBox(),
+    page.locator('.range-section .analysis-actions .file-button-compact').boundingBox(),
   ]);
   expect(analyzeBounds).not.toBeNull();
   expect(replaceBounds).not.toBeNull();
@@ -179,7 +183,7 @@ test('desktop portrait and landscape stages use the available review surface', a
   expectAligned(landscape.video, landscape.canvas);
   await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
   await expect(page.locator('.file-button-label-full')).toBeVisible();
-  await expect(page.locator('.analysis-actions .file-button-compact')).toBeVisible();
+  await expect(page.locator('.range-section .analysis-actions .file-button-compact')).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('desktop-landscape-imported.png'),

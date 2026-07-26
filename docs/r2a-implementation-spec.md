@@ -72,9 +72,10 @@ pending-analysis, and application-error messages must remain distinct.
 
 - Portrait review replaces the horizontal top bar with an unboxed 190–230 px
   side brand lockup. Its icon-left, two-line treatment matches the
-  landscape header without secondary utilities. Replace video moves beneath
-  Analyze range in the analysis card and matches that action's full width and
-  height; the current filename moves to a truncated pill on the stage's top
+  landscape header without secondary utilities. The Clip selection card uses
+  Analysis range as its title and holds readiness plus the analysis actions;
+  Replace video sits beneath Analyze range and matches that action's full width
+  and height. The current filename moves to a truncated pill on the stage's top
   edge. At compact desktop widths, the stage aligns to the
   right of its review column so the wider brand does not reduce portrait video
   height. This frees the top edge without giving sparse utilities the weight of
