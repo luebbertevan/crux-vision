@@ -71,10 +71,11 @@ pending-analysis, and application-error messages must remain distinct.
 ### Desktop (981 px and wider)
 
 - Portrait review replaces the horizontal top bar with an unboxed 190–230 px
-  side utility cluster. Its icon-left, two-line brand lockup matches the
-  landscape header, while a quieter Local only and Replace video stack sits
-  beneath the complete lockup; the current filename moves to a truncated pill
-  on the stage's top edge. At compact desktop widths, the stage aligns to the
+  side brand lockup. Its icon-left, two-line treatment matches the
+  landscape header without secondary utilities. Replace video moves beneath
+  Analyze range in the analysis card and matches that action's full width and
+  height; the current filename moves to a truncated pill on the stage's top
+  edge. At compact desktop widths, the stage aligns to the
   right of its review column so the wider brand does not reduce portrait video
   height. This frees the top edge without giving sparse utilities the weight of
   a full-height rail.
@@ -453,8 +454,8 @@ video.
   during scroll; controls may continue below the initial viewport.
 - At 1440×900, desktop portrait review renders the fixture at approximately
   496×882 px, centered on the overall review surface with the right control rail
-  clear. Its unboxed 190–230 px side utility cluster replaces the top bar, and
-  the filename appears on the stage rather than inside the cluster. A translucent
+  clear. Its unboxed 190–230 px side brand lockup replaces the top bar, and
+  the filename appears on the stage rather than inside the lockup. A translucent
   42 px transport with a 34 px play button overlays the bottom of the video.
   The landscape fixture remains approximately 1072×603 px in the flexible main
   column with the compact horizontal top bar and a 46 px transport below it.
@@ -467,8 +468,8 @@ video.
   portrait and landscape
   fixtures reserve 206 px of stage height and keep a full-column transport dock
   with 44 px targets inside the viewport without horizontal overflow. The
-  portrait phone transport is inset over the video; the desktop side utility
-  cluster remains restricted to widths above 980 px.
+  portrait phone transport is inset over the video; the desktop side brand
+  lockup remains restricted to widths above 980 px.
 - Source errors remain in desktop height measurement. On narrow portrait
   screens the stage stays full-width and basic transport remains overlaid at its
   bottom edge. Long file names remain

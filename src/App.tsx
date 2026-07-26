@@ -947,17 +947,6 @@ export function App() {
             {source.metadata.fileName}
           </span>
         )}
-
-        <div className="topbar-actions">
-          <span className="local-status"><ShieldIcon /> Local only</span>
-          {source && (
-            <FileButton
-              compact
-              label="Replace video"
-              onFile={(file) => void openFile(file)}
-            />
-          )}
-        </div>
       </header>
 
       {sourceError && (
@@ -1283,6 +1272,11 @@ export function App() {
                     <SparkIcon /> {analysis.phase === 'ready' ? 'Analyze again' : 'Analyze range'}
                   </button>
                 )}
+                <FileButton
+                  compact
+                  label="Replace video"
+                  onFile={(file) => void openFile(file)}
+                />
               </div>
               <p className="privacy-note"><ShieldIcon /> Video and pose stay on this device.</p>
             </section>

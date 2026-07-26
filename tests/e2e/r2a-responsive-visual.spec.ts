@@ -129,10 +129,11 @@ test('desktop portrait and landscape stages use the available review surface', a
   await expect(page.locator('.topbar > .source-filename')).toBeHidden();
   await expect(page.locator('.stage-source-filename')).toHaveText('portrait-test.MOV');
   await expect(page.locator('.stage-source-filename')).toBeVisible();
+  await expect(page.locator('.topbar-actions')).toHaveCount(0);
+  await expect(page.getByText('Local only')).toHaveCount(0);
   await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
   await expect(page.locator('.file-button-label-full')).toBeVisible();
   expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(38);
-  expect((await page.locator('.file-button-compact').boundingBox())?.width).toBeGreaterThanOrEqual(120);
   const portraitShell = await page.locator('.topbar').evaluate((element) => {
     const styles = window.getComputedStyle(element);
     return {
@@ -146,32 +147,15 @@ test('desktop portrait and landscape stages use the available review surface', a
     border: '0px',
     shadow: 'none',
   });
-  const railTypography = await page.evaluate(() => ({
-    brand: Number.parseFloat(
-      window.getComputedStyle(document.querySelector('.brand strong')!).fontSize,
-    ),
-    status: Number.parseFloat(
-      window.getComputedStyle(document.querySelector('.local-status')!).fontSize,
-    ),
-  }));
-  expect(railTypography.brand - railTypography.status).toBeGreaterThanOrEqual(4);
-  const railStack = await page.evaluate(() => {
-    const bounds = (selector: string) => {
-      const rect = document.querySelector(selector)!.getBoundingClientRect();
-      return { y: rect.y, bottom: rect.bottom };
-    };
-    return {
-      rail: bounds('.topbar'),
-      brand: bounds('.brand'),
-      localStatus: bounds('.local-status'),
-      replace: bounds('.file-button-compact'),
-    };
-  });
-  expect(railStack.localStatus.y - railStack.brand.bottom).toBeLessThanOrEqual(24);
-  expect(
-    railStack.replace.y - railStack.localStatus.bottom,
-  ).toBeLessThanOrEqual(12);
-  expect(railStack.replace.bottom - railStack.rail.y).toBeLessThanOrEqual(220);
+  const [analyzeBounds, replaceBounds] = await Promise.all([
+    page.getByRole('button', { name: 'Analyze range' }).boundingBox(),
+    page.locator('.analysis-actions .file-button-compact').boundingBox(),
+  ]);
+  expect(analyzeBounds).not.toBeNull();
+  expect(replaceBounds).not.toBeNull();
+  expect(Math.abs(replaceBounds!.width - analyzeBounds!.width)).toBeLessThanOrEqual(0.5);
+  expect(Math.abs(replaceBounds!.height - analyzeBounds!.height)).toBeLessThanOrEqual(0.5);
+  expect(replaceBounds!.y).toBeGreaterThan(analyzeBounds!.y + analyzeBounds!.height);
   expect(
     (await page.getByRole('button', { name: /Play video|Pause video/ }).boundingBox())?.height,
   ).toBeLessThanOrEqual(36);
@@ -195,6 +179,7 @@ test('desktop portrait and landscape stages use the available review surface', a
   expectAligned(landscape.video, landscape.canvas);
   await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
   await expect(page.locator('.file-button-label-full')).toBeVisible();
+  await expect(page.locator('.analysis-actions .file-button-compact')).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('desktop-landscape-imported.png'),

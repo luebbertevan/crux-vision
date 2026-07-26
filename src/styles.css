@@ -148,17 +148,6 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   white-space: nowrap;
 }
 
-.topbar-actions { display: flex; align-items: center; gap: 12px; }
-.local-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: #a8aca2;
-  font-size: .77rem;
-  font-weight: 700;
-}
-.local-status svg { color: var(--lime); }
-
 .file-button {
   position: relative;
   display: inline-flex;
@@ -933,6 +922,12 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 }
 .analysis-diagnostics .button-subtle { width: 100%; }
 .analysis-actions { display: grid; gap: 8px; margin-top: 15px; }
+.analysis-actions .file-button-compact {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 9px;
+  font-size: .76rem;
+}
 .privacy-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 12px 0 0; color: #676c64; font-size: .58rem; }
 
 @media (min-width: 1200px) {
@@ -995,48 +990,6 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
     letter-spacing: .12em;
   }
   .has-portrait-source .topbar > .source-filename { display: none; }
-  .has-portrait-source .topbar-actions {
-    width: auto;
-    margin-left: 0;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 9px;
-  }
-  .has-portrait-source .local-status {
-    width: auto;
-    min-height: 24px;
-    padding: 0;
-    justify-content: flex-start;
-    gap: 7px;
-    color: #969b91;
-    font-size: .7rem;
-    line-height: 1.2;
-    letter-spacing: 0;
-    text-transform: none;
-    white-space: nowrap;
-  }
-  .has-portrait-source .local-status svg {
-    flex: 0 0 auto;
-    width: 16px;
-    height: 16px;
-  }
-  .has-portrait-source .file-button-compact {
-    width: auto;
-    min-height: 40px;
-    gap: 8px;
-    padding: 0 12px;
-  }
-  .has-portrait-source .file-button-compact svg {
-    width: 16px;
-    height: 16px;
-    flex: 0 0 auto;
-  }
-  .has-portrait-source .file-button-compact .file-button-label-full {
-    display: inline;
-    font-size: .7rem;
-    line-height: 1.1;
-    white-space: nowrap;
-  }
   .has-portrait-source .stage-source-filename {
     max-width: min(220px, 58%);
     display: block;
@@ -1126,7 +1079,6 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .brand-mark i:nth-child(3) { left: 22px; top: 8px; }
   .brand small { display: none; }
   .source-filename { display: none; }
-  .local-status { display: none; }
   .file-button-compact { min-height: 44px; padding: 0 12px; }
   .file-button-compact span { font-size: .7rem; }
 
