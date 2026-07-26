@@ -124,7 +124,7 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(portrait.transport.bottom).toBeLessThanOrEqual(portrait.stage.bottom - 4);
   expect(Math.abs((portrait.stage.x + portrait.stage.right) / 2 - 720)).toBeLessThanOrEqual(1);
   expect(portrait.rangeCard.right).toBeLessThan(portrait.stage.x);
-  expect(portrait.poseCard.x - portrait.stage.right).toBeGreaterThan(35);
+  expect(portrait.poseCard.x - portrait.stage.right).toBeGreaterThan(17);
   expect(Math.abs(portrait.rangeCard.y - portrait.poseCard.y)).toBeLessThanOrEqual(0.5);
   expect(
     Math.abs(portrait.rangeCard.x - (portrait.stage.x - portrait.rangeCard.right)),
@@ -175,8 +175,8 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(analyzeBounds).not.toBeNull();
   expect(replaceBounds).not.toBeNull();
   expect(rangeSectionBounds).not.toBeNull();
-  expect(rangeSectionBounds!.width).toBeGreaterThanOrEqual(375);
-  expect(analyzeBounds!.height).toBeGreaterThanOrEqual(54);
+  expect(rangeSectionBounds!.width).toBeGreaterThanOrEqual(414);
+  expect(analyzeBounds!.height).toBeGreaterThanOrEqual(60);
   expect(Math.abs(replaceBounds!.width - analyzeBounds!.width)).toBeLessThanOrEqual(0.5);
   expect(Math.abs(replaceBounds!.height - analyzeBounds!.height)).toBeLessThanOrEqual(0.5);
   expect(replaceBounds!.y).toBeGreaterThan(analyzeBounds!.y + analyzeBounds!.height);

@@ -964,7 +964,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .review-workspace.is-portrait .pose-panel-slot {
     position: absolute;
     top: 65px;
-    width: 380px;
+    width: 418px;
     display: block;
     pointer-events: auto;
   }
@@ -981,10 +981,10 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
     position: static;
     width: 304px;
     transform: none;
-    zoom: 1.25;
+    zoom: 1.375;
   }
   .review-workspace.is-portrait .analysis-section {
-    max-height: calc(80dvh - 32px);
+    max-height: calc(72.73dvh - 29px);
     overflow-y: auto;
   }
   .review-workspace.is-portrait .portrait-review-filename {

@@ -80,7 +80,8 @@ pending-analysis, and application-error messages must remain distinct.
   desktop and mobile layouts keep their established sizing. At wide portrait
   widths, Clip selection moves into the open space beneath a 125%-scale brand
   lockup at the left of the player; On-device pose occupies the matching right
-  gutter. Both cards share a top edge and are centered between the player and
+  gutter. Both cards share a top edge and increase by a further 10% to 137.5%
+  of their original scale while remaining centered between the player and
   their respective viewport edges. The filename sits above the right card,
   right-aligned to it at approximately the brand subtitle's type size. At compact
   desktop widths, the stage aligns to the
