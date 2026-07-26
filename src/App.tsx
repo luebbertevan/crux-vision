@@ -990,14 +990,24 @@ export function App() {
             sourceIsPortrait ? 'is-portrait' : 'is-landscape'
           }`}
           data-video-orientation={sourceIsPortrait ? 'portrait' : 'landscape'}
+          style={
+            {
+              '--stage-width': stageSize ? `${stageSize.width}px` : '100%',
+            } as CSSProperties
+          }
         >
+          <span
+            className="portrait-review-filename"
+            title={source.metadata.fileName}
+          >
+            {source.metadata.fileName}
+          </span>
           <div
             ref={reviewMainRef}
             className="review-main"
             style={
               {
                 '--stage-aspect': source.metadata.displayWidth / source.metadata.displayHeight,
-                '--stage-width': stageSize ? `${stageSize.width}px` : '100%',
               } as CSSProperties
             }
           >
@@ -1112,15 +1122,16 @@ export function App() {
           </div>
 
           <aside className="control-rail">
-            {range && (
-              <RangeSelector
-                range={range}
-                durationMicroseconds={source.metadata.durationMicroseconds}
-                playheadMicroseconds={secondsToMicroseconds(playerSnapshot.currentTimeSeconds)}
-                progress={progress}
-                disabled={opening}
-                onChange={changeRange}
-              >
+            <div className="range-panel-slot">
+              {range && (
+                <RangeSelector
+                  range={range}
+                  durationMicroseconds={source.metadata.durationMicroseconds}
+                  playheadMicroseconds={secondsToMicroseconds(playerSnapshot.currentTimeSeconds)}
+                  progress={progress}
+                  disabled={opening}
+                  onChange={changeRange}
+                >
                 <div
                   className={`analysis-status analysis-status-${analysis.phase}`}
                   aria-live="polite"
@@ -1215,11 +1226,13 @@ export function App() {
                     onFile={(file) => void openFile(file)}
                   />
                 </div>
-                <p className="privacy-note"><ShieldIcon /> Video and pose stay on this device.</p>
-              </RangeSelector>
-            )}
+                  <p className="privacy-note"><ShieldIcon /> Video and pose stay on this device.</p>
+                </RangeSelector>
+              )}
+            </div>
 
-            <section className="analysis-section" aria-labelledby="analysis-title">
+            <div className="pose-panel-slot">
+              <section className="analysis-section" aria-labelledby="analysis-title">
               <div className="section-heading analysis-heading">
                 <div>
                   <span className="section-kicker">On-device pose</span>
@@ -1280,7 +1293,8 @@ export function App() {
                 onWorkspaceToggle={setCalibrationWorkspaceOpen}
               />
 
-            </section>
+              </section>
+            </div>
           </aside>
         </section>
       )}

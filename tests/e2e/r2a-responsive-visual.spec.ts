@@ -58,6 +58,7 @@ const getReviewBounds = async (page: Page) =>
       rail: bounds('.control-rail'),
       rangeCard: bounds('.range-section'),
       poseCard: bounds('.analysis-section'),
+      portraitFilename: bounds('.portrait-review-filename'),
       main: bounds('.review-main'),
     };
   });
@@ -123,15 +124,27 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(portrait.transport.bottom).toBeLessThanOrEqual(portrait.stage.bottom - 4);
   expect(Math.abs((portrait.stage.x + portrait.stage.right) / 2 - 720)).toBeLessThanOrEqual(1);
   expect(portrait.rangeCard.right).toBeLessThan(portrait.stage.x);
-  expect(portrait.poseCard.x - portrait.stage.right).toBeGreaterThan(70);
+  expect(portrait.poseCard.x - portrait.stage.right).toBeGreaterThan(35);
+  expect(Math.abs(portrait.rangeCard.y - portrait.poseCard.y)).toBeLessThanOrEqual(0.5);
+  expect(
+    Math.abs(portrait.rangeCard.x - (portrait.stage.x - portrait.rangeCard.right)),
+  ).toBeLessThanOrEqual(12);
+  expect(
+    Math.abs(
+      portrait.poseCard.x - portrait.stage.right - (1440 - portrait.poseCard.right),
+    ),
+  ).toBeLessThanOrEqual(12);
   expect(portrait.topbar.right).toBeLessThan(portrait.stage.x);
   expect(portrait.topbar.width).toBeGreaterThanOrEqual(220);
   expect(portrait.topbar.height).toBeLessThanOrEqual(140);
   expectAligned(portrait.video, portrait.canvas);
   await expectPlaybackInputCentered(page);
   await expect(page.locator('.topbar > .source-filename')).toBeHidden();
-  await expect(page.locator('.stage-source-filename')).toHaveText('portrait-test.MOV');
-  await expect(page.locator('.stage-source-filename')).toBeVisible();
+  await expect(page.locator('.stage-source-filename')).toBeHidden();
+  await expect(page.locator('.portrait-review-filename')).toHaveText('portrait-test.MOV');
+  await expect(page.locator('.portrait-review-filename')).toBeVisible();
+  expect(1440 - portrait.portraitFilename.right).toBeLessThanOrEqual(12);
+  await expect(page.locator('.portrait-review-filename')).toHaveCSS('text-align', 'right');
   await expect(page.locator('.topbar-actions')).toHaveCount(0);
   await expect(page.getByText('Local only')).toHaveCount(0);
   await expect(page.locator('.range-section .section-kicker')).toHaveText('Clip selection');
@@ -214,6 +227,8 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(compactDesktopPortrait.transport.y).toBeGreaterThanOrEqual(
     compactDesktopPortrait.stage.bottom - 55,
   );
+  await expect(page.locator('.portrait-review-filename')).toBeHidden();
+  await expect(page.locator('.stage-source-filename')).toBeVisible();
   expect(compactDesktopPortrait.transport.right).toBeLessThanOrEqual(
     compactDesktopPortrait.stage.right - 7,
   );

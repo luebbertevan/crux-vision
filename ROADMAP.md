@@ -136,8 +136,10 @@ the Clip selection and On-device pose cards and their complete contents render
 at 125% scale as 380 px-wide surfaces; narrower desktop and mobile layouts retain their
 established sizing. For wide portrait review, Clip selection uses the open
 space beneath an enlarged brand lockup at the left of the player, while
-On-device pose remains at the right. The filename moves to a
-quiet pill on the stage's top edge. At compact desktop
+On-device pose occupies the matching right gutter. Both cards share a top edge
+and are centered between the player and their respective viewport edges. The
+filename sits above the right card, right-aligned to it at approximately the
+brand subtitle's type size. At compact desktop
 widths the stage aligns to the right of its review column so the wider brand
 does not reduce portrait video height. A 42 px translucent transport overlays
 the bottom of the stage, allowing the video to begin at the 8 px shell gutter.

@@ -347,6 +347,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   gap: 9px;
 }
 .stage-source-filename { display: none; }
+.portrait-review-filename { display: none; }
 .pose-live-dot { display: inline-flex; align-items: center; gap: 7px; }
 .pose-live-dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 10px rgba(188,255,112,.8); }
 .stage-feedback {
@@ -481,6 +482,8 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   scrollbar-width: thin;
   scrollbar-color: #3d423a transparent;
 }
+.range-panel-slot,
+.pose-panel-slot { display: contents; }
 .range-section,
 .analysis-section {
   padding: 20px;
@@ -957,23 +960,50 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
     pointer-events: none;
     zoom: 1;
   }
+  .review-workspace.is-portrait .range-panel-slot,
+  .review-workspace.is-portrait .pose-panel-slot {
+    position: absolute;
+    top: 65px;
+    width: 380px;
+    display: block;
+    pointer-events: auto;
+  }
+  .review-workspace.is-portrait .range-panel-slot {
+    left: calc((100% - var(--stage-width, 100%)) / 4);
+    transform: translateX(-50%);
+  }
+  .review-workspace.is-portrait .pose-panel-slot {
+    right: calc((100% - var(--stage-width, 100%)) / 4);
+    transform: translateX(50%);
+  }
   .review-workspace.is-portrait .range-section,
   .review-workspace.is-portrait .analysis-section {
-    position: absolute;
+    position: static;
     width: 304px;
-    pointer-events: auto;
+    transform: none;
     zoom: 1.25;
   }
-  .review-workspace.is-portrait .range-section {
-    top: 74px;
-    left: 0;
-  }
   .review-workspace.is-portrait .analysis-section {
-    top: 0;
-    right: 0;
     max-height: calc(80dvh - 32px);
     overflow-y: auto;
   }
+  .review-workspace.is-portrait .portrait-review-filename {
+    position: absolute;
+    z-index: 2;
+    top: 13px;
+    right: 0;
+    width: 380px;
+    display: block;
+    overflow: hidden;
+    color: var(--dim);
+    font-size: .82rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .review-workspace.is-portrait .stage-source-filename { display: none; }
 }
 
 @media (min-width: 981px) {
