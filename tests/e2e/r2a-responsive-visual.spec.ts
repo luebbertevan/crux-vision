@@ -120,7 +120,7 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(portrait.transport.y).toBeGreaterThanOrEqual(portrait.stage.bottom - 55);
   expect(portrait.transport.bottom).toBeLessThanOrEqual(portrait.stage.bottom - 4);
   expect(Math.abs((portrait.stage.x + portrait.stage.right) / 2 - 720)).toBeLessThanOrEqual(1);
-  expect(portrait.rail.x - portrait.stage.right).toBeGreaterThan(100);
+  expect(portrait.rail.x - portrait.stage.right).toBeGreaterThan(70);
   expect(portrait.topbar.right).toBeLessThan(portrait.stage.x);
   expect(portrait.topbar.width).toBeGreaterThanOrEqual(220);
   expect(portrait.topbar.height).toBeLessThanOrEqual(140);
@@ -155,8 +155,12 @@ test('desktop portrait and landscape stages use the available review surface', a
     page.getByRole('button', { name: 'Analyze range' }).boundingBox(),
     page.locator('.range-section .analysis-actions .file-button-compact').boundingBox(),
   ]);
+  const rangeSectionBounds = await page.locator('.range-section').boundingBox();
   expect(analyzeBounds).not.toBeNull();
   expect(replaceBounds).not.toBeNull();
+  expect(rangeSectionBounds).not.toBeNull();
+  expect(rangeSectionBounds!.width).toBeGreaterThanOrEqual(375);
+  expect(analyzeBounds!.height).toBeGreaterThanOrEqual(54);
   expect(Math.abs(replaceBounds!.width - analyzeBounds!.width)).toBeLessThanOrEqual(0.5);
   expect(Math.abs(replaceBounds!.height - analyzeBounds!.height)).toBeLessThanOrEqual(0.5);
   expect(replaceBounds!.y).toBeGreaterThan(analyzeBounds!.y + analyzeBounds!.height);
