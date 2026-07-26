@@ -4,14 +4,19 @@ Crux Vision is a local-first movement-review workspace for climbers. R2A opens
 a local portrait or landscape video immediately, lets the user select a short
 range, and progressively renders timestamp-synchronized MediaPipe pose and
 calibrated, confidence-aware hip and shoulder midpoint trails without uploading
-or re-encoding the source. Balanced v2 is the ordinary pose-quality default;
+or re-encoding the source. Precision review adds slow-motion presets,
+selected-range looping, presentation-timestamp frame jog, and named
+checkpoints. Balanced v2 is the ordinary pose-quality default;
 Strict and Permissive alternatives and an advanced calibration workspace
 recompute inspectable derived views from immutable cached raw poses.
 
 Product delivery is tracked in [`ROADMAP.md`](./ROADMAP.md). The current R2
 contract is [`docs/r2-product-spec.md`](./docs/r2-product-spec.md), and R2A's
 implementation decisions live in
-[`docs/r2a-implementation-spec.md`](./docs/r2a-implementation-spec.md). R1
+[`docs/r2a-implementation-spec.md`](./docs/r2a-implementation-spec.md).
+Precision-review decisions live in
+[`docs/r2b-implementation-spec.md`](./docs/r2b-implementation-spec.md).
+R1
 evidence remains in [`docs/r1-spike-report.md`](./docs/r1-spike-report.md) and
 [`docs/r1-results`](./docs/r1-results).
 The completed pose-quality gate is documented in

@@ -37,3 +37,34 @@ export function nearestPresentationFrameIndex(
     : null;
 }
 
+export function adjacentPresentationFrameIndex(
+  samples: readonly PresentationTimed[],
+  targetMicroseconds: number,
+  direction: 'previous' | 'next',
+  equalityToleranceMicroseconds = 250,
+): number | null {
+  if (samples.length === 0) return null;
+
+  if (direction === 'next') {
+    const threshold = targetMicroseconds + equalityToleranceMicroseconds;
+    let low = 0;
+    let high = samples.length;
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+      if (samples[middle].timestampMicroseconds <= threshold) low = middle + 1;
+      else high = middle;
+    }
+    return low < samples.length ? low : null;
+  }
+
+  const threshold = targetMicroseconds - equalityToleranceMicroseconds;
+  let low = 0;
+  let high = samples.length;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (samples[middle].timestampMicroseconds < threshold) low = middle + 1;
+    else high = middle;
+  }
+  const previousIndex = low - 1;
+  return previousIndex >= 0 ? previousIndex : null;
+}

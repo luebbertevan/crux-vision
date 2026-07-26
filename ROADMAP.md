@@ -332,6 +332,8 @@ longest interval with no accepted product joint.
 
 ### R2B — Precision review controls
 
+**Status:** Complete
+
 **Outcome:** The user can reach and repeatedly inspect a fast climbing movement.
 
 Build:
@@ -343,6 +345,24 @@ Build:
 - In/Out range and range looping;
 - named checkpoints with previous/next navigation;
 - keyboard controls on desktop and touch-sized equivalents on mobile.
+
+R2B adds a compact precision-review strip beside the existing In/Out controls:
+`0.25×`, `0.5×`, and `1×` playback, selected-range looping, and previous/next
+analyzed-presentation-frame jog. The loop is checked against presented video
+frames when the browser exposes them, with media events as a fallback. It
+never changes the selected analysis range or pose timestamps.
+
+Named, editable checkpoints are stored in the current in-memory source session,
+ordered by presentation time, and cleared on source replacement. They support
+direct selection plus previous/next navigation. Persistent checkpoints remain
+R3 work. Desktop shortcuts cover play/pause, looping, speed, frame jog,
+checkpoint creation, and checkpoint navigation; the same actions have
+touch-sized controls on phone layouts.
+
+The precision controls were visually checked with real portrait and landscape
+fixtures at `1440×900`, `393×852`, and `852×393`. The complete verification
+gate passes 55 unit tests and 22 Chrome browser tests. See
+[`docs/r2b-implementation-spec.md`](./docs/r2b-implementation-spec.md).
 
 ### R2C — Visual inspection tools
 

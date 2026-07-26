@@ -1,6 +1,6 @@
 # R2 product spec: first useful Crux Vision
 
-**Status:** R2A and the pose-quality calibration gate complete; R2B next
+**Status:** R2A, the pose-quality calibration gate, and R2B complete; R2C next
 
 **Purpose:** Establish enough product and technical direction to start a fast
 feedback loop without freezing the interface before it has been used.
@@ -96,10 +96,12 @@ missing joint from being described as a pose-wide outage. See the
 
 ### R2B — Precision review
 
-Add the transport interactions required to inspect a fast move: speed, coarse
-and fine scrub, frame step, loop, and named checkpoints. Prefer a small number
-of understandable touch interactions over reproducing desktop controls at phone
-scale.
+Complete. The ordinary review surface now combines the existing coarse timeline
+and In/Out controls with `0.25×`, `0.5×`, and `1×` speed presets, selected-range
+looping, analyzed-presentation-frame jog, and editable in-memory checkpoints.
+Every action has a touch-sized control; desktop shortcuts provide the same fast
+path. Checkpoints deliberately reset with source replacement until local
+session persistence arrives in R3.
 
 ### R2C — Visual inspection
 
@@ -146,8 +148,8 @@ product. Reuse the tested adapters and contracts, not the diagnostic layout.
 ### Playback and navigation
 
 - Play/pause from an obvious control and by tapping the stage where appropriate.
-- Offer useful speed presets, initially 0.1×, 0.25×, 0.5×, 0.75×, 1×, 1.5×,
-  and 2× where the browser supports them.
+- Offer a focused `0.25×`, `0.5×`, and `1×` speed set for ordinary review.
+  Reconsider wider rates only after gym feedback establishes a use for them.
 - Provide coarse timeline seeking and a separate fine movement mechanism.
 - Step to adjacent presented frames where the media APIs provide reliable
   timestamps.

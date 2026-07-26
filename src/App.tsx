@@ -19,6 +19,10 @@ import {
   secondsToMicroseconds,
 } from './analysis/range';
 import {
+  CheckpointControls,
+  type ReviewCheckpoint,
+} from './components/CheckpointControls';
+import {
   CloseIcon,
   PauseIcon,
   PlayIcon,
@@ -28,11 +32,18 @@ import {
 } from './components/Icons';
 import { OverlayCanvas, type StageFeedback } from './components/OverlayCanvas';
 import { PoseQualityPanel } from './components/PoseQualityPanel';
+import {
+  PrecisionReviewControls,
+  REVIEW_PLAYBACK_RATES,
+} from './components/PrecisionReviewControls';
 import { formatTime, RangeSelector } from './components/RangeSelector';
 import { useReviewStageSize } from './layout/useReviewStageSize';
 import type { BrowserMediaAdapter } from './media/mediaAdapter';
 import { PlayerController } from './player/PlayerController';
-import { nearestPresentationFrameIndex } from './player/frameNavigation';
+import {
+  adjacentPresentationFrameIndex,
+  nearestPresentationFrameIndex,
+} from './player/frameNavigation';
 import {
   clonePoseQualityPolicy,
   DEFAULT_CENTERED_SMOOTHING_RADIUS_MICROSECONDS,
@@ -137,6 +148,8 @@ export function App() {
   const [opening, setOpening] = useState(false);
   const [sourceError, setSourceError] = useState<string | null>(null);
   const [overlaysVisible, setOverlaysVisible] = useState(true);
+  const [rangeLoopEnabled, setRangeLoopEnabled] = useState(false);
+  const [checkpoints, setCheckpoints] = useState<ReviewCheckpoint[]>([]);
   const [stageFeedback, setStageFeedback] = useState<StageFeedback>('none');
   const [qualityPresetId, setQualityPresetId] =
     useState<PoseQualityPresetId>('balanced');
@@ -171,6 +184,7 @@ export function App() {
   const jobSequenceRef = useRef(0);
   const autoplaySessionRef = useRef<number | null>(null);
   const calibrationSeekSequenceRef = useRef(0);
+  const checkpointSequenceRef = useRef(0);
   const calibrationHistoryRef = useRef(
     new CalibrationHistory<CalibrationHistorySnapshot>(),
   );
@@ -274,6 +288,11 @@ export function App() {
           metadata: candidate.metadata,
         });
         setRange(defaultAnalysisRange(candidate.metadata.durationMicroseconds));
+        setRangeLoopEnabled(false);
+        player.setLoopRange(null);
+        player.setPlaybackRate(1);
+        setCheckpoints([]);
+        checkpointSequenceRef.current = 0;
         setStageFeedback('none');
         setOverlaysVisible(true);
         setCalibrationLabels([]);
@@ -292,7 +311,7 @@ export function App() {
         if (candidateGeneration === importGenerationRef.current) setOpening(false);
       }
     },
-    [cancelAnalysis, clearCanvas],
+    [cancelAnalysis, clearCanvas, player],
   );
 
   useLayoutEffect(() => {
@@ -457,6 +476,51 @@ export function App() {
     calibrationFrameIndex === null
       ? null
       : qualityEvaluation.samples[calibrationFrameIndex];
+  const previousAnalyzedFrameIndex = useMemo(
+    () =>
+      adjacentPresentationFrameIndex(
+        qualityEvaluation.samples,
+        secondsToMicroseconds(playerSnapshot.currentTimeSeconds),
+        'previous',
+      ),
+    [playerSnapshot.currentTimeSeconds, qualityEvaluation.samples],
+  );
+  const nextAnalyzedFrameIndex = useMemo(
+    () =>
+      adjacentPresentationFrameIndex(
+        qualityEvaluation.samples,
+        secondsToMicroseconds(playerSnapshot.currentTimeSeconds),
+        'next',
+      ),
+    [playerSnapshot.currentTimeSeconds, qualityEvaluation.samples],
+  );
+  const currentCheckpointIndex = useMemo(
+    () =>
+      nearestPresentationFrameIndex(
+        checkpoints,
+        secondsToMicroseconds(playerSnapshot.currentTimeSeconds),
+        25_000,
+      ),
+    [checkpoints, playerSnapshot.currentTimeSeconds],
+  );
+  const previousCheckpointIndex = useMemo(
+    () =>
+      adjacentPresentationFrameIndex(
+        checkpoints,
+        secondsToMicroseconds(playerSnapshot.currentTimeSeconds),
+        'previous',
+      ),
+    [checkpoints, playerSnapshot.currentTimeSeconds],
+  );
+  const nextCheckpointIndex = useMemo(
+    () =>
+      adjacentPresentationFrameIndex(
+        checkpoints,
+        secondsToMicroseconds(playerSnapshot.currentTimeSeconds),
+        'next',
+      ),
+    [checkpoints, playerSnapshot.currentTimeSeconds],
+  );
   const calibrationLabelMetrics = useMemo(
     () => evaluateCalibrationLabels(calibrationLabels, qualityEvaluation),
     [calibrationLabels, qualityEvaluation],
@@ -573,6 +637,37 @@ export function App() {
     [qualityEvaluation.samples, recordCalibrationSeek],
   );
 
+  const seekToAnalyzedFrame = useCallback(
+    (direction: 'previous' | 'next') => {
+      const frameIndex =
+        direction === 'previous'
+          ? previousAnalyzedFrameIndex
+          : nextAnalyzedFrameIndex;
+      if (frameIndex === null) return;
+      const sample = qualityEvaluation.samples[frameIndex];
+      if (!sample) return;
+      const timeSeconds = microsecondsToSeconds(sample.timestampMicroseconds);
+      if (calibrationWorkspaceOpen) {
+        calibrationSeekSequenceRef.current += 1;
+        recordCalibrationSeek(
+          timeSeconds,
+          `review-frame-seek-${calibrationSeekSequenceRef.current}`,
+        );
+        return;
+      }
+      player.pause();
+      player.seek(timeSeconds);
+    },
+    [
+      calibrationWorkspaceOpen,
+      nextAnalyzedFrameIndex,
+      player,
+      previousAnalyzedFrameIndex,
+      qualityEvaluation.samples,
+      recordCalibrationSeek,
+    ],
+  );
+
   const seekFromTransport = useCallback(
     (timeSeconds: number) => {
       if (!calibrationWorkspaceOpen) {
@@ -583,6 +678,121 @@ export function App() {
     },
     [calibrationWorkspaceOpen, player, recordCalibrationSeek],
   );
+
+  const seekToCheckpoint = useCallback(
+    (checkpointIndex: number) => {
+      const checkpoint = checkpoints[checkpointIndex];
+      if (!checkpoint) return;
+      const timeSeconds = microsecondsToSeconds(
+        checkpoint.timestampMicroseconds,
+      );
+      if (calibrationWorkspaceOpen) {
+        calibrationSeekSequenceRef.current += 1;
+        recordCalibrationSeek(
+          timeSeconds,
+          `checkpoint-seek-${calibrationSeekSequenceRef.current}`,
+        );
+        return;
+      }
+      player.pause();
+      player.seek(timeSeconds);
+    },
+    [calibrationWorkspaceOpen, checkpoints, player, recordCalibrationSeek],
+  );
+
+  const addCheckpoint = useCallback(() => {
+    if (!source) return;
+    const timestampMicroseconds = Math.min(
+      source.metadata.durationMicroseconds,
+      Math.max(
+        0,
+        secondsToMicroseconds(player.getSnapshot().currentTimeSeconds),
+      ),
+    );
+    setCheckpoints((current) => {
+      if (
+        current.some(
+          (checkpoint) =>
+            Math.abs(
+              checkpoint.timestampMicroseconds - timestampMicroseconds,
+            ) <= 25_000,
+        )
+      ) {
+        return current;
+      }
+      const id = ++checkpointSequenceRef.current;
+      return [
+        ...current,
+        {
+          id,
+          name: `Checkpoint ${id}`,
+          timestampMicroseconds,
+        },
+      ].sort(
+        (left, right) =>
+          left.timestampMicroseconds - right.timestampMicroseconds,
+      );
+    });
+  }, [player, source]);
+
+  const renameCheckpoint = useCallback((id: number, name: string) => {
+    setCheckpoints((current) =>
+      current.map((checkpoint) =>
+        checkpoint.id === id ? { ...checkpoint, name } : checkpoint,
+      ),
+    );
+  }, []);
+
+  const removeCheckpoint = useCallback((id: number) => {
+    setCheckpoints((current) =>
+      current.filter((checkpoint) => checkpoint.id !== id),
+    );
+  }, []);
+
+  const goToAdjacentCheckpoint = useCallback(
+    (direction: 'previous' | 'next') => {
+      const checkpointIndex =
+        direction === 'previous'
+          ? previousCheckpointIndex
+          : nextCheckpointIndex;
+      if (checkpointIndex !== null) seekToCheckpoint(checkpointIndex);
+    },
+    [nextCheckpointIndex, previousCheckpointIndex, seekToCheckpoint],
+  );
+
+  const changePlaybackRate = useCallback(
+    (rate: number) => player.setPlaybackRate(rate),
+    [player],
+  );
+
+  const toggleRangeLoop = useCallback(() => {
+    const nextEnabled = !rangeLoopEnabled;
+    setRangeLoopEnabled(nextEnabled);
+    if (!nextEnabled || !range) {
+      player.setLoopRange(null);
+      return;
+    }
+    const loopRange = {
+      start: microsecondsToSeconds(range.startMicroseconds),
+      end: microsecondsToSeconds(range.endMicroseconds),
+    };
+    player.setLoopRange(loopRange);
+    const currentTime = player.getSnapshot().currentTimeSeconds;
+    if (currentTime < loopRange.start || currentTime >= loopRange.end) {
+      player.seek(loopRange.start);
+    }
+  }, [player, range, rangeLoopEnabled]);
+
+  useEffect(() => {
+    if (!rangeLoopEnabled || !range) {
+      player.setLoopRange(null);
+      return;
+    }
+    player.setLoopRange({
+      start: microsecondsToSeconds(range.startMicroseconds),
+      end: microsecondsToSeconds(range.endMicroseconds),
+    });
+  }, [player, range, rangeLoopEnabled]);
 
   const changeQualityPreset = useCallback(
     (preset: PoseQualityPresetId) => {
@@ -708,6 +918,85 @@ export function App() {
     calibrationWorkspaceOpen,
     redoCalibrationSetting,
     undoCalibrationSetting,
+  ]);
+
+  useEffect(() => {
+    if (!source) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.closest('input, select, textarea, button, a, summary'))
+      ) {
+        return;
+      }
+
+      if (event.code === 'Space') {
+        event.preventDefault();
+        void player.togglePlayback().catch(() => undefined);
+        return;
+      }
+      if (event.key.toLowerCase() === 'l') {
+        event.preventDefault();
+        toggleRangeLoop();
+        return;
+      }
+      if (
+        event.shiftKey &&
+        event.key === 'ArrowLeft' &&
+        previousCheckpointIndex !== null
+      ) {
+        event.preventDefault();
+        goToAdjacentCheckpoint('previous');
+        return;
+      }
+      if (
+        event.shiftKey &&
+        event.key === 'ArrowRight' &&
+        nextCheckpointIndex !== null
+      ) {
+        event.preventDefault();
+        goToAdjacentCheckpoint('next');
+        return;
+      }
+      if (event.key === 'ArrowLeft' && previousAnalyzedFrameIndex !== null) {
+        event.preventDefault();
+        seekToAnalyzedFrame('previous');
+        return;
+      }
+      if (event.key === 'ArrowRight' && nextAnalyzedFrameIndex !== null) {
+        event.preventDefault();
+        seekToAnalyzedFrame('next');
+        return;
+      }
+      if (event.key.toLowerCase() === 'c') {
+        event.preventDefault();
+        addCheckpoint();
+        return;
+      }
+      const speedIndex = Number(event.key) - 1;
+      const speed = REVIEW_PLAYBACK_RATES[speedIndex];
+      if (speed !== undefined) {
+        event.preventDefault();
+        changePlaybackRate(speed);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [
+    addCheckpoint,
+    changePlaybackRate,
+    goToAdjacentCheckpoint,
+    nextCheckpointIndex,
+    nextAnalyzedFrameIndex,
+    player,
+    previousCheckpointIndex,
+    previousAnalyzedFrameIndex,
+    seekToAnalyzedFrame,
+    source,
+    toggleRangeLoop,
   ]);
 
   const changeAnalysisModel = useCallback(
@@ -887,6 +1176,9 @@ export function App() {
             : ''
       }`}
       data-analysis-phase={analysis.phase}
+      data-playback-rate={playerSnapshot.playbackRate}
+      data-range-loop={rangeLoopEnabled ? 'enabled' : 'disabled'}
+      data-checkpoint-count={checkpoints.length}
       data-sample-count={analysis.samples.length}
       data-quality-sample-count={qualityEvaluation.samples.length}
       data-quality-policy={qualityPolicy.id}
@@ -1070,7 +1362,7 @@ export function App() {
 
             <div
               ref={transportRef}
-              className="transport"
+              className={`transport ${rangeLoopEnabled ? 'is-looping' : ''}`}
               aria-label="Video controls"
             >
               <button
@@ -1132,6 +1424,19 @@ export function App() {
                   disabled={opening}
                   onChange={changeRange}
                 >
+                <PrecisionReviewControls
+                  playbackRate={playerSnapshot.playbackRate}
+                  loopEnabled={rangeLoopEnabled}
+                  analyzedFrameCount={qualityEvaluation.samples.length}
+                  currentFrameIndex={calibrationFrameIndex}
+                  canStepPrevious={previousAnalyzedFrameIndex !== null}
+                  canStepNext={nextAnalyzedFrameIndex !== null}
+                  showFrameNavigation={!calibrationWorkspaceOpen}
+                  onPlaybackRateChange={changePlaybackRate}
+                  onLoopToggle={toggleRangeLoop}
+                  onPreviousFrame={() => seekToAnalyzedFrame('previous')}
+                  onNextFrame={() => seekToAnalyzedFrame('next')}
+                />
                 <div
                   className={`analysis-status analysis-status-${analysis.phase}`}
                   aria-live="polite"
@@ -1254,6 +1559,19 @@ export function App() {
                 <span className="trail-key trail-key-shoulder"><i /> Shoulder midpoint</span>
                 <span className="trail-key trail-key-pose"><i /> Skeleton</span>
               </div>
+
+              <CheckpointControls
+                checkpoints={checkpoints}
+                currentCheckpointIndex={currentCheckpointIndex}
+                canGoPrevious={previousCheckpointIndex !== null}
+                canGoNext={nextCheckpointIndex !== null}
+                onAdd={addCheckpoint}
+                onSelect={seekToCheckpoint}
+                onRename={renameCheckpoint}
+                onRemove={removeCheckpoint}
+                onPrevious={() => goToAdjacentCheckpoint('previous')}
+                onNext={() => goToAdjacentCheckpoint('next')}
+              />
 
               <PoseQualityPanel
                 presetId={qualityPresetId}

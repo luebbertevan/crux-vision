@@ -225,12 +225,36 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
   await expect(page.locator('main')).toHaveAttribute('data-analysis-phase', 'ready', {
     timeout: 150_000,
   });
-  await page.getByText('Pose quality calibration').click();
 
   const sampleCount = Number(
     await page.locator('main').getAttribute('data-sample-count'),
   );
   expect(sampleCount).toBeGreaterThan(10);
+  const precisionControls = page.getByTestId('precision-review-controls');
+  await expect(precisionControls).toHaveAttribute(
+    'data-frame-count',
+    String(sampleCount),
+  );
+
+  await page.locator('video').evaluate(async (element) => {
+    const video = element as HTMLVideoElement;
+    video.pause();
+    video.currentTime = 0;
+    await new Promise<void>((resolve) =>
+      video.addEventListener('seeked', () => resolve(), { once: true }),
+    );
+  });
+  await page.getByRole('button', { name: 'Next analyzed frame' }).click();
+  await expect(precisionControls).toHaveAttribute('data-current-frame-index', '0');
+  await page.getByRole('button', { name: 'Next analyzed frame' }).click();
+  await expect(precisionControls).toHaveAttribute('data-current-frame-index', '1');
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.keyboard.press('ArrowRight');
+  await expect(precisionControls).toHaveAttribute('data-current-frame-index', '2');
+  await page.getByRole('button', { name: 'Previous analyzed frame' }).click();
+  await expect(precisionControls).toHaveAttribute('data-current-frame-index', '1');
+
+  await page.getByText('Pose quality calibration').click();
   await expect(page.getByTestId('calibration-frame-navigator')).toContainText(
     `/ ${sampleCount}`,
   );

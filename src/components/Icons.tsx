@@ -63,3 +63,41 @@ export function CloseIcon({ size = 18, className }: IconProps) {
     </svg>
   );
 }
+
+export function PreviousFrameIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...baseProps(size, className)}>
+      <path d="M6.5 5v14" />
+      <path d="m17.5 6-8 6 8 6V6Z" />
+    </svg>
+  );
+}
+
+export function NextFrameIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...baseProps(size, className)}>
+      <path d="M17.5 5v14" />
+      <path d="m6.5 6 8 6-8 6V6Z" />
+    </svg>
+  );
+}
+
+export function LoopIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...baseProps(size, className)}>
+      <path d="M17.5 7.5H8a4 4 0 0 0-4 4" />
+      <path d="m14.5 4.5 3 3-3 3" />
+      <path d="M6.5 16.5H16a4 4 0 0 0 4-4" />
+      <path d="m9.5 19.5-3-3 3-3" />
+    </svg>
+  );
+}
+
+export function CheckpointIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...baseProps(size, className)}>
+      <path d="M6.5 21V4" />
+      <path d="M6.5 5h10l-2.2 3 2.2 3h-10" />
+    </svg>
+  );
+}
