@@ -1,7 +1,7 @@
 # Pose-quality calibration report: Balanced v2
 
-**Status:** Centered offline and MediaPipe Full selected as product defaults;
-broader pose calibration continues
+**Status:** Initial defaults selected; broader visual calibration deferred until
+after the main overlay feature set
 
 **Policy version:** `balanced-v2.1-product-landmarks-2026-07-24`
 
@@ -40,6 +40,16 @@ analysis has passed the physical-phone thermal or reload gate.
 This gate calibrates a trustworthy first display policy. It is not
 motion-capture validation, a biomechanical accuracy claim, or evidence that
 filtering can reconstruct genuinely missing or occluded motion.
+
+Subsequent review with selectable joint trails made confidence failures more
+legible, especially false limb positions. The reviewer prefers fewer false
+visible positions even when stricter filtering creates more missing joint
+positions. The next broader calibration pass should therefore challenge the
+current defaults in a generally stricter direction, inspect limb behavior
+closely, and evaluate **Extra Strict** and **Extra Permissive** endpoints around
+the existing preset scale. No threshold, acceptance policy, or product control
+changed from this observation; the pass is deferred until the main overlay
+feature set provides a better calibration surface.
 
 Use the
 [`human calibration guide and findings worksheet`](./pose-quality-human-calibration-guide.md)

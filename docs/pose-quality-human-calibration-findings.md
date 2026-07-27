@@ -298,6 +298,29 @@ This gives exact frame identity and isolates policy differences. Consider it
 only after the Accepted raw versus Smoothed diagnostic confirms that visual
 comparison is the blocker.
 
+## Trail-assisted calibration direction — July 27, 2026
+
+### Observation
+
+Selectable joint trails make confidence and geometry failures substantially
+easier to see. False limb positions are more distracting and frustrating than
+gaps where an uncertain joint is omitted. The current visual preference is
+therefore lower false-visible error at the cost of more missing joint
+positions, rather than maximizing accepted coverage.
+
+### Decision
+
+- Do not tune thresholds or change the current defaults now; the existing
+  calibration is adequate for continued feature development.
+- Defer the next deliberate calibration phase until the main overlay feature
+  set provides a richer visual inspection surface.
+- In that phase, test a general increase in display-policy strictness and pay
+  particular attention to limb acceptance and continuity.
+- Evaluate a five-step pose-quality scale: **Extra Strict**, **Strict**,
+  **Balanced**, **Permissive**, and **Extra Permissive**.
+- Treat these as hypotheses to validate against cached raw samples and labeled
+  visual evidence, not as permission to bridge gaps or manufacture positions.
+
 ## Continuing findings
 
 ### Session

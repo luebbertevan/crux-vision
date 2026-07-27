@@ -1,13 +1,20 @@
 # Pose-quality calibration plan
 
-**Status:** Balanced v2 still has one human-visible frame of lag; exact analyzed
-frame evidence underway before the zero-lag display decision
+**Status:** Initial Balanced v2 and display-smoothing gate complete; broader
+visual calibration deferred until after the main overlay feature set
 
 **Purpose:** Establish a trustworthy first acceptance and smoothing policy for
 MediaPipe pose data before pose-derived analysis expands.
 
 The implementation and bounded evidence are recorded in
 [`pose-quality-calibration-report.md`](./pose-quality-calibration-report.md).
+
+The next pass should use the richer overlay surface as a visual calibration
+tool. Current review favors fewer false visible joint positions—particularly
+false limb geometry—even when that produces more honest missing positions. It
+should also evaluate **Extra Strict** and **Extra Permissive** endpoints around
+the current three presets. These are future calibration targets, not current
+policy or UI changes.
 
 ## Why this is a gate
 
@@ -177,7 +184,8 @@ The ordinary review surface should expose:
 
 - Overlay on/off.
 - Pose quality: **Balanced** by default, with **Strict** and **Permissive**
-  built-in alternatives.
+  built-in alternatives. A later calibration pass should validate **Extra
+  Strict** and **Extra Permissive** before adding them to this scale.
 - Selected trails.
 
 Settings are grouped into Pose quality, Trails, Playback, and View. Pose quality

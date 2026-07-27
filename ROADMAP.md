@@ -204,8 +204,8 @@ runtime flicker-diagnostics feature was added.
 
 ### R2 pose-quality calibration gate
 
-**Status:** Centered offline and MediaPipe Full selected as defaults; broader
-calibration and bounded flicker work continue
+**Status:** Initial gate complete; broader visual calibration deferred until
+after the main overlay feature set
 
 **Timing:** After the phone gate and before R2B
 
@@ -333,6 +333,17 @@ gap metrics now use only the 23 landmarks consumed by the product overlay.
 Unused MediaPipe face-detail landmarks remain in immutable raw provenance only.
 Gap diagnostics separately name the longest-lost product joint and report the
 longest interval with no accepted product joint.
+
+Later trail review made joint-confidence failures easier to see, especially on
+limbs. The current preference is to bias future display calibration toward
+fewer false visible joint positions, accepting more honest missing positions as
+the tradeoff. A later calibration phase should test a generally stricter
+ordinary policy, with particular attention to limb geometry, and expand the
+product preset scale to **Extra Strict**, **Strict**, **Balanced**,
+**Permissive**, and **Extra Permissive**. This is recorded direction, not a
+runtime-default change: the existing calibration is adequate while the main
+overlay feature set is built, and detailed threshold work is intentionally
+deferred.
 
 ### R2B — Precision review controls
 

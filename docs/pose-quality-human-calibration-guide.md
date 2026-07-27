@@ -9,17 +9,25 @@ Record live observations in
 
 **Current display decision:** Human review selected Centered offline at its
 default `66.667 ms` radius as the best-looking option. It is now the display
-default. Continue comparing it with Accepted raw and One Euro at exact analyzed
-frames to catch anticipation or boundary artifacts while broader calibration
-continues.
+default. The next broader comparison with Accepted raw and One Euro is deferred
+until the main overlay feature set is available; retain exact analyzed frames
+for checking anticipation and boundary artifacts then.
 
 ## Recommended investment
 
-Spend one focused 45–60 minute session now. Human review is valuable because
-coverage and confidence scores cannot tell whether a hand or foot looks right.
-Do not freely tweak every control. Label the baseline first, change one setting
-family at a time, and keep a change only when it improves more than one clip
-without creating a new problem.
+Do not schedule another focused calibration session yet. The current result is
+adequate for feature work, and selectable trails are making failures easier to
+judge. Reuse this protocol after the main overlay feature set is present.
+Human review remains necessary because coverage and confidence scores cannot
+tell whether a hand or foot looks right. When the pass resumes, label the
+baseline first, change one setting family at a time, and keep a change only when
+it improves more than one clip without creating a new problem.
+
+Begin that pass with the explicit preference that false visible joint positions
+are more distracting than honest missing positions, especially for limbs.
+Test a generally stricter policy before relaxing individual groups, and include
+candidate **Extra Strict** and **Extra Permissive** presets alongside the
+current Strict, Balanced, and Permissive choices.
 
 Use MediaPipe Full and the Display policy for this pass. Full is now the product
 default after human comparison found noticeably better pose quality without a
