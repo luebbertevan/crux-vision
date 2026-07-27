@@ -16,6 +16,19 @@ type OverlaySettingsPanelProps = {
   onTrailSourceChange: (sourceId: TrailSourceId, visible: boolean) => void;
 };
 
+const trailSourcePickerOrder: readonly TrailSourceId[] = [
+  'left-wrist',
+  'right-wrist',
+  'left-elbow',
+  'right-elbow',
+  'left-ankle',
+  'right-ankle',
+  'left-knee',
+  'right-knee',
+  'hip-midpoint',
+  'shoulder-midpoint',
+];
+
 export function OverlaySettingsPanel({
   settings,
   open,
@@ -26,9 +39,14 @@ export function OverlaySettingsPanel({
   const selectedSources = TRAIL_SOURCE_DEFINITIONS.filter(
     ({ id }) => settings.trailSources[id],
   );
-  const availableSources = TRAIL_SOURCE_DEFINITIONS.filter(
-    ({ id }) => !settings.trailSources[id],
-  );
+  const availableSources = trailSourcePickerOrder
+    .map((sourceId) =>
+      TRAIL_SOURCE_DEFINITIONS.find(({ id }) => id === sourceId),
+    )
+    .filter(
+      (definition): definition is (typeof TRAIL_SOURCE_DEFINITIONS)[number] =>
+        definition !== undefined && !settings.trailSources[definition.id],
+    );
   const sourceGroups: readonly TrailSourceGroup[] = [
     'Body midpoints',
     'Arms',

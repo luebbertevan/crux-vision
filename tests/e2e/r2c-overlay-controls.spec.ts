@@ -69,16 +69,16 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
     page.getByTestId('active-trail-source-shoulder-midpoint'),
   ).toBeVisible();
   await expect(addSource.locator('optgroup[label="Arms"] option')).toHaveText([
-    'Left elbow',
-    'Right elbow',
     'Left wrist',
     'Right wrist',
+    'Left elbow',
+    'Right elbow',
   ]);
   await expect(addSource.locator('optgroup[label="Legs"] option')).toHaveText([
-    'Left knee',
-    'Right knee',
     'Left ankle',
     'Right ankle',
+    'Left knee',
+    'Right knee',
   ]);
 
   await setRange(page, 9_000_000, 11_000_000);
