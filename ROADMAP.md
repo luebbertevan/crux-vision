@@ -398,8 +398,8 @@ Build:
 
 - replace the single overlay switch with independent master overlay, skeleton,
   and trails controls while preserving one obvious way to hide everything;
-- let the user enable hip midpoint, shoulder midpoint, left/right wrist, and
-  left/right ankle trails without code changes;
+- let the user add hip midpoint, shoulder midpoint, left/right wrist, elbow,
+  knee, and ankle trails without code changes or a permanently long checklist;
 - retain hip and shoulder midpoints as the initial enabled sources;
 - increase the ordinary trail duration from 1.5 to 2 seconds and increase the
   ordinary stroke width by roughly 25%, subject to visual review rather than a
@@ -422,15 +422,16 @@ and all changes update the cached overlay immediately without reanalysis.
 R2C.1 keeps the master **Overlays** switch prominent while adding a collapsed,
 touch-sized **Overlay settings** disclosure with separately grouped layer and
 trail-source controls. Skeleton, trails, hip midpoint, and shoulder midpoint
-remain enabled by default; left/right wrists and ankles are explicit optional
-sources. The renderer now consumes stable typed source definitions and
-appearance defaults, uses a two-second history, scales the colored stroke to
-125% of the prior responsive rule, and draws a restrained dark contrast pass
-beneath every colored trail. Settings redraw cached quality samples
-immediately, remain independent of analysis and playback state, reset with
-source replacement, and are not persisted. Repeated/backward timestamps now
-join rejected, missing, and oversized-gap samples as explicit trail continuity
-breaks. See
+remain enabled by default. Active sources appear as compact removable rows; a
+grouped **Add trail source** picker exposes left/right elbows, wrists, knees,
+and ankles without showing a ten-item checklist during ordinary review. The
+renderer consumes stable typed source definitions and appearance defaults,
+uses a two-second history, scales the colored stroke to 125% of the prior
+responsive rule, and draws a restrained dark contrast pass beneath every
+colored trail. Settings redraw cached quality samples immediately, remain
+independent of analysis and playback state, reset with source replacement, and
+are not persisted. Repeated/backward timestamps join rejected, missing, and
+oversized-gap samples as explicit trail continuity breaks. See
 [`docs/r2c1-implementation-spec.md`](./docs/r2c1-implementation-spec.md).
 
 #### R2C.2 — Per-trail appearance editor
@@ -539,6 +540,9 @@ which comparison view exposes differences best?
 ## R6 — Climbing signals lab
 
 - Manual hold map and editable contact timeline.
+- Experimental **Contact base** overlay: a jitter-aware projected hull through
+  candidate or confirmed hand/foot contacts, with honest unknown states and no
+  automatic stability or risk claim.
 - Static–dynamic index.
 - Straight-arm exposure.
 - Contact sequence and move segmentation.
@@ -547,6 +551,9 @@ which comparison view exposes differences best?
 - Metric-by-metric validation notes and user confirmation.
 
 Do not combine these into one technique score. Keep every component inspectable.
+The early product, detection, UI, terminology, calibration, and validation
+decisions for Contact base are recorded in
+[`docs/future-contact-base-overlay-notes.md`](docs/future-contact-base-overlay-notes.md).
 
 ## R7 — Persistence, capture, and sharing
 

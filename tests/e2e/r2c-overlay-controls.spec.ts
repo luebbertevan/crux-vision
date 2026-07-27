@@ -55,24 +55,31 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
 
   const skeleton = page.getByRole('checkbox', { name: 'Skeleton' });
   const trails = page.getByRole('checkbox', { name: 'Trails', exact: true });
-  const leftWrist = page.getByRole('checkbox', { name: 'Left wrist' });
-  const rightWrist = page.getByRole('checkbox', { name: 'Right wrist' });
-  const leftAnkle = page.getByRole('checkbox', { name: 'Left ankle' });
-  const rightAnkle = page.getByRole('checkbox', { name: 'Right ankle' });
-  const hip = page.getByRole('checkbox', { name: 'Hip midpoint' });
-  const shoulder = page.getByRole('checkbox', {
-    name: 'Shoulder midpoint',
-  });
+  const addSource = page.getByLabel('Add trail source');
+  const activeSources = page.getByTestId('active-trail-sources');
   const master = page.getByRole('checkbox', { name: 'Overlays' });
 
   await expect(skeleton).toBeChecked();
   await expect(trails).toBeChecked();
-  await expect(hip).toBeChecked();
-  await expect(shoulder).toBeChecked();
-  await expect(leftWrist).not.toBeChecked();
-  await expect(rightWrist).not.toBeChecked();
-  await expect(leftAnkle).not.toBeChecked();
-  await expect(rightAnkle).not.toBeChecked();
+  await expect(activeSources.locator('.trail-source-row')).toHaveCount(2);
+  await expect(
+    page.getByTestId('active-trail-source-hip-midpoint'),
+  ).toBeVisible();
+  await expect(
+    page.getByTestId('active-trail-source-shoulder-midpoint'),
+  ).toBeVisible();
+  await expect(addSource.locator('optgroup[label="Arms"] option')).toHaveText([
+    'Left elbow',
+    'Right elbow',
+    'Left wrist',
+    'Right wrist',
+  ]);
+  await expect(addSource.locator('optgroup[label="Legs"] option')).toHaveText([
+    'Left knee',
+    'Right knee',
+    'Left ankle',
+    'Right ankle',
+  ]);
 
   await setRange(page, 9_000_000, 11_000_000);
   await page.getByRole('button', { name: 'Analyze range' }).click();
@@ -101,8 +108,11 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
   const drawRevision = Number(
     await canvas.getAttribute('data-draw-revision'),
   );
-  await leftWrist.check();
+  await addSource.selectOption('left-elbow');
+  await addSource.selectOption('right-knee');
   await skeleton.uncheck();
+  await expect(page.getByTestId('active-trail-source-left-elbow')).toBeVisible();
+  await expect(page.getByTestId('active-trail-source-right-knee')).toBeVisible();
   await expect
     .poll(async () => Number(await canvas.getAttribute('data-draw-revision')))
     .toBeGreaterThan(drawRevision);
@@ -123,7 +133,8 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
   await expect(canvas).toHaveAttribute('data-skeleton-segment-count', '0');
   await expect(canvas).toHaveAttribute('data-trail-segment-count', '0');
   await expect(skeleton).not.toBeChecked();
-  await expect(leftWrist).toBeChecked();
+  await expect(page.getByTestId('active-trail-source-left-elbow')).toBeVisible();
+  await expect(page.getByTestId('active-trail-source-right-knee')).toBeVisible();
   await expect(trails).toBeChecked();
 
   await master.focus();
@@ -131,7 +142,8 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
   await expect(master).toBeChecked();
   await expect(canvas).toHaveAttribute('data-draw-reason', 'rendered');
   await expect(skeleton).not.toBeChecked();
-  await expect(leftWrist).toBeChecked();
+  await expect(page.getByTestId('active-trail-source-left-elbow')).toBeVisible();
+  await expect(page.getByTestId('active-trail-source-right-knee')).toBeVisible();
   await expect
     .poll(async () =>
       Number(await canvas.getAttribute('data-trail-segment-count')),
@@ -140,6 +152,13 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
   await expect(page.locator('main')).toHaveAttribute(
     'data-sample-count',
     cachedSampleCount!,
+  );
+  await page.getByRole('button', { name: 'Remove Left elbow trail' }).click();
+  await expect(
+    page.getByTestId('active-trail-source-left-elbow'),
+  ).toHaveCount(0);
+  await expect(addSource.locator('option[value="left-elbow"]')).toHaveText(
+    'Left elbow',
   );
 
   await page.getByTestId('video-input').setInputFiles(landscapeFixture);
@@ -157,8 +176,11 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
     page.getByRole('checkbox', { name: 'Skeleton' }),
   ).toBeChecked();
   await expect(
-    page.getByRole('checkbox', { name: 'Left wrist' }),
-  ).not.toBeChecked();
+    page.getByTestId('active-trail-source-right-knee'),
+  ).toHaveCount(0);
+  await expect(
+    page.getByTestId('active-trail-sources').locator('.trail-source-row'),
+  ).toHaveCount(2);
 });
 
 test('keeps the disclosure touchable without changing or obscuring the stage', async ({
@@ -194,7 +216,9 @@ test('keeps the disclosure touchable without changing or obscuring the stage', a
     expect(after?.width).toBe(before?.width);
     expect(after?.height).toBe(before?.height);
     await expect(page.getByText('Layer visibility', { exact: true })).toBeVisible();
-    await expect(page.getByText('Trail sources', { exact: true })).toBeVisible();
+    await expect(
+      page.getByText('Active trail sources', { exact: true }),
+    ).toBeVisible();
     await expect
       .poll(() =>
         page.evaluate(
@@ -207,7 +231,9 @@ test('keeps the disclosure touchable without changing or obscuring the stage', a
 
     if (layout.viewport.width <= 852) {
       const targetHeights = await settings
-        .locator('summary, .overlay-option')
+        .locator(
+          'summary, .overlay-option, .trail-source-row, .trail-source-picker, .trail-source-remove',
+        )
         .evaluateAll((elements) =>
           elements.map((element) => element.getBoundingClientRect().height),
         );
@@ -282,6 +308,11 @@ test('captures the R2C.1 real-fixture visual review matrix', async ({
       .toBeGreaterThan(0);
     if (visualCase.settingsOpen) {
       await page.getByTestId('overlay-settings').locator('summary').click();
+    }
+    if (visualCase.label === 'desktop-portrait') {
+      const addSource = page.getByLabel('Add trail source');
+      await addSource.selectOption('left-elbow');
+      await addSource.selectOption('right-knee');
     }
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({

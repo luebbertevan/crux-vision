@@ -4,6 +4,7 @@ import {
   TRAIL_SOURCE_DEFINITIONS,
   type OverlaySettings,
   type OverlayLayerId,
+  type TrailSourceGroup,
   type TrailSourceId,
 } from '../overlay/overlaySettings';
 
@@ -22,9 +23,17 @@ export function OverlaySettingsPanel({
   onLayerChange,
   onTrailSourceChange,
 }: OverlaySettingsPanelProps) {
-  const selectedSourceCount = TRAIL_SOURCE_DEFINITIONS.filter(
+  const selectedSources = TRAIL_SOURCE_DEFINITIONS.filter(
     ({ id }) => settings.trailSources[id],
-  ).length;
+  );
+  const availableSources = TRAIL_SOURCE_DEFINITIONS.filter(
+    ({ id }) => !settings.trailSources[id],
+  );
+  const sourceGroups: readonly TrailSourceGroup[] = [
+    'Body midpoints',
+    'Arms',
+    'Legs',
+  ];
 
   return (
     <details
@@ -36,7 +45,7 @@ export function OverlaySettingsPanel({
       <summary>
         <span>
           <b>Overlay settings</b>
-          <small>{selectedSourceCount} trail sources</small>
+          <small>{selectedSources.length} trail sources</small>
         </span>
         <i aria-hidden="true" />
       </summary>
@@ -74,36 +83,77 @@ export function OverlaySettingsPanel({
           </label>
         </fieldset>
 
-        <fieldset className="overlay-settings-group">
-          <legend>Trail sources</legend>
-          {TRAIL_SOURCE_DEFINITIONS.map((definition) => (
-            <label className="overlay-option" key={definition.id}>
-              <span className="overlay-option-label">
-                <i
-                  className="overlay-option-swatch"
-                  aria-hidden="true"
-                  style={
-                    {
-                      '--trail-source-color':
-                        definition.defaultAppearance.color,
-                    } as CSSProperties
-                  }
-                />
-                {definition.label}
-              </span>
-              <input
-                type="checkbox"
-                checked={settings.trailSources[definition.id]}
-                onChange={(event) =>
-                  onTrailSourceChange(
-                    definition.id,
-                    event.currentTarget.checked,
-                  )
-                }
-              />
-              <span className="overlay-checkbox" aria-hidden="true" />
-            </label>
-          ))}
+        <fieldset className="overlay-settings-group trail-source-settings">
+          <legend>Active trail sources</legend>
+          <div className="trail-source-list" data-testid="active-trail-sources">
+            {selectedSources.length === 0 && (
+              <p className="trail-source-empty">No trail sources selected.</p>
+            )}
+            {selectedSources.map((definition) => (
+              <div
+                className="trail-source-row"
+                data-testid={`active-trail-source-${definition.id}`}
+                key={definition.id}
+              >
+                <span className="overlay-option-label">
+                  <i
+                    className="overlay-option-swatch"
+                    aria-hidden="true"
+                    style={
+                      {
+                        '--trail-source-color':
+                          definition.defaultAppearance.color,
+                      } as CSSProperties
+                    }
+                  />
+                  {definition.label}
+                </span>
+                <button
+                  type="button"
+                  className="trail-source-remove"
+                  aria-label={`Remove ${definition.label} trail`}
+                  onClick={() => onTrailSourceChange(definition.id, false)}
+                >
+                  <span aria-hidden="true">×</span>
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <label className="trail-source-picker-label">
+            <span className="sr-only">Add trail source</span>
+            <select
+              className="trail-source-picker"
+              aria-label="Add trail source"
+              value=""
+              disabled={availableSources.length === 0}
+              onChange={(event) => {
+                const sourceId = event.currentTarget.value as TrailSourceId;
+                if (sourceId) onTrailSourceChange(sourceId, true);
+              }}
+            >
+              <option value="" disabled>
+                {availableSources.length === 0
+                  ? 'All sources added'
+                  : 'Add trail source…'}
+              </option>
+              {sourceGroups.map((group) => {
+                const definitions = availableSources.filter(
+                  (definition) => definition.group === group,
+                );
+                return definitions.length > 0 ? (
+                  <optgroup label={group} key={group}>
+                    {definitions.map((definition) => (
+                      <option value={definition.id} key={definition.id}>
+                        {definition.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null;
+              })}
+            </select>
+            <i aria-hidden="true" />
+          </label>
         </fieldset>
       </div>
     </details>

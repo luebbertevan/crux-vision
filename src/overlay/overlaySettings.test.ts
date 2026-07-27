@@ -30,10 +30,30 @@ describe('overlay settings contract', () => {
     expect(settings.trailSources).toEqual({
       'hip-midpoint': true,
       'shoulder-midpoint': true,
+      'left-elbow': false,
+      'right-elbow': false,
       'left-wrist': false,
       'right-wrist': false,
+      'left-knee': false,
+      'right-knee': false,
       'left-ankle': false,
       'right-ankle': false,
+    });
+  });
+
+  it('maps elbow and knee source IDs to the matching MediaPipe landmarks', () => {
+    const directLandmarks = Object.fromEntries(
+      TRAIL_SOURCE_DEFINITIONS.flatMap((definition) =>
+        definition.source.kind === 'landmark'
+          ? [[definition.id, definition.source.landmarkIndex]]
+          : [],
+      ),
+    );
+    expect(directLandmarks).toMatchObject({
+      'left-elbow': 13,
+      'right-elbow': 14,
+      'left-knee': 25,
+      'right-knee': 26,
     });
   });
 

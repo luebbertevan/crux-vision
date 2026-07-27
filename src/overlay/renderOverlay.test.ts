@@ -126,7 +126,7 @@ describe('overlay renderer settings', () => {
     expect(skeletonResult.trailSegmentCount).toBe(0);
   });
 
-  it('renders only selected stable trail sources', () => {
+  it('renders only selected stable trail sources, including elbows and knees', () => {
     let settings = createDefaultOverlaySettings();
     settings = withOverlayLayerVisibility(settings, 'skeleton', false);
     settings = withTrailSourceVisibility(
@@ -160,6 +160,21 @@ describe('overlay renderer settings', () => {
       settings,
     );
     expect(hipAndWrist.trailSegmentCount).toBe(2);
+
+    settings = withTrailSourceVisibility(settings, 'left-elbow', true);
+    settings = withTrailSourceVisibility(settings, 'right-knee', true);
+    const fourSources = renderOverlay(
+      recordingContext().context,
+      720,
+      480,
+      transform,
+      samples,
+      samples[1],
+      30_000,
+      'centered',
+      settings,
+    );
+    expect(fourSources.trailSegmentCount).toBe(4);
   });
 
   it('draws a wider contrasting pass before each colored trail stroke', () => {

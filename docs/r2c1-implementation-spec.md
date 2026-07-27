@@ -15,19 +15,25 @@ A native, keyboard-operable **Overlay settings** disclosure sits below the
 heading and is collapsed by default. It separates:
 
 - layer visibility: Skeleton and Trails;
-- trail sources: Hip midpoint, Shoulder midpoint, Left wrist, Right wrist,
-  Left ankle, and Right ankle.
+- active trail sources: compact removable rows for only the sources currently
+  drawn;
+- available trail sources: one grouped **Add trail source** picker for body
+  midpoints, arms, and legs.
 
 Skeleton, trails, hip midpoint, and shoulder midpoint start enabled. The four
-explicitly sided wrist and ankle sources start disabled. The disclosure and all
-overlay choices are local to the current in-memory source session. A successful
-source replacement collapses the disclosure and restores the defaults. No
-browser or server persistence was added.
+explicitly sided elbow, wrist, knee, and ankle pairs start available in the
+picker. Adding takes one selection; removing takes one clearly named row action.
+This keeps the default surface to two source rows even though ten sources are
+supported. The disclosure and all overlay choices are local to the current
+in-memory source session. A successful source replacement collapses the
+disclosure and restores the defaults. No browser or server persistence was
+added.
 
 Desktop and phone layouts keep the settings inside the existing control rail.
 Opening the disclosure does not resize or cover the stage. Its summary is a
-44 px target, and option rows become 44 px targets on phone portrait and
-landscape layouts. Native details/summary and checkbox semantics preserve
+44 px target, and layer rows, active-source rows, remove actions, and the picker
+become 44 px targets on phone portrait and landscape layouts. Native
+details/summary, checkbox, button, optgroup, and select semantics preserve
 keyboard operation and accessible names.
 
 ## Renderer and settings contract
@@ -37,8 +43,12 @@ renderer. It provides stable typed IDs for:
 
 - `hip-midpoint`
 - `shoulder-midpoint`
+- `left-elbow`
+- `right-elbow`
 - `left-wrist`
 - `right-wrist`
+- `left-knee`
+- `right-knee`
 - `left-ankle`
 - `right-ankle`
 
@@ -59,7 +69,7 @@ Layer visibility is enforced independently:
 - hiding Skeleton removes connections, accepted landmark dots, and rejected
   preview markers without hiding trails;
 - hiding Trails removes every trail without hiding the skeleton;
-- disabling a source removes only that source;
+- removing a source removes only that source and returns it to the add picker;
 - hiding the master removes all drawing while leaving every sub-selection
   intact.
 
@@ -87,9 +97,10 @@ and rejected/missing/oversized/repeated/backward gap behavior.
 Focused Chrome browser coverage uses real local video and Full-model analysis
 to verify that display controls redraw a paused cached result while the raw
 sample count and ready analysis phase remain unchanged. It also verifies master
-preservation, source-session reset, collapsed defaults, grouped explicit
-labels, 44 px phone targets, no horizontal overflow, and stable stage
-dimensions at approximately 1440×900, 393×852, and 852×393.
+preservation, one-step add/remove behavior, explicit elbow/knee availability,
+source-session reset, collapsed defaults, grouped picker labels, 44 px phone
+targets, no horizontal overflow, and stable stage dimensions at approximately
+1440×900, 393×852, and 852×393.
 
 The explicit visual matrix used `lache-send.MOV` for portrait and
 `landscape-climb.MOV` for landscape at the same three viewport classes.
@@ -97,9 +108,12 @@ Against bright white/blue walls, black volumes and clothing, and mixed
 high-contrast hold fields, the dark under-stroke kept the amber and cyan
 defaults edged on light regions while their bright center strokes remained
 clear on dark regions. The trails were visibly stronger than the earlier
-default without covering limb geometry or competing with the video.
+default without covering limb geometry or competing with the video. A
+four-source desktop state with hip, shoulder, left elbow, and right knee kept
+the Movement overlay card readable and left the adjacent checkpoint controls
+visible.
 
-The final automated gate passed 68 Vitest tests across 13 files and 25 normal
+The final automated gate passed 69 Vitest tests across 13 files and 25 normal
 Chrome Playwright tests; the opt-in visual-matrix Playwright case passed
 separately. The complete Sites production build and deployment-package
 verification also passed.

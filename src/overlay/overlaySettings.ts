@@ -4,14 +4,19 @@ import type { PosePointSource } from '../pose/poseView';
 export const TRAIL_SOURCE_IDS = [
   'hip-midpoint',
   'shoulder-midpoint',
+  'left-elbow',
+  'right-elbow',
   'left-wrist',
   'right-wrist',
+  'left-knee',
+  'right-knee',
   'left-ankle',
   'right-ankle',
 ] as const;
 
 export type TrailSourceId = (typeof TRAIL_SOURCE_IDS)[number];
 export type OverlayLayerId = 'skeleton' | 'trails';
+export type TrailSourceGroup = 'Body midpoints' | 'Arms' | 'Legs';
 
 export type TrailAppearanceConfig = {
   color: `#${string}`;
@@ -27,6 +32,7 @@ export type TrailAppearanceConfig = {
 export type TrailSourceDefinition = {
   id: TrailSourceId;
   label: string;
+  group: TrailSourceGroup;
   source: PosePointSource;
   defaultEnabled: boolean;
   defaultAppearance: TrailAppearanceConfig;
@@ -56,6 +62,7 @@ export const TRAIL_SOURCE_DEFINITIONS = [
   {
     id: 'hip-midpoint',
     label: 'Hip midpoint',
+    group: 'Body midpoints',
     source: {
       kind: 'midpoint',
       firstLandmarkIndex: 23,
@@ -71,6 +78,7 @@ export const TRAIL_SOURCE_DEFINITIONS = [
   {
     id: 'shoulder-midpoint',
     label: 'Shoulder midpoint',
+    group: 'Body midpoints',
     source: {
       kind: 'midpoint',
       firstLandmarkIndex: 11,
@@ -84,8 +92,33 @@ export const TRAIL_SOURCE_DEFINITIONS = [
     },
   },
   {
+    id: 'left-elbow',
+    label: 'Left elbow',
+    group: 'Arms',
+    source: { kind: 'landmark', landmarkIndex: 13 },
+    defaultEnabled: false,
+    defaultAppearance: {
+      ...DEFAULT_TRAIL_APPEARANCE,
+      color: '#00f0b5',
+      colorChannels: '0, 240, 181',
+    },
+  },
+  {
+    id: 'right-elbow',
+    label: 'Right elbow',
+    group: 'Arms',
+    source: { kind: 'landmark', landmarkIndex: 14 },
+    defaultEnabled: false,
+    defaultAppearance: {
+      ...DEFAULT_TRAIL_APPEARANCE,
+      color: '#ffd43b',
+      colorChannels: '255, 212, 59',
+    },
+  },
+  {
     id: 'left-wrist',
     label: 'Left wrist',
+    group: 'Arms',
     source: { kind: 'landmark', landmarkIndex: 15 },
     defaultEnabled: false,
     defaultAppearance: {
@@ -97,6 +130,7 @@ export const TRAIL_SOURCE_DEFINITIONS = [
   {
     id: 'right-wrist',
     label: 'Right wrist',
+    group: 'Arms',
     source: { kind: 'landmark', landmarkIndex: 16 },
     defaultEnabled: false,
     defaultAppearance: {
@@ -106,8 +140,33 @@ export const TRAIL_SOURCE_DEFINITIONS = [
     },
   },
   {
+    id: 'left-knee',
+    label: 'Left knee',
+    group: 'Legs',
+    source: { kind: 'landmark', landmarkIndex: 25 },
+    defaultEnabled: false,
+    defaultAppearance: {
+      ...DEFAULT_TRAIL_APPEARANCE,
+      color: '#4da3ff',
+      colorChannels: '77, 163, 255',
+    },
+  },
+  {
+    id: 'right-knee',
+    label: 'Right knee',
+    group: 'Legs',
+    source: { kind: 'landmark', landmarkIndex: 26 },
+    defaultEnabled: false,
+    defaultAppearance: {
+      ...DEFAULT_TRAIL_APPEARANCE,
+      color: '#ff8de1',
+      colorChannels: '255, 141, 225',
+    },
+  },
+  {
     id: 'left-ankle',
     label: 'Left ankle',
+    group: 'Legs',
     source: { kind: 'landmark', landmarkIndex: 27 },
     defaultEnabled: false,
     defaultAppearance: {
@@ -119,6 +178,7 @@ export const TRAIL_SOURCE_DEFINITIONS = [
   {
     id: 'right-ankle',
     label: 'Right ankle',
+    group: 'Legs',
     source: { kind: 'landmark', landmarkIndex: 28 },
     defaultEnabled: false,
     defaultAppearance: {

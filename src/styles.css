@@ -41,6 +41,7 @@ button { color: inherit; }
 
 button:focus-visible,
 input:focus-visible,
+select:focus-visible,
 .file-button:has(input:focus-visible),
 .brand:focus-visible {
   outline: 2px solid var(--lime);
@@ -913,6 +914,91 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   outline: 2px solid var(--lime);
   outline-offset: 2px;
 }
+.trail-source-settings { gap: 7px; }
+.trail-source-list {
+  display: grid;
+  gap: 3px;
+}
+.trail-source-row {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-left: 7px;
+  border-radius: 7px;
+  color: #c0c4ba;
+  background: #171b16;
+  font-size: .62rem;
+  font-weight: 720;
+}
+.trail-source-remove {
+  width: 34px;
+  min-height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 7px;
+  color: #737a70;
+  background: transparent;
+  cursor: pointer;
+}
+.trail-source-remove span {
+  font-size: 1.05rem;
+  font-weight: 450;
+  line-height: 1;
+}
+.trail-source-remove:hover {
+  color: #ece9df;
+  background: #252a23;
+}
+.trail-source-empty {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0 7px;
+  color: #71776e;
+  font-size: .58rem;
+}
+.trail-source-picker-label {
+  position: relative;
+  display: block;
+}
+.trail-source-picker {
+  width: 100%;
+  min-height: 38px;
+  appearance: none;
+  padding: 0 34px 0 11px;
+  border: 1px dashed #3d4439;
+  border-radius: 8px;
+  color: #b8beb3;
+  background: #141814;
+  font-size: .61rem;
+  font-weight: 780;
+  cursor: pointer;
+}
+.trail-source-picker:hover {
+  border-color: #596350;
+  color: #eff0e9;
+  background: #1a1f19;
+}
+.trail-source-picker:disabled {
+  color: #686e65;
+  cursor: default;
+}
+.trail-source-picker-label > i {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #828a7e;
+  border-bottom: 1.5px solid #828a7e;
+  pointer-events: none;
+  transform: translateY(-70%) rotate(45deg);
+}
 
 .checkpoint-panel {
   margin-bottom: 15px;
@@ -1653,7 +1739,10 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .shortcut-hint { display: none; }
   .switch-control { min-height: 44px; }
   .overlay-settings summary,
-  .overlay-option { min-height: 44px; }
+  .overlay-option,
+  .trail-source-row,
+  .trail-source-picker,
+  .trail-source-remove { min-height: 44px; }
   .checkpoint-add,
   .checkpoint-navigation button,
   .checkpoint-time,
@@ -1714,7 +1803,10 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .frame-step-editor input { min-height: 44px; }
   .switch-control,
   .overlay-settings summary,
-  .overlay-option { min-height: 44px; }
+  .overlay-option,
+  .trail-source-row,
+  .trail-source-picker,
+  .trail-source-remove { min-height: 44px; }
   .shortcut-hint { display: none; }
   .checkpoint-add,
   .checkpoint-navigation button,

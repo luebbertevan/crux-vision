@@ -108,17 +108,19 @@ persistence arrives in R3.
 ### R2C.1 — Overlay controls and legible trail defaults
 
 Add independent master, skeleton, and trail controls; make hip, shoulder,
-wrist, and ankle trails selectable; and strengthen the ordinary trail default
-with a two-second duration, a modestly larger stroke, and a contrast treatment
-that survives light and dark footage. Keep the compact Overlay settings
-disclosure collapsed during ordinary review.
+elbow, wrist, knee, and ankle trails selectable; and strengthen the ordinary
+trail default with a two-second duration, a modestly larger stroke, and a
+contrast treatment that survives light and dark footage. Keep the compact
+Overlay settings disclosure collapsed during ordinary review.
 
 Complete. The master remains outside the collapsed disclosure and preserves
 all layer/source choices while hidden. The disclosure groups skeleton/trails
-separately from six explicitly labeled trail sources, and source replacement
-restores the R2C.1 defaults. Rendering changes are live views of cached
-presentation-timestamped pose samples; they do not rerun inference or alter
-quality, smoothing, ranges, or playback. The implementation record is in
+separately from a compact active-source list and grouped add-source picker.
+Ten stable sources cover midpoints plus explicit left/right elbows, wrists,
+knees, and ankles; source replacement restores the R2C.1 defaults. Rendering
+changes are live views of cached presentation-timestamped pose samples; they do
+not rerun inference or alter quality, smoothing, ranges, or playback. The
+implementation record is in
 [`r2c1-implementation-spec.md`](./r2c1-implementation-spec.md).
 
 ### R2C.2 — Per-trail appearance editor
@@ -191,7 +193,8 @@ product. Reuse the tested adapters and contracts, not the diagnostic layout.
 - Draw trails from timed accepted joint samples, not frame numbers.
 - Allow a trail source to be a raw joint or an explicitly defined derived point.
   A midpoint is accepted only when both source joints are accepted.
-- Make wrist, ankle, hip, and shoulder selection convenient by R2C.
+- Make wrist, elbow, knee, ankle, hip, and shoulder selection convenient by
+  R2C.
 - Hide invalid segments instead of joining across long or low-confidence gaps.
 - Resolve confidence policy with `joint > body group > global` precedence.
 - Use timestamp-based temporal plausibility to detect high-confidence
@@ -262,7 +265,8 @@ R2 is complete when:
 - analysis appears progressively over a user-selected range;
 - the UI stays usable while inference runs;
 - the user can slow, scrub, frame-step, loop, zoom, and return to checkpoints;
-- wrist, ankle, hip, and shoulder trails can be selected without code changes;
+- wrist, elbow, knee, ankle, hip, and shoulder trails can be selected without
+  code changes;
 - low-confidence gaps do not create prominent false connections;
 - bad-but-confident samples can be rejected by a documented temporal policy,
   and smoothing cannot cross a rejected gap;
