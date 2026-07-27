@@ -377,6 +377,8 @@ gate passes 59 unit tests and 23 Chrome browser tests. See
 
 ### R2C — Visual inspection tools
 
+**Status:** R2C.1 complete; R2C.2 next
+
 **Outcome:** Trails and pose layers reveal movement without forcing one fixed
 visualization.
 
@@ -385,6 +387,8 @@ when display-only settings change, and neither changes the calibrated
 acceptance or smoothing defaults.
 
 #### R2C.1 — Overlay controls and legible trail defaults
+
+**Status:** Complete
 
 **Outcome:** A climber can quickly choose which pose layers and body paths help
 with the current move, and the default trails remain readable over varied
@@ -414,6 +418,20 @@ Build:
 easy to distinguish without overwhelming the climber. Master, skeleton, trails,
 and each supported source can be changed independently on desktop and phone,
 and all changes update the cached overlay immediately without reanalysis.
+
+R2C.1 keeps the master **Overlays** switch prominent while adding a collapsed,
+touch-sized **Overlay settings** disclosure with separately grouped layer and
+trail-source controls. Skeleton, trails, hip midpoint, and shoulder midpoint
+remain enabled by default; left/right wrists and ankles are explicit optional
+sources. The renderer now consumes stable typed source definitions and
+appearance defaults, uses a two-second history, scales the colored stroke to
+125% of the prior responsive rule, and draws a restrained dark contrast pass
+beneath every colored trail. Settings redraw cached quality samples
+immediately, remain independent of analysis and playback state, reset with
+source replacement, and are not persisted. Repeated/backward timestamps now
+join rejected, missing, and oversized-gap samples as explicit trail continuity
+breaks. See
+[`docs/r2c1-implementation-spec.md`](./docs/r2c1-implementation-spec.md).
 
 #### R2C.2 — Per-trail appearance editor
 

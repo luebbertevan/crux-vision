@@ -1,6 +1,7 @@
 # R2 product spec: first useful Crux Vision
 
-**Status:** R2A, the pose-quality calibration gate, and R2B complete; R2C next
+**Status:** R2A, the pose-quality calibration gate, R2B, and R2C.1 complete;
+R2C.2 next
 
 **Purpose:** Establish enough product and technical direction to start a fast
 feedback loop without freezing the interface before it has been used.
@@ -111,6 +112,14 @@ wrist, and ankle trails selectable; and strengthen the ordinary trail default
 with a two-second duration, a modestly larger stroke, and a contrast treatment
 that survives light and dark footage. Keep the compact Overlay settings
 disclosure collapsed during ordinary review.
+
+Complete. The master remains outside the collapsed disclosure and preserves
+all layer/source choices while hidden. The disclosure groups skeleton/trails
+separately from six explicitly labeled trail sources, and source replacement
+restores the R2C.1 defaults. Rendering changes are live views of cached
+presentation-timestamped pose samples; they do not rerun inference or alter
+quality, smoothing, ranges, or playback. The implementation record is in
+[`r2c1-implementation-spec.md`](./r2c1-implementation-spec.md).
 
 ### R2C.2 — Per-trail appearance editor
 

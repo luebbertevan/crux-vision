@@ -51,6 +51,32 @@ describe('trail segmentation', () => {
     expect(segments.map((segment) => segment.length)).toEqual([2, 1]);
   });
 
+  it('does not bridge repeated or backward timestamps', () => {
+    const segments = buildTrailSegments(
+      [
+        sample(0),
+        sample(60_000),
+        sample(60_000),
+        sample(120_000),
+        sample(90_000),
+        sample(150_000),
+      ],
+      150_000,
+      {
+        source: { kind: 'landmark', landmarkIndex: 15 },
+        durationMicroseconds: 1_000_000,
+        maximumGapMicroseconds: 100_000,
+      },
+    );
+    expect(segments.map((segment) =>
+      segment.map((point) => point.timestampMicroseconds)
+    )).toEqual([
+      [0, 60_000],
+      [120_000],
+      [150_000],
+    ]);
+  });
+
   it('limits the trail to the configured timestamp window', () => {
     const segments = buildTrailSegments(
       [sample(0), sample(500_000), sample(1_000_000)],

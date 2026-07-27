@@ -1,9 +1,7 @@
-import { DEFAULT_SAMPLE_RATE, SECOND_MICROSECONDS } from '../analysis/range';
 import {
   buildSkeletonSegmentsFromGetter,
   PRODUCT_POSE_LANDMARK_INDICES,
   resolvePosePointFromGetter,
-  type PosePointSource,
 } from '../pose/poseView';
 import {
   landmarkForPreview,
@@ -14,33 +12,13 @@ import { buildTrailSegmentsWithResolver } from '../pose/trail';
 import type { PoseLandmark } from '../types';
 import type { DisplayTransform } from './displayTransform';
 import { mapNormalizedPoint } from './displayTransform';
-
-export const TRAIL_DURATION_MICROSECONDS = 1.5 * SECOND_MICROSECONDS;
-export const TRAIL_MAXIMUM_GAP_MICROSECONDS = Math.round(
-  (1.5 * SECOND_MICROSECONDS) / DEFAULT_SAMPLE_RATE,
-);
-
-const TRAIL_MINIMUM_ALPHA = 0.38;
-const TRAIL_MAXIMUM_ALPHA = 0.98;
-
-const TRAILS = [
-  {
-    source: {
-      kind: 'midpoint',
-      firstLandmarkIndex: 23,
-      secondLandmarkIndex: 24,
-    },
-    color: '244, 170, 74',
-  },
-  {
-    source: {
-      kind: 'midpoint',
-      firstLandmarkIndex: 11,
-      secondLandmarkIndex: 12,
-    },
-    color: '72, 205, 225',
-  },
-] satisfies ReadonlyArray<{ source: PosePointSource; color: string }>;
+import {
+  calculateTrailPointRadii,
+  calculateTrailStrokeWidths,
+  TRAIL_MAXIMUM_GAP_MICROSECONDS,
+  TRAIL_SOURCE_DEFINITIONS,
+  type OverlaySettings,
+} from './overlaySettings';
 
 export type OverlayRenderResult = {
   currentPoseAvailable: boolean;
@@ -57,8 +35,16 @@ export function renderOverlay(
   currentSample: QualityPoseSample | null,
   presentationTimestampMicroseconds: number,
   previewMode: PosePreviewMode,
+  settings: OverlaySettings,
 ): OverlayRenderResult {
   context.clearRect(0, 0, width, height);
+  if (!settings.masterVisible) {
+    return {
+      currentPoseAvailable: true,
+      skeletonSegmentCount: 0,
+      trailSegmentCount: 0,
+    };
+  }
 
   const getPreviewLandmark = (
     sample: QualityPoseSample,
@@ -73,13 +59,19 @@ export function renderOverlay(
   };
 
   let trailSegmentCount = 0;
-  for (const trail of TRAILS) {
+  const enabledTrails = settings.layers.trails
+    ? TRAIL_SOURCE_DEFINITIONS.filter(
+        ({ id }) => settings.trailSources[id],
+      )
+    : [];
+  for (const trail of enabledTrails) {
+    const appearance = trail.defaultAppearance;
     const segments = buildTrailSegmentsWithResolver(
       samples,
       presentationTimestampMicroseconds,
       {
         source: trail.source,
-        durationMicroseconds: TRAIL_DURATION_MICROSECONDS,
+        durationMicroseconds: appearance.durationMicroseconds,
         maximumGapMicroseconds: TRAIL_MAXIMUM_GAP_MICROSECONDS,
       },
       (sample, source) =>
@@ -89,41 +81,70 @@ export function renderOverlay(
         )?.point ?? null,
     );
     trailSegmentCount += segments.length;
+    const pointRadii = calculateTrailPointRadii(
+      width,
+      appearance.widthScale,
+    );
+    const strokeWidths = calculateTrailStrokeWidths(
+      width,
+      appearance.widthScale,
+    );
 
     for (const segment of segments) {
       if (segment.length === 1) {
         const point = mapNormalizedPoint(transform, segment[0]);
-        context.beginPath();
-        context.arc(point.x, point.y, Math.max(4, width / 190), 0, Math.PI * 2);
         const alpha =
-          TRAIL_MINIMUM_ALPHA +
-          segment[0].ageRatio * (TRAIL_MAXIMUM_ALPHA - TRAIL_MINIMUM_ALPHA);
-        context.fillStyle = `rgba(${trail.color}, ${alpha})`;
+          appearance.minimumAlpha +
+          segment[0].ageRatio *
+            (appearance.maximumAlpha - appearance.minimumAlpha);
+        context.beginPath();
+        context.arc(
+          point.x,
+          point.y,
+          pointRadii.haloRadius,
+          0,
+          Math.PI * 2,
+        );
+        context.fillStyle = `rgba(${appearance.haloColorChannels}, ${alpha * appearance.haloAlphaScale})`;
+        context.fill();
+        context.beginPath();
+        context.arc(
+          point.x,
+          point.y,
+          pointRadii.colorRadius,
+          0,
+          Math.PI * 2,
+        );
+        context.fillStyle = `rgba(${appearance.colorChannels}, ${alpha})`;
         context.fill();
         continue;
       }
 
       context.lineCap = 'round';
       context.lineJoin = 'round';
-      context.lineWidth = Math.max(4, width / 180);
       for (let index = 1; index < segment.length; index += 1) {
         const start = mapNormalizedPoint(transform, segment[index - 1]);
         const end = mapNormalizedPoint(transform, segment[index]);
         const ageRatio =
           (segment[index - 1].ageRatio + segment[index].ageRatio) / 2;
         const alpha =
-          TRAIL_MINIMUM_ALPHA +
-          ageRatio * (TRAIL_MAXIMUM_ALPHA - TRAIL_MINIMUM_ALPHA);
+          appearance.minimumAlpha +
+          ageRatio *
+            (appearance.maximumAlpha - appearance.minimumAlpha);
         context.beginPath();
         context.moveTo(start.x, start.y);
         context.lineTo(end.x, end.y);
-        context.strokeStyle = `rgba(${trail.color}, ${alpha})`;
+        context.lineWidth = strokeWidths.haloWidth;
+        context.strokeStyle = `rgba(${appearance.haloColorChannels}, ${alpha * appearance.haloAlphaScale})`;
+        context.stroke();
+        context.lineWidth = strokeWidths.colorWidth;
+        context.strokeStyle = `rgba(${appearance.colorChannels}, ${alpha})`;
         context.stroke();
       }
     }
   }
 
-  const skeleton = currentSample
+  const skeleton = settings.layers.skeleton && currentSample
     ? buildSkeletonSegmentsFromGetter((landmarkIndex) =>
         getPreviewLandmark(currentSample, landmarkIndex),
       )
@@ -146,7 +167,7 @@ export function renderOverlay(
 
   context.shadowBlur = 0;
   const acceptedLandmarks =
-    currentSample
+    settings.layers.skeleton && currentSample
       ? PRODUCT_POSE_LANDMARK_INDICES.map((landmarkIndex) =>
           getPreviewLandmark(currentSample, landmarkIndex),
         ).filter((landmark): landmark is PoseLandmark => Boolean(landmark))
@@ -163,7 +184,7 @@ export function renderOverlay(
     context.stroke();
   }
 
-  if (previewMode === 'rejected' && currentSample) {
+  if (settings.layers.skeleton && previewMode === 'rejected' && currentSample) {
     const rejectedRadius = Math.max(3.2, width / 220);
     for (const decision of currentSample.decisions) {
       if (!decision) continue;
@@ -188,7 +209,7 @@ export function renderOverlay(
     }
   }
 
-  const currentTrailAvailable = TRAILS.some((trail) =>
+  const currentTrailAvailable = enabledTrails.some((trail) =>
     Boolean(
       currentSample &&
         resolvePosePointFromGetter(
@@ -197,9 +218,13 @@ export function renderOverlay(
         ),
     ),
   );
+  const anyLayerRequested =
+    settings.layers.skeleton ||
+    (settings.layers.trails && enabledTrails.length > 0);
 
   return {
-    currentPoseAvailable: skeleton.length > 0 || currentTrailAvailable,
+    currentPoseAvailable:
+      !anyLayerRequested || skeleton.length > 0 || currentTrailAvailable,
     skeletonSegmentCount: skeleton.length,
     trailSegmentCount,
   };

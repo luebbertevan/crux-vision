@@ -31,6 +31,7 @@ import {
   UploadIcon,
 } from './components/Icons';
 import { OverlayCanvas, type StageFeedback } from './components/OverlayCanvas';
+import { OverlaySettingsPanel } from './components/OverlaySettingsPanel';
 import { PoseQualityPanel } from './components/PoseQualityPanel';
 import {
   PrecisionReviewControls,
@@ -40,6 +41,12 @@ import { formatTime, RangeSelector } from './components/RangeSelector';
 import { useReviewStageSize } from './layout/useReviewStageSize';
 import type { BrowserMediaAdapter } from './media/mediaAdapter';
 import { PlayerController } from './player/PlayerController';
+import {
+  createDefaultOverlaySettings,
+  withOverlayLayerVisibility,
+  withOverlayMasterVisibility,
+  withTrailSourceVisibility,
+} from './overlay/overlaySettings';
 import {
   adjacentPresentationFrameIndex,
   isWithinPresentationFrameSpan,
@@ -160,7 +167,10 @@ export function App() {
   );
   const [opening, setOpening] = useState(false);
   const [sourceError, setSourceError] = useState<string | null>(null);
-  const [overlaysVisible, setOverlaysVisible] = useState(true);
+  const [overlaySettings, setOverlaySettings] = useState(
+    createDefaultOverlaySettings,
+  );
+  const [overlaySettingsOpen, setOverlaySettingsOpen] = useState(false);
   const [rangeLoopEnabled, setRangeLoopEnabled] = useState(false);
   const [checkpoints, setCheckpoints] = useState<ReviewCheckpoint[]>([]);
   const [stageFeedback, setStageFeedback] = useState<StageFeedback>('none');
@@ -307,7 +317,8 @@ export function App() {
         setCheckpoints([]);
         checkpointSequenceRef.current = 0;
         setStageFeedback('none');
-        setOverlaysVisible(true);
+        setOverlaySettings(createDefaultOverlaySettings());
+        setOverlaySettingsOpen(false);
         setCalibrationLabels([]);
         calibrationHistoryRef.current.clear();
         setCalibrationHistoryRevision((revision) => revision + 1);
@@ -1378,7 +1389,7 @@ export function App() {
                   analysis={analysis}
                   quality={qualityEvaluation}
                   previewMode={previewMode}
-                  visible={overlaysVisible}
+                  settings={overlaySettings}
                   onFeedbackChange={setStageFeedback}
                 />
                 <div className="stage-topline">
@@ -1625,19 +1636,34 @@ export function App() {
                 <label className="switch-control">
                   <input
                     type="checkbox"
-                    checked={overlaysVisible}
-                    onChange={(event) => setOverlaysVisible(event.currentTarget.checked)}
+                    checked={overlaySettings.masterVisible}
+                    onChange={(event) => {
+                      const visible = event.currentTarget.checked;
+                      setOverlaySettings((current) =>
+                        withOverlayMasterVisibility(current, visible),
+                      );
+                    }}
                   />
                   <span aria-hidden="true" />
                   <b>Overlays</b>
                 </label>
               </div>
 
-              <div className="analysis-preview" aria-hidden="true">
-                <span className="trail-key trail-key-hip"><i /> Hip midpoint</span>
-                <span className="trail-key trail-key-shoulder"><i /> Shoulder midpoint</span>
-                <span className="trail-key trail-key-pose"><i /> Skeleton</span>
-              </div>
+              <OverlaySettingsPanel
+                settings={overlaySettings}
+                open={overlaySettingsOpen}
+                onOpenChange={setOverlaySettingsOpen}
+                onLayerChange={(layerId, visible) =>
+                  setOverlaySettings((current) =>
+                    withOverlayLayerVisibility(current, layerId, visible),
+                  )
+                }
+                onTrailSourceChange={(sourceId, visible) =>
+                  setOverlaySettings((current) =>
+                    withTrailSourceVisibility(current, sourceId, visible),
+                  )
+                }
+              />
 
               <CheckpointControls
                 checkpoints={checkpoints}

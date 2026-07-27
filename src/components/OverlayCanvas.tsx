@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import { DEFAULT_SAMPLE_RATE, secondsToMicroseconds } from '../analysis/range';
 import { nearestByTimestamp } from '../analysis/timestamp';
 import { computeContainTransform } from '../overlay/displayTransform';
+import type { OverlaySettings } from '../overlay/overlaySettings';
 import { renderOverlay } from '../overlay/renderOverlay';
 import type {
   PosePreviewMode,
@@ -19,7 +20,7 @@ type OverlayCanvasProps = {
   analysis: AnalysisState;
   quality: PoseQualityEvaluation;
   previewMode: PosePreviewMode;
-  visible: boolean;
+  settings: OverlaySettings;
   onFeedbackChange: (feedback: StageFeedback) => void;
 };
 
@@ -33,13 +34,14 @@ export function OverlayCanvas({
   analysis,
   quality,
   previewMode,
-  visible,
+  settings,
   onFeedbackChange,
 }: OverlayCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const stateRef = useRef({ metadata, analysis, quality, previewMode, visible });
+  const stateRef = useRef({ metadata, analysis, quality, previewMode, settings });
   const lastFeedbackRef = useRef<StageFeedback>('none');
-  stateRef.current = { metadata, analysis, quality, previewMode, visible };
+  const drawRevisionRef = useRef(0);
+  stateRef.current = { metadata, analysis, quality, previewMode, settings };
 
   const publishFeedback = useCallback(
     (feedback: StageFeedback) => {
@@ -67,8 +69,28 @@ export function OverlayCanvas({
       if (!context) return;
       const state = stateRef.current;
       const range = state.analysis.range;
-      if (!state.visible || !range || state.analysis.phase === 'idle') {
+      const publishDrawResult = (
+        reason: string,
+        result?: {
+          skeletonSegmentCount: number;
+          trailSegmentCount: number;
+        },
+      ) => {
+        drawRevisionRef.current += 1;
+        canvas.dataset.drawRevision = String(drawRevisionRef.current);
+        canvas.dataset.drawReason = reason;
+        canvas.dataset.skeletonSegmentCount = String(
+          result?.skeletonSegmentCount ?? 0,
+        );
+        canvas.dataset.trailSegmentCount = String(
+          result?.trailSegmentCount ?? 0,
+        );
+      };
+      if (!state.settings.masterVisible || !range || state.analysis.phase === 'idle') {
         context.clearRect(0, 0, width, height);
+        publishDrawResult(
+          state.settings.masterVisible ? 'no-analysis' : 'master-hidden',
+        );
         publishFeedback('none');
         return;
       }
@@ -76,6 +98,7 @@ export function OverlayCanvas({
       const timestamp = secondsToMicroseconds(mediaTimeSeconds);
       if (timestamp < range.startMicroseconds || timestamp > range.endMicroseconds) {
         context.clearRect(0, 0, width, height);
+        publishDrawResult('outside-range');
         publishFeedback('outside');
         return;
       }
@@ -88,6 +111,7 @@ export function OverlayCanvas({
         (analyzedThrough === null || timestamp > analyzedThrough + POSE_TOLERANCE_MICROSECONDS)
       ) {
         context.clearRect(0, 0, width, height);
+        publishDrawResult('pending');
         publishFeedback('pending');
         return;
       }
@@ -112,7 +136,9 @@ export function OverlayCanvas({
         currentSample,
         timestamp,
         state.previewMode,
+        state.settings,
       );
+      publishDrawResult('rendered', result);
       publishFeedback(result.currentPoseAvailable ? 'none' : 'unavailable');
     },
     [publishFeedback],
@@ -149,7 +175,7 @@ export function OverlayCanvas({
     drawAt,
     previewMode,
     quality,
-    visible,
+    settings,
     videoRef,
   ]);
 

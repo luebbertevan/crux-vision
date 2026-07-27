@@ -32,12 +32,20 @@ export function buildTrailSegmentsWithResolver<T extends { timestampMicroseconds
     if (sample.timestampMicroseconds < windowStart) continue;
     if (sample.timestampMicroseconds > presentationTimestampMicroseconds) break;
 
+    const timestampDelta =
+      previousRawTimestamp === null
+        ? null
+        : sample.timestampMicroseconds - previousRawTimestamp;
+    previousRawTimestamp = sample.timestampMicroseconds;
+    if (timestampDelta !== null && timestampDelta <= 0) {
+      current = null;
+      continue;
+    }
+
     const point = resolvePoint(sample, config.source);
     const hasLargeGap =
-      previousRawTimestamp !== null &&
-      sample.timestampMicroseconds - previousRawTimestamp > config.maximumGapMicroseconds;
-    previousRawTimestamp = sample.timestampMicroseconds;
-
+      timestampDelta !== null &&
+      timestampDelta > config.maximumGapMicroseconds;
     if (!point) {
       current = null;
       continue;
