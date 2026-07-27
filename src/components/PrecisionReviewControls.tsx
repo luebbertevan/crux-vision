@@ -16,7 +16,7 @@ import {
 
 export const REVIEW_PLAYBACK_RATES = [0.25, 0.5, 1] as const;
 export const FRAME_HOLD_DELAY_MILLISECONDS = 350;
-export const FRAME_HOLD_INTERVAL_MILLISECONDS = 200;
+export const FRAME_HOLD_INTERVAL_MILLISECONDS = 100;
 
 type PrecisionReviewControlsProps = {
   playbackRate: number;

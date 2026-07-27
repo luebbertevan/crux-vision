@@ -321,8 +321,8 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
   const indexAfterHold = Number(
     await precisionControls.getAttribute('data-current-frame-index'),
   );
-  expect(indexAfterHold).toBeGreaterThanOrEqual(alignedFrameIndex + 5);
-  expect(indexAfterHold).toBeLessThanOrEqual(alignedFrameIndex + 7);
+  expect(indexAfterHold).toBeGreaterThanOrEqual(alignedFrameIndex + 8);
+  expect(indexAfterHold).toBeLessThanOrEqual(alignedFrameIndex + 12);
   await page.waitForTimeout(450);
   await expect(precisionControls).toHaveAttribute(
     'data-current-frame-index',
