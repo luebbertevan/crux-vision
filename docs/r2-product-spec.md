@@ -156,6 +156,8 @@ product. Reuse the tested adapters and contracts, not the diagnostic layout.
   timestamps.
 - Mark In/Out, loop that range, and create named checkpoints with subtle
   location ticks on the main timeline.
+- Preserve active playback when navigating to a checkpoint on desktop-style
+  pointers; pause before checkpoint seeks on touch-first devices until tested.
 - Support accurate backward stepping or jog; do not promise smooth negative-rate
   playback.
 

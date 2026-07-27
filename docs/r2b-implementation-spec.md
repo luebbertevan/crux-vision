@@ -21,6 +21,9 @@ phone layouts.
   stops immediately on release, cancellation, or an unavailable direction.
 - Named checkpoints can be added at the playhead, renamed, selected directly,
   removed, and reached with previous/next navigation.
+- On hover-and-fine-pointer desktop devices, checkpoint navigation preserves
+  active playback. Touch-first devices pause before seeking until that behavior
+  has been tested with climbers.
 - Each checkpoint appears as a small neutral tick on the main playback timeline;
   the tick at the playhead receives a restrained lime emphasis.
 - Checkpoints are source-session state. Replacing the video clears them;
@@ -66,10 +69,11 @@ remains independently scrollable.
 
 - 55 Vitest tests cover timestamp navigation, range behavior, pose quality,
   smoothing, transforms, worker compatibility, history, and state.
-- 22 Chrome Playwright tests cover the full analysis loop, calibration,
+- 23 Chrome Playwright tests cover the full analysis loop, calibration,
   playback speeds, loop restart and disable behavior, single-step and
-  press-and-hold frame jog, release behavior, checkpoint naming/navigation,
-  source replacement, and responsive layout.
+  press-and-hold frame jog, release behavior, desktop and touch-first checkpoint
+  playback, checkpoint naming/navigation, source replacement, and responsive
+  layout.
 - Real portrait and landscape fixtures were visually inspected at `1440×900`,
   `393×852`, and `852×393`.
 - The production TypeScript and Vite build passes.

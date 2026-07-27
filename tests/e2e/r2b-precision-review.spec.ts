@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { expect, test, type Page } from '@playwright/test';
+import { devices, expect, test, type Page } from '@playwright/test';
 
 const defaultFixtureRoot = '/Users/evan/crux-vision-legacy/backend/static/originals';
 const fixtureRoot = process.env.CRUX_FIXTURE_ROOT ?? defaultFixtureRoot;
@@ -160,6 +160,32 @@ test('changes speed and loops the selected range with controls and shortcuts', a
   expect(markerBounds[0].left).toBeLessThan(markerBounds[1].left);
   expect(markerBounds.every((bounds) => bounds.height >= 10)).toBe(true);
 
+  expect(
+    await page.evaluate(() =>
+      window.matchMedia('(hover: hover) and (pointer: fine)').matches,
+    ),
+  ).toBe(true);
+  await video.evaluate(async (element) => {
+    const media = element as HTMLVideoElement;
+    media.currentTime = 0.5;
+    await new Promise<void>((resolve) =>
+      media.addEventListener('seeked', () => resolve(), { once: true }),
+    );
+    await media.play();
+  });
+  await page.getByRole('button', { name: 'Go to Start move' }).click();
+  await expect
+    .poll(() =>
+      video.evaluate((element) => (element as HTMLVideoElement).paused),
+    )
+    .toBe(false);
+  await expect
+    .poll(() =>
+      video.evaluate((element) => (element as HTMLVideoElement).currentTime),
+    )
+    .toBeGreaterThanOrEqual(1.2);
+  await video.evaluate((element) => (element as HTMLVideoElement).pause());
+
   await video.evaluate(async (element) => {
     const media = element as HTMLVideoElement;
     media.currentTime = 0.5;
@@ -304,4 +330,64 @@ test('keeps precision controls clear and touchable across review layouts', async
       fullPage: true,
     });
   }
+});
+
+test.describe('touch-first checkpoint playback', () => {
+  test.use({
+    userAgent: devices['iPhone 13'].userAgent,
+    viewport: devices['iPhone 13'].viewport,
+    deviceScaleFactor: devices['iPhone 13'].deviceScaleFactor,
+    isMobile: devices['iPhone 13'].isMobile,
+    hasTouch: devices['iPhone 13'].hasTouch,
+  });
+
+  test('pauses before navigating to a checkpoint on mobile', async ({ page }) => {
+    await page.goto('/');
+    await importVideo(page, portraitFixture);
+
+    expect(
+      await page.evaluate(() =>
+        window.matchMedia('(hover: hover) and (pointer: fine)').matches,
+      ),
+    ).toBe(false);
+
+    const video = page.locator('video');
+    await video.evaluate(async (element) => {
+      const media = element as HTMLVideoElement;
+      media.currentTime = 1.2;
+      await new Promise<void>((resolve) =>
+        media.addEventListener('seeked', () => resolve(), { once: true }),
+      );
+    });
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
+
+    await video.evaluate(async (element) => {
+      const media = element as HTMLVideoElement;
+      media.currentTime = 0.5;
+      await new Promise<void>((resolve) =>
+        media.addEventListener('seeked', () => resolve(), { once: true }),
+      );
+      await media.play();
+    });
+    await expect
+      .poll(() =>
+        video.evaluate((element) => (element as HTMLVideoElement).paused),
+      )
+      .toBe(false);
+
+    await page
+      .getByTestId('checkpoint-controls')
+      .locator('.checkpoint-time')
+      .click();
+    await expect
+      .poll(() =>
+        video.evaluate((element) => (element as HTMLVideoElement).paused),
+      )
+      .toBe(true);
+    await expect
+      .poll(() =>
+        video.evaluate((element) => (element as HTMLVideoElement).currentTime),
+      )
+      .toBeCloseTo(1.2, 1);
+  });
 });

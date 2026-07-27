@@ -108,6 +108,16 @@ const isRunning = (phase: AnalysisPhase) =>
 const isAbortError = (error: unknown) =>
   error instanceof DOMException && error.name === 'AbortError';
 
+const DESKTOP_CHECKPOINT_PLAYBACK_QUERY =
+  '(hover: hover) and (pointer: fine)';
+
+function shouldPreserveCheckpointPlayback(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia(DESKTOP_CHECKPOINT_PLAYBACK_QUERY).matches
+  );
+}
+
 function FileButton({
   compact,
   label,
@@ -694,7 +704,10 @@ export function App() {
         );
         return;
       }
-      player.pause();
+      const preserveActivePlayback =
+        player.getSnapshot().playing &&
+        shouldPreserveCheckpointPlayback();
+      if (!preserveActivePlayback) player.pause();
       player.seek(timeSeconds);
     },
     [calibrationWorkspaceOpen, checkpoints, player, recordCalibrationSeek],

@@ -357,14 +357,16 @@ changes the selected analysis range or pose timestamps.
 Named, editable checkpoints are stored in the current in-memory source session,
 ordered by presentation time, and cleared on source replacement. They support
 direct selection plus previous/next navigation, with subtle location ticks on
-the main playback timeline. Persistent checkpoints remain R3 work. Desktop
-shortcuts cover play/pause, looping, speed, frame jog, checkpoint creation, and
-checkpoint navigation; the same actions have touch-sized controls on phone
-layouts.
+the main playback timeline. Checkpoint navigation preserves active playback on
+hover-and-fine-pointer desktop devices but pauses before seeking on touch-first
+devices until that behavior is tested. Persistent checkpoints remain R3 work.
+Desktop shortcuts cover play/pause, looping, speed, frame jog, checkpoint
+creation, and checkpoint navigation; the same actions have touch-sized controls
+on phone layouts.
 
 The precision controls were visually checked with real portrait and landscape
 fixtures at `1440×900`, `393×852`, and `852×393`. The complete verification
-gate passes 55 unit tests and 22 Chrome browser tests. See
+gate passes 55 unit tests and 23 Chrome browser tests. See
 [`docs/r2b-implementation-spec.md`](./docs/r2b-implementation-spec.md).
 
 ### R2C — Visual inspection tools
