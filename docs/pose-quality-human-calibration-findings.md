@@ -143,17 +143,17 @@ changed from this observation alone.
 
 ### Exact-frame calibration navigation
 
-The calibration workspace now provides:
+The main analyzed-frame seeker remains visible in the calibration workspace and
+adds:
 
-- previous and next analyzed-frame buttons;
 - direct one-based analyzed-frame entry;
 - the exact stored presentation timestamp to six decimal places;
 - automatic pause before every frame seek.
 
-The navigator uses actual stored pose-analysis presentation timestamps, not a
-nominal frame-rate calculation. This preserves correct spacing for
-variable-frame-rate footage. At source rates above the analysis density, it
-steps only frames that have pose samples and explicitly says so.
+Its existing previous/next buttons and press-and-hold jog use actual stored
+pose-analysis presentation timestamps, not a nominal frame-rate calculation.
+This preserves correct spacing for variable-frame-rate footage. At source rates
+above the analysis density, it steps only frames that have pose samples.
 
 Use these controls to record the exact frame where Accepted raw and Smoothed
 first diverge during the lache. If one-frame causal lag remains consistently

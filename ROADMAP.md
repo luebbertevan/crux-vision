@@ -284,7 +284,9 @@ previous/next analyzed-frame controls, direct analyzed-frame entry, and the
 exact stored presentation timestamp. These controls pause and seek by actual
 pose-sample presentation time rather than nominal FPS, so variable-frame-rate
 spacing remains honest. They do not claim access to source frames that were not
-analyzed. Use the exact-frame evidence to evaluate a gap-bounded
+analyzed. Calibration reuses the ordinary analyzed-frame seeker, making its
+center readout editable instead of replacing it with a second navigator. Use
+the exact-frame evidence to evaluate a gap-bounded
 centered/offline smoother before resuming broader calibration; do not begin the
 rest of R2B in this gate.
 

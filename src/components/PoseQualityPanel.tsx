@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   BODY_GROUP_LABELS,
@@ -30,9 +30,6 @@ type PoseQualityPanelProps = {
   selectedModel: PoseModelId;
   labelMetrics: CalibrationLabelMetrics;
   labelCount: number;
-  calibrationFrameIndex: number | null;
-  calibrationFrameCount: number;
-  calibrationFrameTimestampMicroseconds: number | null;
   canUndo: boolean;
   canRedo: boolean;
   onPresetChange: (preset: PoseQualityPresetId) => void;
@@ -49,7 +46,6 @@ type PoseQualityPanelProps = {
   onClearLabels: () => void;
   onResetPolicy: () => void;
   onExport: () => void;
-  onCalibrationFrameChange: (frameIndex: number) => void;
   onUndo: () => void;
   onRedo: () => void;
   onWorkspaceToggle: (open: boolean) => void;
@@ -147,9 +143,6 @@ export function PoseQualityPanel({
   selectedModel,
   labelMetrics,
   labelCount,
-  calibrationFrameIndex,
-  calibrationFrameCount,
-  calibrationFrameTimestampMicroseconds,
   canUndo,
   canRedo,
   onPresetChange,
@@ -162,7 +155,6 @@ export function PoseQualityPanel({
   onClearLabels,
   onResetPolicy,
   onExport,
-  onCalibrationFrameChange,
   onUndo,
   onRedo,
   onWorkspaceToggle,
@@ -179,37 +171,6 @@ export function PoseQualityPanel({
     metrics.longestJointGapLandmarkIndex === null
       ? '—'
       : POSE_LANDMARK_NAMES[metrics.longestJointGapLandmarkIndex];
-  const [calibrationFrameDraft, setCalibrationFrameDraft] = useState('');
-
-  useEffect(() => {
-    setCalibrationFrameDraft(
-      calibrationFrameIndex === null ? '' : String(calibrationFrameIndex + 1),
-    );
-  }, [calibrationFrameIndex]);
-
-  const commitCalibrationFrame = (event?: FormEvent) => {
-    event?.preventDefault();
-    if (calibrationFrameCount === 0) return;
-    if (calibrationFrameDraft.trim() === '') {
-      setCalibrationFrameDraft(
-        calibrationFrameIndex === null ? '' : String(calibrationFrameIndex + 1),
-      );
-      return;
-    }
-    const requestedFrame = Math.round(Number(calibrationFrameDraft));
-    if (!Number.isFinite(requestedFrame)) {
-      setCalibrationFrameDraft(
-        calibrationFrameIndex === null ? '' : String(calibrationFrameIndex + 1),
-      );
-      return;
-    }
-    const frameIndex = Math.min(
-      calibrationFrameCount - 1,
-      Math.max(0, requestedFrame - 1),
-    );
-    setCalibrationFrameDraft(String(frameIndex + 1));
-    onCalibrationFrameChange(frameIndex);
-  };
 
   const rejectionSummary = useMemo(
     () =>
@@ -380,88 +341,6 @@ export function PoseQualityPanel({
               <span>Redo change</span>
               <kbd>⌘/Ctrl ⇧Z</kbd>
             </button>
-          </div>
-
-          <div
-            className="calibration-frame-navigator"
-            data-testid="calibration-frame-navigator"
-            data-frame-index={calibrationFrameIndex ?? ''}
-            data-frame-timestamp-microseconds={
-              calibrationFrameTimestampMicroseconds ?? ''
-            }
-          >
-            <div className="calibration-frame-heading">
-              <span>
-                <strong>Exact analyzed frames</strong>
-                <small>Step by stored presentation timestamp</small>
-              </span>
-              <output data-testid="calibration-frame-time">
-                {calibrationFrameTimestampMicroseconds === null
-                  ? 'Outside analyzed time'
-                  : `${(calibrationFrameTimestampMicroseconds / 1_000_000).toFixed(6)} s`}
-              </output>
-            </div>
-            <form
-              className="calibration-frame-controls"
-              onSubmit={commitCalibrationFrame}
-            >
-              <button
-                type="button"
-                aria-label="Previous analyzed frame"
-                disabled={
-                  calibrationFrameCount === 0 || calibrationFrameIndex === 0
-                }
-                onClick={() =>
-                  onCalibrationFrameChange(
-                    calibrationFrameIndex === null
-                      ? calibrationFrameCount - 1
-                      : calibrationFrameIndex - 1,
-                  )
-                }
-              >
-                −1 frame
-              </button>
-              <label>
-                <span>Frame</span>
-                <input
-                  aria-label="Exact analyzed frame"
-                  type="number"
-                  min={1}
-                  max={Math.max(1, calibrationFrameCount)}
-                  step={1}
-                  inputMode="numeric"
-                  value={calibrationFrameDraft}
-                  disabled={calibrationFrameCount === 0}
-                  onChange={(event) =>
-                    setCalibrationFrameDraft(event.currentTarget.value)
-                  }
-                  onBlur={() => commitCalibrationFrame()}
-                />
-                <small>/ {calibrationFrameCount}</small>
-              </label>
-              <button
-                type="button"
-                aria-label="Next analyzed frame"
-                disabled={
-                  calibrationFrameCount === 0 ||
-                  calibrationFrameIndex === calibrationFrameCount - 1
-                }
-                onClick={() =>
-                  onCalibrationFrameChange(
-                    calibrationFrameIndex === null
-                      ? 0
-                      : calibrationFrameIndex + 1,
-                  )
-                }
-              >
-                +1 frame
-              </button>
-            </form>
-            <small className="calibration-frame-note">
-              These are exact pose-analysis presentation frames, not nominal-FPS
-              guesses. A higher-frame-rate source can contain video frames that
-              were not analyzed.
-            </small>
           </div>
 
           <div

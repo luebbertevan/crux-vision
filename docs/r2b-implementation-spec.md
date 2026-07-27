@@ -19,6 +19,8 @@ phone layouts.
   presentation timestamps and pauses before seeking. A normal tap or click
   moves once; holding for `350 ms` starts a five-frames-per-second repeat that
   stops immediately on release, cancellation, or an unavailable direction.
+  The same seeker remains in place when calibration opens; its center readout
+  becomes an editable analyzed-frame number and shows the exact timestamp.
 - Named checkpoints can be added at the playhead, renamed, selected directly,
   removed, and reached with previous/next navigation.
 - On hover-and-fine-pointer desktop devices, checkpoint navigation preserves

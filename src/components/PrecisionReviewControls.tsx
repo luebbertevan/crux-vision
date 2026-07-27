@@ -3,6 +3,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type FormEvent,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
@@ -24,11 +25,13 @@ type PrecisionReviewControlsProps = {
   currentFrameIndex: number | null;
   canStepPrevious: boolean;
   canStepNext: boolean;
-  showFrameNavigation?: boolean;
+  exactFrameEditing?: boolean;
+  currentFrameTimestampMicroseconds?: number | null;
   onPlaybackRateChange: (rate: number) => void;
   onLoopToggle: () => void;
   onPreviousFrame: () => void;
   onNextFrame: () => void;
+  onExactFrameChange?: (frameIndex: number) => void;
 };
 
 const speedLabel = (rate: number) =>
@@ -157,14 +160,49 @@ export function PrecisionReviewControls({
   currentFrameIndex,
   canStepPrevious,
   canStepNext,
-  showFrameNavigation = true,
+  exactFrameEditing = false,
+  currentFrameTimestampMicroseconds = null,
   onPlaybackRateChange,
   onLoopToggle,
   onPreviousFrame,
   onNextFrame,
+  onExactFrameChange,
 }: PrecisionReviewControlsProps) {
   const previousHold = useFrameHold(onPreviousFrame, !canStepPrevious);
   const nextHold = useFrameHold(onNextFrame, !canStepNext);
+  const [exactFrameDraft, setExactFrameDraft] = useState('');
+
+  useEffect(() => {
+    if (!exactFrameEditing) return;
+    setExactFrameDraft(
+      currentFrameIndex === null ? '' : String(currentFrameIndex + 1),
+    );
+  }, [currentFrameIndex, exactFrameEditing]);
+
+  const commitExactFrame = (event?: FormEvent) => {
+    event?.preventDefault();
+    if (!onExactFrameChange || analyzedFrameCount === 0) return;
+    if (exactFrameDraft.trim() === '') {
+      setExactFrameDraft(
+        currentFrameIndex === null ? '' : String(currentFrameIndex + 1),
+      );
+      return;
+    }
+    const requestedFrame = Math.round(Number(exactFrameDraft));
+    if (!Number.isFinite(requestedFrame)) {
+      setExactFrameDraft(
+        currentFrameIndex === null ? '' : String(currentFrameIndex + 1),
+      );
+      return;
+    }
+    const frameIndex = Math.min(
+      analyzedFrameCount - 1,
+      Math.max(0, requestedFrame - 1),
+    );
+    setExactFrameDraft(String(frameIndex + 1));
+    onExactFrameChange(frameIndex);
+  };
+
   const frameReadout =
     currentFrameIndex === null
       ? analyzedFrameCount > 0
@@ -208,44 +246,76 @@ export function PrecisionReviewControls({
         </button>
       </div>
 
-      {showFrameNavigation && (
-        <div className="frame-step-row" role="group" aria-label="Analyzed frame navigation">
-          <button
-            type="button"
-            className={previousHold.repeating ? 'is-repeating' : undefined}
-            aria-label="Previous analyzed frame"
-            title="Previous analyzed frame · Hold for rapid jog (Left arrow)"
-            disabled={!canStepPrevious}
-            data-hold-repeating={previousHold.repeating ? 'true' : 'false'}
-            {...previousHold.handlers}
+      <div className="frame-step-row" role="group" aria-label="Analyzed frame navigation">
+        <button
+          type="button"
+          className={previousHold.repeating ? 'is-repeating' : undefined}
+          aria-label="Previous analyzed frame"
+          title="Previous analyzed frame · Hold for rapid jog (Left arrow)"
+          disabled={!canStepPrevious}
+          data-hold-repeating={previousHold.repeating ? 'true' : 'false'}
+          {...previousHold.handlers}
+        >
+          <PreviousFrameIcon />
+          <span>Previous</span>
+        </button>
+        {exactFrameEditing ? (
+          <form
+            className="frame-step-readout frame-step-editor"
+            data-testid="calibration-frame-navigator"
+            data-frame-index={currentFrameIndex ?? ''}
+            data-frame-timestamp-microseconds={
+              currentFrameTimestampMicroseconds ?? ''
+            }
+            onSubmit={commitExactFrame}
           >
-            <PreviousFrameIcon />
-            <span>Previous</span>
-          </button>
+            <label>
+              <span className="sr-only">Exact analyzed frame</span>
+              <input
+                aria-label="Exact analyzed frame"
+                type="number"
+                min={1}
+                max={Math.max(1, analyzedFrameCount)}
+                step={1}
+                inputMode="numeric"
+                value={exactFrameDraft}
+                disabled={analyzedFrameCount === 0}
+                onChange={(event) =>
+                  setExactFrameDraft(event.currentTarget.value)
+                }
+                onBlur={() => commitExactFrame()}
+              />
+              <span className="frame-step-count">/ {analyzedFrameCount}</span>
+            </label>
+            <small data-testid="calibration-frame-time">
+              {currentFrameTimestampMicroseconds === null
+                ? 'Outside analyzed time'
+                : `${(currentFrameTimestampMicroseconds / 1_000_000).toFixed(6)} s`}
+            </small>
+          </form>
+        ) : (
           <output className="frame-step-readout" aria-live="polite">
             <strong>{frameReadout}</strong>
             <small>
               {analyzedFrameCount > 0 ? 'Hold · 5/sec' : 'Analyzed frames'}
             </small>
           </output>
-          <button
-            type="button"
-            className={nextHold.repeating ? 'is-repeating' : undefined}
-            aria-label="Next analyzed frame"
-            title="Next analyzed frame · Hold for rapid jog (Right arrow)"
-            disabled={!canStepNext}
-            data-hold-repeating={nextHold.repeating ? 'true' : 'false'}
-            {...nextHold.handlers}
-          >
-            <span>Next</span>
-            <NextFrameIcon />
-          </button>
-        </div>
-      )}
+        )}
+        <button
+          type="button"
+          className={nextHold.repeating ? 'is-repeating' : undefined}
+          aria-label="Next analyzed frame"
+          title="Next analyzed frame · Hold for rapid jog (Right arrow)"
+          disabled={!canStepNext}
+          data-hold-repeating={nextHold.repeating ? 'true' : 'false'}
+          {...nextHold.handlers}
+        >
+          <span>Next</span>
+          <NextFrameIcon />
+        </button>
+      </div>
       <span className="shortcut-hint">
-        {showFrameNavigation
-          ? 'Space play · L loop · ← → frames · 1–3 speed'
-          : 'Space play · L loop · 1–3 speed'}
+        Space play · L loop · ← → frames · 1–3 speed
       </span>
     </div>
   );

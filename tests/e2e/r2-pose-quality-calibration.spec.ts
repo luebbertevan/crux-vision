@@ -288,7 +288,20 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
   );
 
   await page.getByText('Pose quality calibration').click();
-  await expect(page.getByTestId('calibration-frame-navigator')).toContainText(
+  await expect(
+    precisionControls.getByRole('group', {
+      name: 'Analyzed frame navigation',
+    }),
+  ).toBeVisible();
+  await expect(
+    precisionControls.getByLabel('Exact analyzed frame'),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Exact analyzed frames', { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    precisionControls.getByTestId('calibration-frame-navigator'),
+  ).toContainText(
     `/ ${sampleCount}`,
   );
 
@@ -300,7 +313,9 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
       video.addEventListener('seeked', () => resolve(), { once: true }),
     );
   });
-  const navigator = page.getByTestId('calibration-frame-navigator');
+  const navigator = precisionControls.getByTestId(
+    'calibration-frame-navigator',
+  );
   await expect(navigator).toHaveAttribute('data-frame-index', '');
   await page.getByRole('button', { name: 'Next analyzed frame' }).click();
   await expect(navigator).toHaveAttribute('data-frame-index', '0');
@@ -312,6 +327,9 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
     await navigator.getAttribute('data-frame-timestamp-microseconds'),
   );
   expect(tenthTimestamp).toBeGreaterThan(0);
+  await expect(
+    precisionControls.getByTestId('calibration-frame-time'),
+  ).toContainText('s');
   await expect
     .poll(() =>
       page
@@ -500,6 +518,10 @@ test('keeps the advanced calibration workspace usable at iPhone width', async ({
 
   await expect(page.getByTestId('calibration-model')).toBeVisible();
   await expect(page.getByTestId('pose-preview-mode')).toBeVisible();
+  await expect(page.getByLabel('Exact analyzed frame')).toBeVisible();
+  await expect(
+    page.getByRole('group', { name: 'Analyzed frame navigation' }),
+  ).toBeVisible();
   await page.getByRole('button', { name: 'Export calibration JSON' })
     .scrollIntoViewIfNeeded();
   await expect(page.getByRole('button', { name: 'Export calibration JSON' }))
@@ -515,6 +537,7 @@ test('keeps the advanced calibration workspace usable at iPhone width', async ({
   for (const locator of [
     page.getByTestId('calibration-model'),
     page.getByTestId('pose-preview-mode'),
+    page.getByLabel('Exact analyzed frame'),
     page.getByRole('button', { name: 'Export calibration JSON' }),
   ]) {
     expect((await locator.boundingBox())?.height).toBeGreaterThanOrEqual(44);

@@ -1472,11 +1472,15 @@ export function App() {
                   currentFrameIndex={calibrationFrameIndex}
                   canStepPrevious={previousAnalyzedFrameIndex !== null}
                   canStepNext={nextAnalyzedFrameIndex !== null}
-                  showFrameNavigation={!calibrationWorkspaceOpen}
+                  exactFrameEditing={calibrationWorkspaceOpen}
+                  currentFrameTimestampMicroseconds={
+                    currentQualitySample?.timestampMicroseconds ?? null
+                  }
                   onPlaybackRateChange={changePlaybackRate}
                   onLoopToggle={toggleRangeLoop}
                   onPreviousFrame={() => seekToAnalyzedFrame('previous')}
                   onNextFrame={() => seekToAnalyzedFrame('next')}
+                  onExactFrameChange={seekToCalibrationFrame}
                 />
                 <div
                   className={`analysis-status analysis-status-${analysis.phase}`}
@@ -1627,11 +1631,6 @@ export function App() {
                 selectedModel={selectedModel}
                 labelMetrics={calibrationLabelMetrics}
                 labelCount={calibrationLabels.length}
-                calibrationFrameIndex={calibrationFrameIndex}
-                calibrationFrameCount={qualityEvaluation.samples.length}
-                calibrationFrameTimestampMicroseconds={
-                  currentQualitySample?.timestampMicroseconds ?? null
-                }
                 canUndo={calibrationHistoryRef.current.canUndo}
                 canRedo={calibrationHistoryRef.current.canRedo}
                 onPresetChange={changeQualityPreset}
@@ -1646,7 +1645,6 @@ export function App() {
                 onClearLabels={() => setCalibrationLabels([])}
                 onResetPolicy={resetQualityPolicy}
                 onExport={exportCalibration}
-                onCalibrationFrameChange={seekToCalibrationFrame}
                 onUndo={undoCalibrationSetting}
                 onRedo={redoCalibrationSetting}
                 onWorkspaceToggle={setCalibrationWorkspaceOpen}
