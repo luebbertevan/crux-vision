@@ -42,7 +42,10 @@ import type { BrowserMediaAdapter } from './media/mediaAdapter';
 import { PlayerController } from './player/PlayerController';
 import {
   adjacentPresentationFrameIndex,
+  isWithinPresentationFrameSpan,
   nearestPresentationFrameIndex,
+  normalizeEstimatedFrameRate,
+  reviewFrameStepTarget,
 } from './player/frameNavigation';
 import {
   clonePoseQualityPolicy,
@@ -473,36 +476,62 @@ export function App() {
       qualityPolicy,
     ],
   );
+  const playheadTimestampMicroseconds = secondsToMicroseconds(
+    playerSnapshot.currentTimeSeconds,
+  );
+  const estimatedFrameRate = normalizeEstimatedFrameRate(
+    source?.metadata.averageFrameRate,
+  );
+  const frameStepMode = isWithinPresentationFrameSpan(
+    qualityEvaluation.samples,
+    playheadTimestampMicroseconds,
+  )
+    ? 'analyzed'
+    : 'estimated';
   const calibrationFrameIndex = useMemo(
     () =>
       nearestPresentationFrameIndex(
         qualityEvaluation.samples,
-        secondsToMicroseconds(playerSnapshot.currentTimeSeconds),
+        playheadTimestampMicroseconds,
         25_000,
       ),
-    [playerSnapshot.currentTimeSeconds, qualityEvaluation.samples],
+    [playheadTimestampMicroseconds, qualityEvaluation.samples],
   );
   const currentQualitySample =
     calibrationFrameIndex === null
       ? null
       : qualityEvaluation.samples[calibrationFrameIndex];
-  const previousAnalyzedFrameIndex = useMemo(
+  const previousFrameStepTarget = useMemo(
     () =>
-      adjacentPresentationFrameIndex(
+      reviewFrameStepTarget(
         qualityEvaluation.samples,
-        secondsToMicroseconds(playerSnapshot.currentTimeSeconds),
+        playheadTimestampMicroseconds,
+        source?.metadata.durationMicroseconds ?? 0,
         'previous',
+        estimatedFrameRate,
       ),
-    [playerSnapshot.currentTimeSeconds, qualityEvaluation.samples],
+    [
+      estimatedFrameRate,
+      playheadTimestampMicroseconds,
+      qualityEvaluation.samples,
+      source?.metadata.durationMicroseconds,
+    ],
   );
-  const nextAnalyzedFrameIndex = useMemo(
+  const nextFrameStepTarget = useMemo(
     () =>
-      adjacentPresentationFrameIndex(
+      reviewFrameStepTarget(
         qualityEvaluation.samples,
-        secondsToMicroseconds(playerSnapshot.currentTimeSeconds),
+        playheadTimestampMicroseconds,
+        source?.metadata.durationMicroseconds ?? 0,
         'next',
+        estimatedFrameRate,
       ),
-    [playerSnapshot.currentTimeSeconds, qualityEvaluation.samples],
+    [
+      estimatedFrameRate,
+      playheadTimestampMicroseconds,
+      qualityEvaluation.samples,
+      source?.metadata.durationMicroseconds,
+    ],
   );
   const currentCheckpointIndex = useMemo(
     () =>
@@ -647,21 +676,19 @@ export function App() {
     [qualityEvaluation.samples, recordCalibrationSeek],
   );
 
-  const seekToAnalyzedFrame = useCallback(
+  const seekToReviewFrame = useCallback(
     (direction: 'previous' | 'next') => {
-      const frameIndex =
+      const target =
         direction === 'previous'
-          ? previousAnalyzedFrameIndex
-          : nextAnalyzedFrameIndex;
-      if (frameIndex === null) return;
-      const sample = qualityEvaluation.samples[frameIndex];
-      if (!sample) return;
-      const timeSeconds = microsecondsToSeconds(sample.timestampMicroseconds);
+          ? previousFrameStepTarget
+          : nextFrameStepTarget;
+      if (!target) return;
+      const timeSeconds = microsecondsToSeconds(target.timestampMicroseconds);
       if (calibrationWorkspaceOpen) {
         calibrationSeekSequenceRef.current += 1;
         recordCalibrationSeek(
           timeSeconds,
-          `review-frame-seek-${calibrationSeekSequenceRef.current}`,
+          `review-${target.kind}-frame-seek-${calibrationSeekSequenceRef.current}`,
         );
         return;
       }
@@ -670,10 +697,9 @@ export function App() {
     },
     [
       calibrationWorkspaceOpen,
-      nextAnalyzedFrameIndex,
+      nextFrameStepTarget,
       player,
-      previousAnalyzedFrameIndex,
-      qualityEvaluation.samples,
+      previousFrameStepTarget,
       recordCalibrationSeek,
     ],
   );
@@ -974,14 +1000,14 @@ export function App() {
         goToAdjacentCheckpoint('next');
         return;
       }
-      if (event.key === 'ArrowLeft' && previousAnalyzedFrameIndex !== null) {
+      if (event.key === 'ArrowLeft' && previousFrameStepTarget !== null) {
         event.preventDefault();
-        seekToAnalyzedFrame('previous');
+        seekToReviewFrame('previous');
         return;
       }
-      if (event.key === 'ArrowRight' && nextAnalyzedFrameIndex !== null) {
+      if (event.key === 'ArrowRight' && nextFrameStepTarget !== null) {
         event.preventDefault();
-        seekToAnalyzedFrame('next');
+        seekToReviewFrame('next');
         return;
       }
       if (event.key.toLowerCase() === 'c') {
@@ -1003,11 +1029,11 @@ export function App() {
     changePlaybackRate,
     goToAdjacentCheckpoint,
     nextCheckpointIndex,
-    nextAnalyzedFrameIndex,
+    nextFrameStepTarget,
     player,
     previousCheckpointIndex,
-    previousAnalyzedFrameIndex,
-    seekToAnalyzedFrame,
+    previousFrameStepTarget,
+    seekToReviewFrame,
     source,
     toggleRangeLoop,
   ]);
@@ -1470,16 +1496,24 @@ export function App() {
                   loopEnabled={rangeLoopEnabled}
                   analyzedFrameCount={qualityEvaluation.samples.length}
                   currentFrameIndex={calibrationFrameIndex}
-                  canStepPrevious={previousAnalyzedFrameIndex !== null}
-                  canStepNext={nextAnalyzedFrameIndex !== null}
+                  canStepPrevious={previousFrameStepTarget !== null}
+                  canStepNext={nextFrameStepTarget !== null}
+                  frameStepMode={frameStepMode}
+                  previousFrameStepMode={
+                    previousFrameStepTarget?.kind ?? frameStepMode
+                  }
+                  nextFrameStepMode={
+                    nextFrameStepTarget?.kind ?? frameStepMode
+                  }
+                  estimatedFrameRate={estimatedFrameRate}
                   exactFrameEditing={calibrationWorkspaceOpen}
                   currentFrameTimestampMicroseconds={
                     currentQualitySample?.timestampMicroseconds ?? null
                   }
                   onPlaybackRateChange={changePlaybackRate}
                   onLoopToggle={toggleRangeLoop}
-                  onPreviousFrame={() => seekToAnalyzedFrame('previous')}
-                  onNextFrame={() => seekToAnalyzedFrame('next')}
+                  onPreviousFrame={() => seekToReviewFrame('previous')}
+                  onNextFrame={() => seekToReviewFrame('next')}
                   onExactFrameChange={seekToCalibrationFrame}
                 />
                 <div

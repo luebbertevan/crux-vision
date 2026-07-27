@@ -15,10 +15,13 @@ phone layouts.
 - The existing Set start and Set end actions remain the In/Out interaction.
 - Playback presets are `0.25×`, `0.5×`, and `1×`.
 - Loop constrains playback to the selected range without changing that range.
-- Previous/next analyzed frame is the deliberate fine jog. It uses stored pose
-  presentation timestamps and pauses before seeking. A normal tap or click
-  moves once; holding for `350 ms` starts a five-frames-per-second repeat that
-  stops immediately on release, cancellation, or an unavailable direction.
+- Previous/next frame is the deliberate fine jog. Within analyzed coverage it
+  uses stored pose presentation timestamps. Before analysis and outside that
+  coverage it switches to a visibly labeled estimate based on the source's
+  average frame rate, falling back to `30 fps` only when that metadata is not
+  usable. A normal tap or click moves once; holding for `350 ms` starts a
+  five-steps-per-second repeat that stops immediately on release, cancellation,
+  or an unavailable direction.
   The same seeker remains in place when calibration opens; its center readout
   becomes an editable analyzed-frame number and shows the exact timestamp.
 - Named checkpoints can be added at the playhead, renamed, selected directly,
@@ -38,10 +41,12 @@ selected microsecond range. Browsers with `requestVideoFrameCallback` check the
 boundary against presented media time; ordinary media events provide the
 fallback. Starting playback outside an enabled loop returns to its In point.
 
-Frame jog uses only actual stored analysis-sample timestamps. It does not infer
-nominal frame spacing or claim access to source frames that were not analyzed.
-This preserves variable-frame-rate behavior and the existing timestamp-first
-media contract.
+Frame jog prefers actual stored analysis-sample timestamps throughout analyzed
+coverage, preserving variable-frame-rate spacing there. Outside that coverage,
+the estimate advances by the source's average packet-frame rate and is labeled
+`Estimated`; it never claims that those proxy positions are analyzed or exact
+source-frame timestamps. Crossing into analyzed coverage snaps to the first or
+last exact stored timestamp.
 
 ## Shortcuts
 
@@ -69,7 +74,7 @@ remains independently scrollable.
 
 ## Verification
 
-- 55 Vitest tests cover timestamp navigation, range behavior, pose quality,
+- 59 Vitest tests cover exact and estimated timestamp navigation, range behavior, pose quality,
   smoothing, transforms, worker compatibility, history, and state.
 - 23 Chrome Playwright tests cover the full analysis loop, calibration,
   playback speeds, loop restart and disable behavior, single-step and

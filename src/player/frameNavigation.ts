@@ -2,6 +2,40 @@ export type PresentationTimed = {
   timestampMicroseconds: number;
 };
 
+export const DEFAULT_ESTIMATED_FRAME_RATE = 30;
+
+export type ReviewFrameStepTarget = {
+  kind: 'analyzed' | 'estimated';
+  timestampMicroseconds: number;
+  frameIndex: number | null;
+};
+
+export function normalizeEstimatedFrameRate(
+  averageFrameRate: number | null | undefined,
+): number {
+  return typeof averageFrameRate === 'number' &&
+    Number.isFinite(averageFrameRate) &&
+    averageFrameRate >= 1 &&
+    averageFrameRate <= 240
+    ? averageFrameRate
+    : DEFAULT_ESTIMATED_FRAME_RATE;
+}
+
+export function isWithinPresentationFrameSpan(
+  samples: readonly PresentationTimed[],
+  targetMicroseconds: number,
+  equalityToleranceMicroseconds = 250,
+): boolean {
+  if (samples.length === 0) return false;
+  return (
+    targetMicroseconds >=
+      samples[0].timestampMicroseconds - equalityToleranceMicroseconds &&
+    targetMicroseconds <=
+      samples[samples.length - 1].timestampMicroseconds +
+        equalityToleranceMicroseconds
+  );
+}
+
 export function nearestPresentationFrameIndex(
   samples: readonly PresentationTimed[],
   targetMicroseconds: number,
@@ -67,4 +101,77 @@ export function adjacentPresentationFrameIndex(
   }
   const previousIndex = low - 1;
   return previousIndex >= 0 ? previousIndex : null;
+}
+
+export function reviewFrameStepTarget(
+  samples: readonly PresentationTimed[],
+  targetMicroseconds: number,
+  durationMicroseconds: number,
+  direction: 'previous' | 'next',
+  averageFrameRate?: number | null,
+): ReviewFrameStepTarget | null {
+  const duration = Math.max(0, Math.round(durationMicroseconds));
+  const current = Math.min(duration, Math.max(0, Math.round(targetMicroseconds)));
+  const withinAnalyzedSpan = isWithinPresentationFrameSpan(samples, current);
+
+  if (withinAnalyzedSpan) {
+    const frameIndex = adjacentPresentationFrameIndex(
+      samples,
+      current,
+      direction,
+    );
+    if (frameIndex !== null) {
+      return {
+        kind: 'analyzed',
+        timestampMicroseconds: samples[frameIndex].timestampMicroseconds,
+        frameIndex,
+      };
+    }
+  }
+
+  const estimatedFrameRate = normalizeEstimatedFrameRate(averageFrameRate);
+  const estimatedDelta = Math.max(
+    1,
+    Math.round(1_000_000 / estimatedFrameRate),
+  );
+  const estimatedTarget =
+    direction === 'previous'
+      ? Math.max(0, current - estimatedDelta)
+      : Math.min(duration, current + estimatedDelta);
+
+  if (!withinAnalyzedSpan && samples.length > 0) {
+    const firstTimestamp = samples[0].timestampMicroseconds;
+    const lastIndex = samples.length - 1;
+    const lastTimestamp = samples[lastIndex].timestampMicroseconds;
+    if (
+      direction === 'next' &&
+      current < firstTimestamp &&
+      estimatedTarget >= firstTimestamp
+    ) {
+      return {
+        kind: 'analyzed',
+        timestampMicroseconds: firstTimestamp,
+        frameIndex: 0,
+      };
+    }
+    if (
+      direction === 'previous' &&
+      current > lastTimestamp &&
+      estimatedTarget <= lastTimestamp
+    ) {
+      return {
+        kind: 'analyzed',
+        timestampMicroseconds: lastTimestamp,
+        frameIndex: lastIndex,
+      };
+    }
+  }
+
+  return estimatedTarget === current
+    ? null
+    : {
+        kind: 'estimated',
+        timestampMicroseconds: estimatedTarget,
+        frameIndex: null,
+      };
 }

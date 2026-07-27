@@ -244,13 +244,71 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
       video.addEventListener('seeked', () => resolve(), { once: true }),
     );
   });
-  await page.getByRole('button', { name: 'Next analyzed frame' }).click();
-  await expect(precisionControls).toHaveAttribute('data-current-frame-index', '0');
+  await expect(precisionControls).toHaveAttribute(
+    'data-frame-step-mode',
+    'estimated',
+  );
+  const estimatedFrameRate = Number(
+    await precisionControls.getAttribute('data-estimated-frame-rate'),
+  );
+  expect(estimatedFrameRate).toBeGreaterThan(1);
+  await page.getByRole('button', { name: 'Next estimated frame' }).click();
+  await expect(precisionControls).toHaveAttribute(
+    'data-current-frame-index',
+    '',
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator('video')
+        .evaluate((video) => (video as HTMLVideoElement).currentTime),
+    )
+    .toBeCloseTo(1 / estimatedFrameRate, 2);
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.keyboard.press('ArrowRight');
+  await expect
+    .poll(() =>
+      page
+        .locator('video')
+        .evaluate((video) => (video as HTMLVideoElement).currentTime),
+    )
+    .toBeCloseTo(2 / estimatedFrameRate, 2);
+
+  await page.locator('video').evaluate(async (element) => {
+    const video = element as HTMLVideoElement;
+    video.currentTime = 7;
+    await new Promise<void>((resolve) =>
+      video.addEventListener('seeked', () => resolve(), { once: true }),
+    );
+  });
+  if (
+    (await precisionControls.getAttribute('data-frame-step-mode')) ===
+    'estimated'
+  ) {
+    await page.getByRole('button', { name: 'Next estimated frame' }).click();
+  }
+  await expect(precisionControls).toHaveAttribute(
+    'data-frame-step-mode',
+    'analyzed',
+  );
+  const analyzedStartIndex = Number(
+    await precisionControls.getAttribute('data-current-frame-index'),
+  );
+  expect(analyzedStartIndex).toBeGreaterThanOrEqual(0);
   const nextFrameButton = page.getByRole('button', {
     name: 'Next analyzed frame',
   });
   await nextFrameButton.click();
-  await expect(precisionControls).toHaveAttribute('data-current-frame-index', '1');
+  const alignedFrameIndex = Number(
+    await precisionControls.getAttribute('data-current-frame-index'),
+  );
+  expect(alignedFrameIndex).toBeGreaterThanOrEqual(analyzedStartIndex);
+  expect(alignedFrameIndex).toBeLessThanOrEqual(analyzedStartIndex + 1);
+  await nextFrameButton.click();
+  await expect(precisionControls).toHaveAttribute(
+    'data-current-frame-index',
+    String(alignedFrameIndex + 1),
+  );
 
   await nextFrameButton.hover();
   await page.mouse.down();
@@ -263,8 +321,8 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
   const indexAfterHold = Number(
     await precisionControls.getAttribute('data-current-frame-index'),
   );
-  expect(indexAfterHold).toBeGreaterThanOrEqual(5);
-  expect(indexAfterHold).toBeLessThanOrEqual(7);
+  expect(indexAfterHold).toBeGreaterThanOrEqual(alignedFrameIndex + 5);
+  expect(indexAfterHold).toBeLessThanOrEqual(alignedFrameIndex + 7);
   await page.waitForTimeout(450);
   await expect(precisionControls).toHaveAttribute(
     'data-current-frame-index',
@@ -290,7 +348,7 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
   await page.getByText('Pose quality calibration').click();
   await expect(
     precisionControls.getByRole('group', {
-      name: 'Analyzed frame navigation',
+      name: 'Frame navigation',
     }),
   ).toBeVisible();
   await expect(
@@ -317,8 +375,15 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
     'calibration-frame-navigator',
   );
   await expect(navigator).toHaveAttribute('data-frame-index', '');
-  await page.getByRole('button', { name: 'Next analyzed frame' }).click();
-  await expect(navigator).toHaveAttribute('data-frame-index', '0');
+  await expect(precisionControls).toHaveAttribute(
+    'data-frame-step-mode',
+    'estimated',
+  );
+  await page.getByRole('button', { name: 'Next estimated frame' }).click();
+  await expect(navigator).toHaveAttribute('data-frame-index', '');
+  await expect(
+    precisionControls.getByTestId('calibration-frame-time'),
+  ).toContainText('Estimated');
 
   await page.getByLabel('Exact analyzed frame').fill('10');
   await page.getByLabel('Exact analyzed frame').press('Enter');
@@ -520,7 +585,7 @@ test('keeps the advanced calibration workspace usable at iPhone width', async ({
   await expect(page.getByTestId('pose-preview-mode')).toBeVisible();
   await expect(page.getByLabel('Exact analyzed frame')).toBeVisible();
   await expect(
-    page.getByRole('group', { name: 'Analyzed frame navigation' }),
+    page.getByRole('group', { name: 'Frame navigation' }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Export calibration JSON' })
     .scrollIntoViewIfNeeded();

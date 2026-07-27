@@ -150,10 +150,11 @@ adds:
 - the exact stored presentation timestamp to six decimal places;
 - automatic pause before every frame seek.
 
-Its existing previous/next buttons and press-and-hold jog use actual stored
-pose-analysis presentation timestamps, not a nominal frame-rate calculation.
-This preserves correct spacing for variable-frame-rate footage. At source rates
-above the analysis density, it steps only frames that have pose samples.
+Within analyzed coverage, its existing previous/next buttons and press-and-hold
+jog use actual stored pose-analysis presentation timestamps. This preserves
+correct spacing for variable-frame-rate footage. Outside that coverage, the
+same controls are explicitly labeled Estimated and use the source's average
+frame rate as a navigation proxy; direct frame-number entry remains exact.
 
 Use these controls to record the exact frame where Accepted raw and Smoothed
 first diverge during the lache. If one-frame causal lag remains consistently

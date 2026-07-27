@@ -261,11 +261,24 @@ test('keeps precision controls clear and touchable across review layouts', async
     await expect(controls).toBeVisible();
     const checkpointControls = page.getByTestId('checkpoint-controls');
     await expect(checkpointControls).toBeVisible();
+    await page.locator('video').evaluate((element) => {
+      const media = element as HTMLVideoElement;
+      media.pause();
+      media.currentTime = 0;
+    });
+    await expect
+      .poll(() =>
+        page
+          .locator('video')
+          .evaluate((element) => (element as HTMLVideoElement).currentTime),
+      )
+      .toBe(0);
+    await expect(controls).toHaveAttribute('data-frame-step-mode', 'estimated');
     await expect(page.getByRole('button', { name: 'Loop analysis range' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Previous analyzed frame' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Next analyzed frame' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Previous analyzed frame' })).toBeDisabled();
-    await expect(page.getByRole('button', { name: 'Next analyzed frame' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Previous estimated frame' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Next estimated frame' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Previous estimated frame' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Next estimated frame' })).toBeEnabled();
 
     await page.locator('video').evaluate(async (element) => {
       const media = element as HTMLVideoElement;

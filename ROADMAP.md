@@ -285,8 +285,10 @@ exact stored presentation timestamp. These controls pause and seek by actual
 pose-sample presentation time rather than nominal FPS, so variable-frame-rate
 spacing remains honest. They do not claim access to source frames that were not
 analyzed. Calibration reuses the ordinary analyzed-frame seeker, making its
-center readout editable instead of replacing it with a second navigator. Use
-the exact-frame evidence to evaluate a gap-bounded
+center readout editable instead of replacing it with a second navigator.
+Outside analyzed coverage, the same seeker is labeled Estimated and uses the
+source's average frame rate only as a navigation proxy. Use the exact-frame
+evidence to evaluate a gap-bounded
 centered/offline smoother before resuming broader calibration; do not begin the
 rest of R2B in this gate.
 
@@ -350,11 +352,13 @@ Build:
 
 R2B adds a compact precision-review strip beside the existing In/Out controls:
 `0.25×`, `0.5×`, and `1×` playback, selected-range looping, and previous/next
-analyzed-presentation-frame jog. A tap or click moves one frame; holding either
-frame button begins a rapid jog at five analyzed frames per second and stops on
-release or pointer cancellation. The loop is checked against presented video
-frames when the browser exposes them, with media events as a fallback. It never
-changes the selected analysis range or pose timestamps.
+frame jog. The jog follows exact analyzed presentation timestamps where they
+exist and switches to a visibly labeled source-rate estimate before analysis or
+outside analyzed coverage. A tap or click moves one step; holding either frame
+button begins a rapid jog at five steps per second and stops on release or
+pointer cancellation. The loop is checked against presented video frames when
+the browser exposes them, with media events as a fallback. It never changes the
+selected analysis range or pose timestamps.
 
 Named, editable checkpoints are stored in the current in-memory source session,
 ordered by presentation time, and cleared on source replacement. They support
@@ -368,7 +372,7 @@ on phone layouts.
 
 The precision controls were visually checked with real portrait and landscape
 fixtures at `1440×900`, `393×852`, and `852×393`. The complete verification
-gate passes 55 unit tests and 23 Chrome browser tests. See
+gate passes 59 unit tests and 23 Chrome browser tests. See
 [`docs/r2b-implementation-spec.md`](./docs/r2b-implementation-spec.md).
 
 ### R2C — Visual inspection tools

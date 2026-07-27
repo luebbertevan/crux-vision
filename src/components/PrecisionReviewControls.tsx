@@ -25,6 +25,10 @@ type PrecisionReviewControlsProps = {
   currentFrameIndex: number | null;
   canStepPrevious: boolean;
   canStepNext: boolean;
+  frameStepMode: 'analyzed' | 'estimated';
+  previousFrameStepMode: 'analyzed' | 'estimated';
+  nextFrameStepMode: 'analyzed' | 'estimated';
+  estimatedFrameRate: number;
   exactFrameEditing?: boolean;
   currentFrameTimestampMicroseconds?: number | null;
   onPlaybackRateChange: (rate: number) => void;
@@ -160,6 +164,10 @@ export function PrecisionReviewControls({
   currentFrameIndex,
   canStepPrevious,
   canStepNext,
+  frameStepMode,
+  previousFrameStepMode,
+  nextFrameStepMode,
+  estimatedFrameRate,
   exactFrameEditing = false,
   currentFrameTimestampMicroseconds = null,
   onPlaybackRateChange,
@@ -171,6 +179,9 @@ export function PrecisionReviewControls({
   const previousHold = useFrameHold(onPreviousFrame, !canStepPrevious);
   const nextHold = useFrameHold(onNextFrame, !canStepNext);
   const [exactFrameDraft, setExactFrameDraft] = useState('');
+  const estimatedFrameRateLabel = estimatedFrameRate
+    .toFixed(2)
+    .replace(/\.?0+$/, '');
 
   useEffect(() => {
     if (!exactFrameEditing) return;
@@ -204,11 +215,15 @@ export function PrecisionReviewControls({
   };
 
   const frameReadout =
-    currentFrameIndex === null
-      ? analyzedFrameCount > 0
+    frameStepMode === 'estimated'
+      ? 'Estimated'
+      : currentFrameIndex === null
         ? `${analyzedFrameCount} ready`
-        : 'Analyze first'
-      : `${currentFrameIndex + 1} / ${analyzedFrameCount}`;
+        : `${currentFrameIndex + 1} / ${analyzedFrameCount}`;
+  const frameReadoutDetail =
+    frameStepMode === 'estimated'
+      ? `≈ ${estimatedFrameRateLabel} fps proxy`
+      : 'Hold · 5/sec';
 
   return (
     <div
@@ -216,6 +231,8 @@ export function PrecisionReviewControls({
       data-testid="precision-review-controls"
       data-frame-count={analyzedFrameCount}
       data-current-frame-index={currentFrameIndex ?? ''}
+      data-frame-step-mode={frameStepMode}
+      data-estimated-frame-rate={estimatedFrameRate}
     >
       <div className="precision-speed-row">
         <span className="precision-label">Speed</span>
@@ -246,12 +263,12 @@ export function PrecisionReviewControls({
         </button>
       </div>
 
-      <div className="frame-step-row" role="group" aria-label="Analyzed frame navigation">
+      <div className="frame-step-row" role="group" aria-label="Frame navigation">
         <button
           type="button"
           className={previousHold.repeating ? 'is-repeating' : undefined}
-          aria-label="Previous analyzed frame"
-          title="Previous analyzed frame · Hold for rapid jog (Left arrow)"
+          aria-label={`Previous ${previousFrameStepMode} frame`}
+          title={`Previous ${previousFrameStepMode} frame · Hold for rapid jog (Left arrow)`}
           disabled={!canStepPrevious}
           data-hold-repeating={previousHold.repeating ? 'true' : 'false'}
           {...previousHold.handlers}
@@ -289,23 +306,21 @@ export function PrecisionReviewControls({
             </label>
             <small data-testid="calibration-frame-time">
               {currentFrameTimestampMicroseconds === null
-                ? 'Outside analyzed time'
+                ? `Estimated · ≈ ${estimatedFrameRateLabel} fps`
                 : `${(currentFrameTimestampMicroseconds / 1_000_000).toFixed(6)} s`}
             </small>
           </form>
         ) : (
           <output className="frame-step-readout" aria-live="polite">
             <strong>{frameReadout}</strong>
-            <small>
-              {analyzedFrameCount > 0 ? 'Hold · 5/sec' : 'Analyzed frames'}
-            </small>
+            <small>{frameReadoutDetail}</small>
           </output>
         )}
         <button
           type="button"
           className={nextHold.repeating ? 'is-repeating' : undefined}
-          aria-label="Next analyzed frame"
-          title="Next analyzed frame · Hold for rapid jog (Right arrow)"
+          aria-label={`Next ${nextFrameStepMode} frame`}
+          title={`Next ${nextFrameStepMode} frame · Hold for rapid jog (Right arrow)`}
           disabled={!canStepNext}
           data-hold-repeating={nextHold.repeating ? 'true' : 'false'}
           {...nextHold.handlers}

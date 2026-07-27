@@ -153,7 +153,8 @@ product. Reuse the tested adapters and contracts, not the diagnostic layout.
   Reconsider wider rates only after gym feedback establishes a use for them.
 - Provide coarse timeline seeking and a separate fine movement mechanism.
 - Step to adjacent presented frames where the media APIs provide reliable
-  timestamps.
+  timestamps. Before analysis or outside analyzed coverage, keep the control
+  available with a clearly labeled source-rate estimate.
 - Mark In/Out, loop that range, and create named checkpoints with subtle
   location ticks on the main timeline.
 - Preserve active playback when navigating to a checkpoint on desktop-style
