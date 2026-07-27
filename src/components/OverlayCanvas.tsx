@@ -3,7 +3,10 @@ import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import { DEFAULT_SAMPLE_RATE, secondsToMicroseconds } from '../analysis/range';
 import { nearestByTimestamp } from '../analysis/timestamp';
 import { computeContainTransform } from '../overlay/displayTransform';
-import type { OverlaySettings } from '../overlay/overlaySettings';
+import type {
+  OverlaySettings,
+  TrailCheckpoint,
+} from '../overlay/overlaySettings';
 import { renderOverlay } from '../overlay/renderOverlay';
 import type {
   PosePreviewMode,
@@ -21,6 +24,7 @@ type OverlayCanvasProps = {
   quality: PoseQualityEvaluation;
   previewMode: PosePreviewMode;
   settings: OverlaySettings;
+  checkpoints: readonly TrailCheckpoint[];
   onFeedbackChange: (feedback: StageFeedback) => void;
 };
 
@@ -35,13 +39,28 @@ export function OverlayCanvas({
   quality,
   previewMode,
   settings,
+  checkpoints,
   onFeedbackChange,
 }: OverlayCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const stateRef = useRef({ metadata, analysis, quality, previewMode, settings });
+  const stateRef = useRef({
+    metadata,
+    analysis,
+    quality,
+    previewMode,
+    settings,
+    checkpoints,
+  });
   const lastFeedbackRef = useRef<StageFeedback>('none');
   const drawRevisionRef = useRef(0);
-  stateRef.current = { metadata, analysis, quality, previewMode, settings };
+  stateRef.current = {
+    metadata,
+    analysis,
+    quality,
+    previewMode,
+    settings,
+    checkpoints,
+  };
 
   const publishFeedback = useCallback(
     (feedback: StageFeedback) => {
@@ -137,6 +156,7 @@ export function OverlayCanvas({
         timestamp,
         state.previewMode,
         state.settings,
+        state.checkpoints,
       );
       publishDrawResult('rendered', result);
       publishFeedback(result.currentPoseAvailable ? 'none' : 'unavailable');
@@ -176,6 +196,7 @@ export function OverlayCanvas({
     previewMode,
     quality,
     settings,
+    checkpoints,
     videoRef,
   ]);
 

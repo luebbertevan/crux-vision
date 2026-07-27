@@ -388,7 +388,7 @@ gate passes 59 unit tests and 23 Chrome browser tests. See
 
 ### R2C — Visual inspection tools
 
-**Status:** R2C.1 complete; R2C.2 next
+**Status:** Complete; R2D next
 
 **Outcome:** Trails and pose layers reveal movement without forcing one fixed
 visualization.
@@ -447,6 +447,8 @@ oversized-gap samples as explicit trail continuity breaks. See
 
 #### R2C.2 — Per-trail appearance editor
 
+**Status:** Complete
+
 **Outcome:** A user can distinguish several simultaneous trails and tune their
 visual persistence without cluttering ordinary review.
 
@@ -474,6 +476,19 @@ large screens and mobile without obscuring the video or destabilizing the
 Movement overlay card. Preset and custom colors, duration, fade, and width
 remain legible and resettable across representative light, dark, and mixed
 video backgrounds.
+
+R2C.2 separates an active trail source from its visibility: every active row
+has an immediate named checkbox, while removal only changes which sources are
+in the active list. A nested **Advanced trail settings** disclosure edits one
+active source from a compact selector. It exposes a curated high-visibility
+palette plus native custom color, responsive width, tail opacity, rolling
+duration, and per-source/reset-all actions. Each source can instead use any
+number of independently visible checkpoint ranges. A range selects existing
+start and end checkpoints, draws the full cached path between their timestamps,
+and marks its first and last accepted points without crossing rejected,
+missing, repeated/backward, or oversized gaps. Source replacement resets all
+R2C.2 state; deleting a checkpoint removes ranges that reference it. See
+[`docs/r2c2-implementation-spec.md`](./docs/r2c2-implementation-spec.md).
 
 Dedicated video zoom/pan remains deferred until gym testing establishes a clear
 need and the shared video/overlay transform can remain exact. The completed

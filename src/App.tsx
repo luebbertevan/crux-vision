@@ -43,9 +43,8 @@ import type { BrowserMediaAdapter } from './media/mediaAdapter';
 import { PlayerController } from './player/PlayerController';
 import {
   createDefaultOverlaySettings,
-  withOverlayLayerVisibility,
   withOverlayMasterVisibility,
-  withTrailSourceVisibility,
+  withoutTrailCheckpoint,
 } from './overlay/overlaySettings';
 import {
   adjacentPresentationFrameIndex,
@@ -759,6 +758,7 @@ export function App() {
         secondsToMicroseconds(player.getSnapshot().currentTimeSeconds),
       ),
     );
+    const id = checkpointSequenceRef.current + 1;
     setCheckpoints((current) => {
       if (
         current.some(
@@ -770,7 +770,7 @@ export function App() {
       ) {
         return current;
       }
-      const id = ++checkpointSequenceRef.current;
+      checkpointSequenceRef.current = id;
       return [
         ...current,
         {
@@ -797,6 +797,7 @@ export function App() {
     setCheckpoints((current) =>
       current.filter((checkpoint) => checkpoint.id !== id),
     );
+    setOverlaySettings((current) => withoutTrailCheckpoint(current, id));
   }, []);
 
   const goToAdjacentCheckpoint = useCallback(
@@ -1390,6 +1391,7 @@ export function App() {
                   quality={qualityEvaluation}
                   previewMode={previewMode}
                   settings={overlaySettings}
+                  checkpoints={checkpoints}
                   onFeedbackChange={setStageFeedback}
                 />
                 <div className="stage-topline">
@@ -1650,19 +1652,12 @@ export function App() {
               </div>
 
               <OverlaySettingsPanel
+                key={source.id}
                 settings={overlaySettings}
+                checkpoints={checkpoints}
                 open={overlaySettingsOpen}
                 onOpenChange={setOverlaySettingsOpen}
-                onLayerChange={(layerId, visible) =>
-                  setOverlaySettings((current) =>
-                    withOverlayLayerVisibility(current, layerId, visible),
-                  )
-                }
-                onTrailSourceChange={(sourceId, visible) =>
-                  setOverlaySettings((current) =>
-                    withTrailSourceVisibility(current, sourceId, visible),
-                  )
-                }
+                onSettingsChange={(updater) => setOverlaySettings(updater)}
               />
 
               <CheckpointControls

@@ -50,7 +50,7 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
 
   const overlaySettings = page.getByTestId('overlay-settings');
   await expect(overlaySettings).not.toHaveAttribute('open', '');
-  await overlaySettings.locator('summary').click();
+  await overlaySettings.locator(':scope > summary').click();
   await expect(overlaySettings).toHaveAttribute('open', '');
 
   const skeleton = page.getByRole('checkbox', { name: 'Skeleton' });
@@ -110,13 +110,77 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
   );
   await addSource.selectOption('left-elbow');
   await addSource.selectOption('right-knee');
+  await addSource.selectOption('left-ankle');
   await skeleton.uncheck();
   await expect(page.getByTestId('active-trail-source-left-elbow')).toBeVisible();
   await expect(page.getByTestId('active-trail-source-right-knee')).toBeVisible();
+  const leftAnkleVisibility = page.getByRole('checkbox', {
+    name: 'Show Left ankle trail',
+  });
+  await leftAnkleVisibility.uncheck();
+  await expect(leftAnkleVisibility).not.toBeChecked();
+  await expect(page.getByTestId('active-trail-source-left-ankle')).toBeVisible();
+  await leftAnkleVisibility.check();
   await expect
     .poll(async () => Number(await canvas.getAttribute('data-draw-revision')))
     .toBeGreaterThan(drawRevision);
   await expect(canvas).toHaveAttribute('data-skeleton-segment-count', '0');
+  await expect(page.locator('main')).toHaveAttribute(
+    'data-analysis-phase',
+    'ready',
+  );
+  await expect(page.locator('main')).toHaveAttribute(
+    'data-sample-count',
+    cachedSampleCount!,
+  );
+
+  const checkpointControls = page.getByTestId('checkpoint-controls');
+  await seekPaused(page, 9.4);
+  await checkpointControls.getByRole('button', { name: 'Add' }).click();
+  await page.getByLabel('Checkpoint 1 name').fill('Launch');
+  await seekPaused(page, 10.4);
+  await checkpointControls.getByRole('button', { name: 'Add' }).click();
+  await page.getByLabel('Checkpoint 2 name').fill('Catch');
+
+  const advanced = page.getByTestId('trail-advanced-settings');
+  await advanced.locator('summary').click();
+  await expect(advanced).toHaveAttribute('open', '');
+  await page.getByLabel('Edit trail source').selectOption('left-ankle');
+  const appearanceRevision = Number(
+    await canvas.getAttribute('data-draw-revision'),
+  );
+  await page
+    .getByRole('button', {
+      name: 'Set Left ankle trail color to Magenta',
+    })
+    .click();
+  await page.getByLabel('Left ankle trail width').fill('1.8');
+  await page
+    .getByLabel('Use checkpoint ranges for Left ankle trail')
+    .check();
+  await page
+    .getByRole('button', {
+      name: 'Add checkpoint range for Left ankle trail',
+    })
+    .click();
+  await page
+    .getByRole('button', {
+      name: 'Add checkpoint range for Left ankle trail',
+    })
+    .click();
+  await expect(page.locator('.trail-range-row')).toHaveCount(2);
+  await expect(
+    page.getByLabel('Left ankle trail range 1 start').locator('option:checked'),
+  ).toContainText('Launch');
+  await expect(
+    page.getByLabel('Left ankle trail range 1 end').locator('option:checked'),
+  ).toContainText('Catch');
+  await page
+    .getByRole('checkbox', { name: 'Show Left ankle trail range 2' })
+    .uncheck();
+  await expect
+    .poll(async () => Number(await canvas.getAttribute('data-draw-revision')))
+    .toBeGreaterThan(appearanceRevision);
   await expect(page.locator('main')).toHaveAttribute(
     'data-analysis-phase',
     'ready',
@@ -170,7 +234,10 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
     'open',
     '',
   );
-  await page.getByTestId('overlay-settings').locator('summary').click();
+  await page
+    .getByTestId('overlay-settings')
+    .locator(':scope > summary')
+    .click();
   await expect(page.getByRole('checkbox', { name: 'Overlays' })).toBeChecked();
   await expect(
     page.getByRole('checkbox', { name: 'Skeleton' }),
@@ -209,7 +276,7 @@ test('keeps the disclosure touchable without changing or obscuring the stage', a
     const stage = page.getByTestId('video-stage');
     const before = await stage.boundingBox();
     const settings = page.getByTestId('overlay-settings');
-    await settings.locator('summary').click();
+    await settings.locator(':scope > summary').click();
     await expect(settings).toHaveAttribute('open', '');
     const after = await stage.boundingBox();
 
@@ -217,7 +284,7 @@ test('keeps the disclosure touchable without changing or obscuring the stage', a
     expect(after?.height).toBe(before?.height);
     await expect(page.getByText('Layer visibility', { exact: true })).toBeVisible();
     await expect(
-      page.getByText('Active trail sources', { exact: true }),
+      page.getByText('Trail sources', { exact: true }),
     ).toBeVisible();
     await expect
       .poll(() =>
@@ -232,17 +299,17 @@ test('keeps the disclosure touchable without changing or obscuring the stage', a
     if (layout.viewport.width <= 852) {
       const targetHeights = await settings
         .locator(
-          'summary, .overlay-option, .trail-source-row, .trail-source-picker, .trail-source-remove',
+          'summary, .overlay-option, .trail-source-row, .trail-source-visibility, .trail-source-picker, .trail-source-remove',
         )
         .evaluateAll((elements) =>
           elements.map((element) => element.getBoundingClientRect().height),
         );
-      expect(targetHeights.every((height) => height >= 44)).toBe(true);
+      expect(targetHeights.filter((height) => height < 44)).toEqual([]);
     }
   }
 });
 
-test('captures the R2C.1 real-fixture visual review matrix', async ({
+test('captures the R2C.2 real-fixture visual review matrix', async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -306,13 +373,44 @@ test('captures the R2C.1 real-fixture visual review matrix', async ({
         ),
       )
       .toBeGreaterThan(0);
+    if (
+      visualCase.label === 'desktop-portrait' ||
+      visualCase.label === 'phone-portrait'
+    ) {
+      const checkpointControls = page.getByTestId('checkpoint-controls');
+      await seekPaused(page, visualCase.moment - 0.5);
+      await checkpointControls.getByRole('button', { name: 'Add' }).click();
+      await seekPaused(page, visualCase.moment + 0.5);
+      await checkpointControls.getByRole('button', { name: 'Add' }).click();
+      await seekPaused(page, visualCase.moment);
+    }
     if (visualCase.settingsOpen) {
-      await page.getByTestId('overlay-settings').locator('summary').click();
+      await page.getByTestId('overlay-settings').locator(':scope > summary').click();
     }
     if (visualCase.label === 'desktop-portrait') {
       const addSource = page.getByLabel('Add trail source');
-      await addSource.selectOption('left-elbow');
-      await addSource.selectOption('right-knee');
+      await addSource.selectOption('left-ankle');
+      const advanced = page.getByTestId('trail-advanced-settings');
+      await advanced.locator('summary').click();
+      await page.getByLabel('Edit trail source').selectOption('left-ankle');
+      await page
+        .getByRole('button', {
+          name: 'Set Left ankle trail color to Magenta',
+        })
+        .click();
+      await page
+        .getByLabel('Use checkpoint ranges for Left ankle trail')
+        .check();
+      await page
+        .getByRole('button', {
+          name: 'Add checkpoint range for Left ankle trail',
+        })
+        .click();
+    }
+    if (visualCase.label === 'desktop-landscape') {
+      const addSource = page.getByLabel('Add trail source');
+      await addSource.selectOption('left-wrist');
+      await addSource.selectOption('right-ankle');
     }
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
@@ -321,10 +419,22 @@ test('captures the R2C.1 real-fixture visual review matrix', async ({
     });
     if (visualCase.label === 'phone-portrait') {
       const settings = page.getByTestId('overlay-settings');
-      await settings.locator('summary').click();
+      await settings.locator(':scope > summary').click();
+      await page.getByLabel('Add trail source').selectOption('left-ankle');
+      const advanced = page.getByTestId('trail-advanced-settings');
+      await advanced.locator('summary').click();
+      await page.getByLabel('Edit trail source').selectOption('left-ankle');
+      await page
+        .getByLabel('Use checkpoint ranges for Left ankle trail')
+        .check();
+      await page
+        .getByRole('button', {
+          name: 'Add checkpoint range for Left ankle trail',
+        })
+        .click();
       await settings.scrollIntoViewIfNeeded();
       await page.screenshot({
-        path: testInfo.outputPath('phone-portrait-settings.png'),
+        path: testInfo.outputPath('phone-portrait-advanced-settings.png'),
         fullPage: false,
       });
     }

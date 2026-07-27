@@ -263,10 +263,14 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
     buffer: await readFile(portraitFixture),
   });
   const overlaySettings = page.getByTestId('overlay-settings');
-  await expect(overlaySettings.locator('summary')).toBeVisible();
+  await expect(overlaySettings.locator(':scope > summary')).toBeVisible();
   await expect(overlaySettings).not.toHaveAttribute('open', '');
-  await expect(page.getByText('Hip midpoint')).toBeHidden();
-  await expect(page.getByText('Shoulder midpoint')).toBeHidden();
+  await expect(
+    page.getByTestId('active-trail-source-hip-midpoint'),
+  ).toBeHidden();
+  await expect(
+    page.getByTestId('active-trail-source-shoulder-midpoint'),
+  ).toBeHidden();
   const portrait = await getReviewBounds(page);
   expect(portrait.stage.width).toBeGreaterThanOrEqual(392);
   expect(portrait.stage.height).toBeGreaterThanOrEqual(695);

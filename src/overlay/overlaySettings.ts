@@ -17,6 +17,7 @@ export const TRAIL_SOURCE_IDS = [
 export type TrailSourceId = (typeof TRAIL_SOURCE_IDS)[number];
 export type OverlayLayerId = 'skeleton' | 'trails';
 export type TrailSourceGroup = 'Body midpoints' | 'Arms' | 'Legs';
+export type TrailTimingMode = 'rolling' | 'checkpoint-ranges';
 
 export type TrailAppearanceConfig = {
   color: `#${string}`;
@@ -27,6 +28,19 @@ export type TrailAppearanceConfig = {
   widthScale: number;
   haloColorChannels: `${number}, ${number}, ${number}`;
   haloAlphaScale: number;
+};
+
+export type TrailCheckpointRange = {
+  id: number;
+  visible: boolean;
+  startCheckpointId: number;
+  endCheckpointId: number;
+};
+
+export type TrailCheckpoint = {
+  id: number;
+  name: string;
+  timestampMicroseconds: number;
 };
 
 export type TrailSourceDefinition = {
@@ -42,6 +56,10 @@ export type OverlaySettings = {
   masterVisible: boolean;
   layers: Record<OverlayLayerId, boolean>;
   trailSources: Record<TrailSourceId, boolean>;
+  trailVisibility: Record<TrailSourceId, boolean>;
+  trailAppearance: Record<TrailSourceId, TrailAppearanceConfig>;
+  trailTimingMode: Record<TrailSourceId, TrailTimingMode>;
+  trailCheckpointRanges: Record<TrailSourceId, TrailCheckpointRange[]>;
 };
 
 export const TRAIL_DURATION_MICROSECONDS = 2 * SECOND_MICROSECONDS;
@@ -57,6 +75,20 @@ const DEFAULT_TRAIL_APPEARANCE = {
   haloColorChannels: '7, 10, 8',
   haloAlphaScale: 0.72,
 } as const;
+
+export const TRAIL_COLOR_PALETTE = [
+  { name: 'Amber', color: '#ffb24d' },
+  { name: 'Cyan', color: '#55dcf2' },
+  { name: 'Lime', color: '#d7ff66' },
+  { name: 'Magenta', color: '#ff62b0' },
+  { name: 'Violet', color: '#b69cff' },
+  { name: 'Blue', color: '#4da3ff' },
+  { name: 'Coral', color: '#ff7a59' },
+  { name: 'Chalk', color: '#f6f1df' },
+] as const satisfies readonly {
+  name: string;
+  color: `#${string}`;
+}[];
 
 export const TRAIL_SOURCE_DEFINITIONS = [
   {
@@ -189,6 +221,41 @@ export const TRAIL_SOURCE_DEFINITIONS = [
   },
 ] as const satisfies readonly TrailSourceDefinition[];
 
+function cloneAppearance(
+  appearance: TrailAppearanceConfig,
+): TrailAppearanceConfig {
+  return { ...appearance };
+}
+
+function buildDefaultTrailSettings() {
+  return {
+    trailSources: Object.fromEntries(
+      TRAIL_SOURCE_DEFINITIONS.map(({ id, defaultEnabled }) => [
+        id,
+        defaultEnabled,
+      ]),
+    ) as Record<TrailSourceId, boolean>,
+    trailVisibility: Object.fromEntries(
+      TRAIL_SOURCE_DEFINITIONS.map(({ id }) => [id, true]),
+    ) as Record<TrailSourceId, boolean>,
+    trailAppearance: Object.fromEntries(
+      TRAIL_SOURCE_DEFINITIONS.map(({ id, defaultAppearance }) => [
+        id,
+        cloneAppearance(defaultAppearance),
+      ]),
+    ) as Record<TrailSourceId, TrailAppearanceConfig>,
+    trailTimingMode: Object.fromEntries(
+      TRAIL_SOURCE_DEFINITIONS.map(({ id }) => [id, 'rolling' as const]),
+    ) as Record<TrailSourceId, TrailTimingMode>,
+    trailCheckpointRanges: Object.fromEntries(
+      TRAIL_SOURCE_DEFINITIONS.map(({ id }) => [
+        id,
+        [] as TrailCheckpointRange[],
+      ]),
+    ) as Record<TrailSourceId, TrailCheckpointRange[]>,
+  };
+}
+
 export function createDefaultOverlaySettings(): OverlaySettings {
   return {
     masterVisible: true,
@@ -196,12 +263,7 @@ export function createDefaultOverlaySettings(): OverlaySettings {
       skeleton: true,
       trails: true,
     },
-    trailSources: Object.fromEntries(
-      TRAIL_SOURCE_DEFINITIONS.map((definition) => [
-        definition.id,
-        definition.defaultEnabled,
-      ]),
-    ) as Record<TrailSourceId, boolean>,
+    ...buildDefaultTrailSettings(),
   };
 }
 
@@ -209,10 +271,7 @@ export function withOverlayMasterVisibility(
   settings: OverlaySettings,
   masterVisible: boolean,
 ): OverlaySettings {
-  return {
-    ...settings,
-    masterVisible,
-  };
+  return { ...settings, masterVisible };
 }
 
 export function withOverlayLayerVisibility(
@@ -222,30 +281,227 @@ export function withOverlayLayerVisibility(
 ): OverlaySettings {
   return {
     ...settings,
-    layers: {
-      ...settings.layers,
-      [layerId]: visible,
-    },
+    layers: { ...settings.layers, [layerId]: visible },
   };
 }
 
-export function withTrailSourceVisibility(
+export function withTrailSourceSelection(
+  settings: OverlaySettings,
+  sourceId: TrailSourceId,
+  selected: boolean,
+): OverlaySettings {
+  return {
+    ...settings,
+    trailSources: { ...settings.trailSources, [sourceId]: selected },
+  };
+}
+
+export function withTrailVisibility(
   settings: OverlaySettings,
   sourceId: TrailSourceId,
   visible: boolean,
 ): OverlaySettings {
   return {
     ...settings,
-    trailSources: {
-      ...settings.trailSources,
-      [sourceId]: visible,
+    trailVisibility: { ...settings.trailVisibility, [sourceId]: visible },
+  };
+}
+
+function hexColorChannels(
+  color: `#${string}`,
+): `${number}, ${number}, ${number}` {
+  const normalized = /^#[0-9a-f]{6}$/i.test(color) ? color.slice(1) : 'ffffff';
+  return `${Number.parseInt(normalized.slice(0, 2), 16)}, ${Number.parseInt(
+    normalized.slice(2, 4),
+    16,
+  )}, ${Number.parseInt(normalized.slice(4, 6), 16)}`;
+}
+
+export function withTrailAppearance(
+  settings: OverlaySettings,
+  sourceId: TrailSourceId,
+  update: Partial<
+    Pick<
+      TrailAppearanceConfig,
+      'color' | 'durationMicroseconds' | 'minimumAlpha' | 'widthScale'
+    >
+  >,
+): OverlaySettings {
+  const current = settings.trailAppearance[sourceId];
+  const color = update.color ?? current.color;
+  return {
+    ...settings,
+    trailAppearance: {
+      ...settings.trailAppearance,
+      [sourceId]: {
+        ...current,
+        ...update,
+        color,
+        colorChannels: hexColorChannels(color),
+        durationMicroseconds: Math.max(
+          250_000,
+          Math.min(
+            10_000_000,
+            update.durationMicroseconds ?? current.durationMicroseconds,
+          ),
+        ),
+        minimumAlpha: Math.max(
+          0.05,
+          Math.min(
+            current.maximumAlpha,
+            update.minimumAlpha ?? current.minimumAlpha,
+          ),
+        ),
+        widthScale: Math.max(
+          0.6,
+          Math.min(2.5, update.widthScale ?? current.widthScale),
+        ),
+      },
     },
+  };
+}
+
+export function withTrailTimingMode(
+  settings: OverlaySettings,
+  sourceId: TrailSourceId,
+  mode: TrailTimingMode,
+): OverlaySettings {
+  return {
+    ...settings,
+    trailTimingMode: { ...settings.trailTimingMode, [sourceId]: mode },
+  };
+}
+
+export function addTrailCheckpointRange(
+  settings: OverlaySettings,
+  sourceId: TrailSourceId,
+  startCheckpointId: number,
+  endCheckpointId: number,
+): OverlaySettings {
+  const ranges = settings.trailCheckpointRanges[sourceId];
+  const id =
+    ranges.reduce((maximum, range) => Math.max(maximum, range.id), 0) + 1;
+  return {
+    ...settings,
+    trailCheckpointRanges: {
+      ...settings.trailCheckpointRanges,
+      [sourceId]: [
+        ...ranges,
+        {
+          id,
+          visible: true,
+          startCheckpointId,
+          endCheckpointId,
+        },
+      ],
+    },
+  };
+}
+
+export function updateTrailCheckpointRange(
+  settings: OverlaySettings,
+  sourceId: TrailSourceId,
+  rangeId: number,
+  update: Partial<Omit<TrailCheckpointRange, 'id'>>,
+): OverlaySettings {
+  return {
+    ...settings,
+    trailCheckpointRanges: {
+      ...settings.trailCheckpointRanges,
+      [sourceId]: settings.trailCheckpointRanges[sourceId].map((range) =>
+        range.id === rangeId ? { ...range, ...update } : range,
+      ),
+    },
+  };
+}
+
+export function removeTrailCheckpointRange(
+  settings: OverlaySettings,
+  sourceId: TrailSourceId,
+  rangeId: number,
+): OverlaySettings {
+  return {
+    ...settings,
+    trailCheckpointRanges: {
+      ...settings.trailCheckpointRanges,
+      [sourceId]: settings.trailCheckpointRanges[sourceId].filter(
+        (range) => range.id !== rangeId,
+      ),
+    },
+  };
+}
+
+export function withoutTrailCheckpoint(
+  settings: OverlaySettings,
+  checkpointId: number,
+): OverlaySettings {
+  return {
+    ...settings,
+    trailCheckpointRanges: Object.fromEntries(
+      TRAIL_SOURCE_IDS.map((sourceId) => [
+        sourceId,
+        settings.trailCheckpointRanges[sourceId].filter(
+          (range) =>
+            range.startCheckpointId !== checkpointId &&
+            range.endCheckpointId !== checkpointId,
+        ),
+      ]),
+    ) as Record<TrailSourceId, TrailCheckpointRange[]>,
+  };
+}
+
+export function resetTrailSourceSettings(
+  settings: OverlaySettings,
+  sourceId: TrailSourceId,
+): OverlaySettings {
+  const definition = TRAIL_SOURCE_DEFINITIONS.find(({ id }) => id === sourceId);
+  if (!definition) return settings;
+  return {
+    ...settings,
+    trailVisibility: { ...settings.trailVisibility, [sourceId]: true },
+    trailAppearance: {
+      ...settings.trailAppearance,
+      [sourceId]: cloneAppearance(definition.defaultAppearance),
+    },
+    trailTimingMode: {
+      ...settings.trailTimingMode,
+      [sourceId]: 'rolling',
+    },
+    trailCheckpointRanges: {
+      ...settings.trailCheckpointRanges,
+      [sourceId]: [],
+    },
+  };
+}
+
+export function resetAllTrailSettings(
+  settings: OverlaySettings,
+): OverlaySettings {
+  return { ...settings, ...buildDefaultTrailSettings() };
+}
+
+export function trailCheckpointWindow(
+  range: TrailCheckpointRange,
+  checkpoints: readonly TrailCheckpoint[],
+): { startMicroseconds: number; endMicroseconds: number } | null {
+  const start = checkpoints.find(({ id }) => id === range.startCheckpointId);
+  const end = checkpoints.find(({ id }) => id === range.endCheckpointId);
+  if (!start || !end) return null;
+  return {
+    startMicroseconds: Math.min(
+      start.timestampMicroseconds,
+      end.timestampMicroseconds,
+    ),
+    endMicroseconds: Math.max(
+      start.timestampMicroseconds,
+      end.timestampMicroseconds,
+    ),
   };
 }
 
 export function calculateTrailStrokeWidths(
   canvasWidth: number,
-  widthScale = DEFAULT_TRAIL_APPEARANCE.widthScale,
+  widthScale: number = DEFAULT_TRAIL_APPEARANCE.widthScale,
 ): { colorWidth: number; haloWidth: number } {
   const previousResponsiveWidth = Math.max(4, canvasWidth / 180);
   const colorWidth = previousResponsiveWidth * widthScale;
@@ -257,7 +513,7 @@ export function calculateTrailStrokeWidths(
 
 export function calculateTrailPointRadii(
   canvasWidth: number,
-  widthScale = DEFAULT_TRAIL_APPEARANCE.widthScale,
+  widthScale: number = DEFAULT_TRAIL_APPEARANCE.widthScale,
 ): { colorRadius: number; haloRadius: number } {
   const colorRadius = Math.max(4, canvasWidth / 190) * widthScale;
   return {

@@ -932,6 +932,58 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   font-size: .62rem;
   font-weight: 720;
 }
+.trail-source-row.is-hidden {
+  color: #757b72;
+  background: #141714;
+}
+.trail-source-visibility {
+  position: relative;
+  min-width: 0;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1 1 auto;
+  cursor: pointer;
+}
+.trail-source-visibility > input,
+.trail-mode-toggle > input,
+.trail-range-visibility > input {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.trail-source-visibility > input:checked + .overlay-checkbox,
+.trail-mode-toggle > input:checked + .overlay-checkbox,
+.trail-range-visibility > input:checked + .overlay-checkbox {
+  border-color: #83aa5d;
+  background: #668c42;
+}
+.trail-source-visibility > input:checked + .overlay-checkbox::after,
+.trail-mode-toggle > input:checked + .overlay-checkbox::after,
+.trail-range-visibility > input:checked + .overlay-checkbox::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid #f0ffdc;
+  border-bottom: 2px solid #f0ffdc;
+  transform: rotate(45deg);
+}
+.trail-source-visibility > input:focus-visible + .overlay-checkbox,
+.trail-mode-toggle > input:focus-visible + .overlay-checkbox,
+.trail-range-visibility > input:focus-visible + .overlay-checkbox {
+  outline: 2px solid var(--lime);
+  outline-offset: 2px;
+}
+.trail-source-row.is-hidden .overlay-option-swatch { opacity: .42; }
 .trail-source-remove {
   width: 34px;
   min-height: 34px;
@@ -998,6 +1050,274 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   border-bottom: 1.5px solid #828a7e;
   pointer-events: none;
   transform: translateY(-70%) rotate(45deg);
+}
+.trail-advanced-settings {
+  overflow: hidden;
+  margin-top: 3px;
+  border: 1px solid #30362e;
+  border-radius: 8px;
+  background: #141714;
+}
+.overlay-settings .trail-advanced-settings > summary {
+  min-height: 44px;
+  padding: 7px 10px;
+  border: 0;
+  background: #171a16;
+}
+.overlay-settings .trail-advanced-settings[open] > summary {
+  border-bottom: 1px solid #30352e;
+  background: #1a1e19;
+}
+.overlay-settings .trail-advanced-settings > summary b { font-size: .62rem; }
+.overlay-settings .trail-advanced-settings > summary small { font-size: .49rem; }
+.overlay-settings .trail-advanced-settings[open] > summary > i {
+  transform: rotate(225deg);
+}
+.trail-editor {
+  display: grid;
+  gap: 12px;
+  padding: 11px;
+}
+.trail-editor-source {
+  display: grid;
+  gap: 5px;
+  color: #848a80;
+  font-size: .54rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.trail-editor-source select,
+.trail-range-endpoints select {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 9px;
+  border: 1px solid #3a4037;
+  border-radius: 7px;
+  color: #e0ded5;
+  background: #111411;
+  font: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.trail-editor-fields {
+  display: grid;
+  gap: 13px;
+  padding-top: 2px;
+}
+.trail-editor-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.trail-editor-heading b {
+  display: block;
+  color: #ece9df;
+  font-size: .68rem;
+}
+.trail-editor-heading small {
+  display: block;
+  margin-top: 2px;
+  color: #777d73;
+  font-size: .51rem;
+}
+.trail-editor-live-swatch {
+  width: 30px;
+  height: 7px;
+  border: 2px solid #070a08;
+  border-radius: 99px;
+  background: var(--trail-source-color);
+  box-shadow: 0 0 0 1px #4a5047;
+}
+.trail-color-field {
+  min-width: 0;
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.trail-color-field legend,
+.trail-control > span,
+.trail-mode-toggle b {
+  color: #9ca197;
+  font-size: .56rem;
+  font-weight: 800;
+}
+.trail-color-palette {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(24px, 1fr));
+  gap: 5px;
+}
+.trail-color-palette button {
+  min-width: 0;
+  height: 30px;
+  border: 2px solid #111411;
+  border-radius: 7px;
+  background: var(--trail-source-color);
+  box-shadow: 0 0 0 1px #3a4038;
+  cursor: pointer;
+}
+.trail-color-palette button:hover { box-shadow: 0 0 0 2px #6a7165; }
+.trail-color-palette button.is-selected {
+  box-shadow: 0 0 0 2px var(--lime);
+}
+.trail-color-palette button:focus-visible,
+.trail-reset-one:focus-visible,
+.trail-reset-all:focus-visible,
+.trail-range-add:focus-visible,
+.trail-range-remove:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 2px;
+}
+.trail-custom-color {
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: auto 36px 1fr;
+  align-items: center;
+  gap: 8px;
+  color: #858b81;
+  font-size: .55rem;
+  font-weight: 750;
+}
+.trail-custom-color input {
+  width: 36px;
+  height: 30px;
+  padding: 2px;
+  border: 1px solid #454b42;
+  border-radius: 6px;
+  background: #111411;
+}
+.trail-custom-color output {
+  color: #b3b8ae;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: .54rem;
+}
+.trail-control {
+  display: grid;
+  gap: 7px;
+}
+.trail-control > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.trail-control output {
+  color: var(--lime);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: .53rem;
+}
+.trail-control input[type="range"] {
+  width: 100%;
+  accent-color: #9ad45d;
+}
+.trail-mode-toggle {
+  position: relative;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 9px;
+  border: 1px solid #30362e;
+  border-radius: 8px;
+  background: #181c17;
+  cursor: pointer;
+}
+.trail-mode-toggle > span:first-child { min-width: 0; }
+.trail-mode-toggle b,
+.trail-mode-toggle small { display: block; }
+.trail-mode-toggle small {
+  margin-top: 2px;
+  color: #747a70;
+  font-size: .49rem;
+}
+.trail-checkpoint-editor,
+.trail-duration-control {
+  display: grid;
+  gap: 8px;
+}
+.trail-checkpoint-editor > p {
+  margin: 0;
+  color: #858b81;
+  font-size: .55rem;
+  line-height: 1.5;
+}
+.trail-range-add,
+.trail-reset-one,
+.trail-reset-all,
+.trail-range-remove,
+.trail-duration-presets button {
+  min-height: 36px;
+  border: 1px solid #3a4136;
+  border-radius: 7px;
+  color: #b9beb4;
+  background: #1a1e18;
+  font-size: .55rem;
+  font-weight: 780;
+  cursor: pointer;
+}
+.trail-range-add:hover,
+.trail-duration-presets button:hover,
+.trail-duration-presets button[aria-pressed="true"] {
+  border-color: #71895c;
+  color: #e8f7d8;
+  background: #22291d;
+}
+.trail-range-row {
+  display: grid;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid #30362e;
+  border-radius: 8px;
+  background: #111411;
+}
+.trail-range-visibility {
+  position: relative;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #bec3b8;
+  font-size: .56rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.trail-range-endpoints {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 7px;
+}
+.trail-range-endpoints label {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  color: #777d73;
+  font-size: .5rem;
+  font-weight: 800;
+}
+.trail-range-endpoints select {
+  min-height: 36px;
+  font-size: .52rem;
+}
+.trail-range-remove,
+.trail-reset-one,
+.trail-reset-all {
+  color: #8d9388;
+  background: transparent;
+}
+.trail-range-remove:hover,
+.trail-reset-one:hover,
+.trail-reset-all:hover {
+  border-color: #62504b;
+  color: #f0a08b;
+  background: #211817;
+}
+.trail-duration-presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
 }
 
 .checkpoint-panel {
@@ -1741,8 +2061,20 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .overlay-settings summary,
   .overlay-option,
   .trail-source-row,
+  .trail-source-visibility,
   .trail-source-picker,
-  .trail-source-remove { min-height: 44px; }
+  .trail-source-remove,
+  .trail-editor-source select,
+  .trail-color-palette button,
+  .trail-custom-color,
+  .trail-mode-toggle,
+  .trail-range-add,
+  .trail-range-visibility,
+  .trail-range-endpoints select,
+  .trail-range-remove,
+  .trail-reset-one,
+  .trail-reset-all,
+  .trail-duration-presets button { min-height: 44px; }
   .checkpoint-add,
   .checkpoint-navigation button,
   .checkpoint-time,
@@ -1805,8 +2137,20 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .overlay-settings summary,
   .overlay-option,
   .trail-source-row,
+  .trail-source-visibility,
   .trail-source-picker,
-  .trail-source-remove { min-height: 44px; }
+  .trail-source-remove,
+  .trail-editor-source select,
+  .trail-color-palette button,
+  .trail-custom-color,
+  .trail-mode-toggle,
+  .trail-range-add,
+  .trail-range-visibility,
+  .trail-range-endpoints select,
+  .trail-range-remove,
+  .trail-reset-one,
+  .trail-reset-all,
+  .trail-duration-presets button { min-height: 44px; }
   .shortcut-hint { display: none; }
   .checkpoint-add,
   .checkpoint-navigation button,

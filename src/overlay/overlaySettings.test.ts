@@ -1,14 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  addTrailCheckpointRange,
   calculateTrailStrokeWidths,
   createDefaultOverlaySettings,
+  resetTrailSourceSettings,
   TRAIL_DURATION_MICROSECONDS,
   TRAIL_SOURCE_DEFINITIONS,
   TRAIL_SOURCE_IDS,
+  trailCheckpointWindow,
+  updateTrailCheckpointRange,
+  withoutTrailCheckpoint,
   withOverlayLayerVisibility,
   withOverlayMasterVisibility,
-  withTrailSourceVisibility,
+  withTrailAppearance,
+  withTrailSourceSelection,
+  withTrailTimingMode,
+  withTrailVisibility,
 } from './overlaySettings';
 
 describe('overlay settings contract', () => {
@@ -39,6 +47,12 @@ describe('overlay settings contract', () => {
       'left-ankle': false,
       'right-ankle': false,
     });
+    expect(Object.values(settings.trailVisibility).every(Boolean)).toBe(true);
+    expect(settings.trailAppearance['hip-midpoint']).toEqual(
+      TRAIL_SOURCE_DEFINITIONS[0].defaultAppearance,
+    );
+    expect(settings.trailTimingMode['hip-midpoint']).toBe('rolling');
+    expect(settings.trailCheckpointRanges['hip-midpoint']).toEqual([]);
   });
 
   it('maps elbow and knee source IDs to the matching MediaPipe landmarks', () => {
@@ -59,7 +73,7 @@ describe('overlay settings contract', () => {
 
   it('preserves layer and source selections when the master is hidden and restored', () => {
     const defaults = createDefaultOverlaySettings();
-    const configured = withTrailSourceVisibility(
+    const configured = withTrailSourceSelection(
       withOverlayLayerVisibility(defaults, 'skeleton', false),
       'left-wrist',
       true,
@@ -72,6 +86,92 @@ describe('overlay settings contract', () => {
     expect(restored.trailSources['left-wrist']).toBe(true);
     expect(defaults.layers.skeleton).toBe(true);
     expect(defaults.trailSources['left-wrist']).toBe(false);
+  });
+
+  it('keeps source selection separate from its convenient visibility toggle', () => {
+    let settings = withTrailSourceSelection(
+      createDefaultOverlaySettings(),
+      'left-ankle',
+      true,
+    );
+    settings = withTrailVisibility(settings, 'left-ankle', false);
+
+    expect(settings.trailSources['left-ankle']).toBe(true);
+    expect(settings.trailVisibility['left-ankle']).toBe(false);
+    expect(settings.trailAppearance['left-ankle'].color).toBe('#d7ff66');
+
+    settings = withTrailVisibility(settings, 'left-ankle', true);
+    expect(settings.trailSources['left-ankle']).toBe(true);
+    expect(settings.trailVisibility['left-ankle']).toBe(true);
+  });
+
+  it('owns editable per-source appearance without changing the stable defaults', () => {
+    const defaults = createDefaultOverlaySettings();
+    const changed = withTrailAppearance(defaults, 'left-ankle', {
+      color: '#123456',
+      durationMicroseconds: 4_000_000,
+      minimumAlpha: 0.2,
+      widthScale: 1.8,
+    });
+
+    expect(changed.trailAppearance['left-ankle']).toMatchObject({
+      color: '#123456',
+      colorChannels: '18, 52, 86',
+      durationMicroseconds: 4_000_000,
+      minimumAlpha: 0.2,
+      widthScale: 1.8,
+    });
+    expect(defaults.trailAppearance['left-ankle']).toEqual(
+      TRAIL_SOURCE_DEFINITIONS.find(({ id }) => id === 'left-ankle')!
+        .defaultAppearance,
+    );
+  });
+
+  it('supports multiple visible checkpoint ranges and removes broken references', () => {
+    let settings = withTrailTimingMode(
+      createDefaultOverlaySettings(),
+      'hip-midpoint',
+      'checkpoint-ranges',
+    );
+    settings = addTrailCheckpointRange(settings, 'hip-midpoint', 1, 2);
+    settings = addTrailCheckpointRange(settings, 'hip-midpoint', 3, 4);
+    settings = updateTrailCheckpointRange(settings, 'hip-midpoint', 2, {
+      visible: false,
+    });
+    expect(settings.trailCheckpointRanges['hip-midpoint']).toEqual([
+      {
+        id: 1,
+        visible: true,
+        startCheckpointId: 1,
+        endCheckpointId: 2,
+      },
+      {
+        id: 2,
+        visible: false,
+        startCheckpointId: 3,
+        endCheckpointId: 4,
+      },
+    ]);
+    expect(
+      trailCheckpointWindow(
+        settings.trailCheckpointRanges['hip-midpoint'][0],
+        [
+          { id: 1, name: 'End', timestampMicroseconds: 3_000_000 },
+          { id: 2, name: 'Start', timestampMicroseconds: 1_000_000 },
+        ],
+      ),
+    ).toEqual({
+      startMicroseconds: 1_000_000,
+      endMicroseconds: 3_000_000,
+    });
+
+    settings = withoutTrailCheckpoint(settings, 2);
+    expect(settings.trailCheckpointRanges['hip-midpoint']).toHaveLength(1);
+    expect(settings.trailCheckpointRanges['hip-midpoint'][0].id).toBe(2);
+
+    settings = resetTrailSourceSettings(settings, 'hip-midpoint');
+    expect(settings.trailTimingMode['hip-midpoint']).toBe('rolling');
+    expect(settings.trailCheckpointRanges['hip-midpoint']).toEqual([]);
   });
 
   it('uses a two-second trail and a responsive stroke 25% above the prior default', () => {

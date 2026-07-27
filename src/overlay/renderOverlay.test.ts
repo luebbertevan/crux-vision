@@ -4,10 +4,13 @@ import type { QualityPoseSample } from '../pose/poseQuality';
 import type { PoseLandmark, RawPoseSample } from '../types';
 import type { DisplayTransform } from './displayTransform';
 import {
+  addTrailCheckpointRange,
   createDefaultOverlaySettings,
   withOverlayLayerVisibility,
   withOverlayMasterVisibility,
-  withTrailSourceVisibility,
+  withTrailSourceSelection,
+  withTrailTimingMode,
+  withTrailVisibility,
 } from './overlaySettings';
 import { renderOverlay } from './renderOverlay';
 
@@ -129,7 +132,7 @@ describe('overlay renderer settings', () => {
   it('renders only selected stable trail sources, including elbows and knees', () => {
     let settings = createDefaultOverlaySettings();
     settings = withOverlayLayerVisibility(settings, 'skeleton', false);
-    settings = withTrailSourceVisibility(
+    settings = withTrailSourceSelection(
       settings,
       'shoulder-midpoint',
       false,
@@ -147,7 +150,7 @@ describe('overlay renderer settings', () => {
     );
     expect(hipOnly.trailSegmentCount).toBe(1);
 
-    settings = withTrailSourceVisibility(settings, 'left-wrist', true);
+    settings = withTrailSourceSelection(settings, 'left-wrist', true);
     const hipAndWrist = renderOverlay(
       recordingContext().context,
       720,
@@ -161,8 +164,8 @@ describe('overlay renderer settings', () => {
     );
     expect(hipAndWrist.trailSegmentCount).toBe(2);
 
-    settings = withTrailSourceVisibility(settings, 'left-elbow', true);
-    settings = withTrailSourceVisibility(settings, 'right-knee', true);
+    settings = withTrailSourceSelection(settings, 'left-elbow', true);
+    settings = withTrailSourceSelection(settings, 'right-knee', true);
     const fourSources = renderOverlay(
       recordingContext().context,
       720,
@@ -180,7 +183,7 @@ describe('overlay renderer settings', () => {
   it('draws a wider contrasting pass before each colored trail stroke', () => {
     let settings = createDefaultOverlaySettings();
     settings = withOverlayLayerVisibility(settings, 'skeleton', false);
-    settings = withTrailSourceVisibility(
+    settings = withTrailSourceSelection(
       settings,
       'shoulder-midpoint',
       false,
@@ -206,9 +209,66 @@ describe('overlay renderer settings', () => {
     expect(recording.strokes[1].strokeStyle).toContain('255, 178, 77');
   });
 
+  it('hides a trail without removing its active source or appearance', () => {
+    let settings = createDefaultOverlaySettings();
+    settings = withOverlayLayerVisibility(settings, 'skeleton', false);
+    settings = withTrailVisibility(settings, 'hip-midpoint', false);
+    const result = renderOverlay(
+      recordingContext().context,
+      720,
+      480,
+      transform,
+      samples,
+      samples[1],
+      30_000,
+      'centered',
+      settings,
+    );
+
+    expect(result.trailSegmentCount).toBe(1);
+    expect(settings.trailSources['hip-midpoint']).toBe(true);
+    expect(settings.trailVisibility['hip-midpoint']).toBe(false);
+  });
+
+  it('renders checkpoint-bounded ranges with explicit endpoint markers', () => {
+    let settings = createDefaultOverlaySettings();
+    settings = withOverlayLayerVisibility(settings, 'skeleton', false);
+    settings = withTrailSourceSelection(
+      settings,
+      'shoulder-midpoint',
+      false,
+    );
+    settings = withTrailTimingMode(
+      settings,
+      'hip-midpoint',
+      'checkpoint-ranges',
+    );
+    settings = addTrailCheckpointRange(settings, 'hip-midpoint', 1, 2);
+    const recording = recordingContext();
+    const result = renderOverlay(
+      recording.context,
+      720,
+      480,
+      transform,
+      samples,
+      samples[1],
+      30_000,
+      'centered',
+      settings,
+      [
+        { id: 1, name: 'Start', timestampMicroseconds: 0 },
+        { id: 2, name: 'End', timestampMicroseconds: 30_000 },
+      ],
+    );
+
+    expect(result.trailSegmentCount).toBe(1);
+    expect(recording.strokes).toHaveLength(2);
+    expect(recording.fills).toHaveLength(5);
+  });
+
   it('lets the master hide all drawing without mutating sub-selections', () => {
     const settings = withOverlayMasterVisibility(
-      withTrailSourceVisibility(
+      withTrailSourceSelection(
         createDefaultOverlaySettings(),
         'right-ankle',
         true,

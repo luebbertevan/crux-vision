@@ -1,7 +1,7 @@
 # R2 product spec: first useful Crux Vision
 
-**Status:** R2A, the pose-quality calibration gate, R2B, and R2C.1 complete;
-R2C.2 next
+**Status:** R2A, the pose-quality calibration gate, R2B, and R2C complete; R2D
+next
 
 **Purpose:** Establish enough product and technical direction to start a fast
 feedback loop without freezing the interface before it has been used.
@@ -131,6 +131,15 @@ native color picker for custom colors, while preserving a contrast halo
 independently of the chosen color. Display-only changes update cached overlays
 without rerunning pose inference. Dedicated video zoom/pan remains deferred
 until gym feedback establishes a need.
+
+Complete. Active trail selection and visibility are separate: each active row
+has an immediate checkbox, and advanced editing remains behind a nested
+disclosure with a compact source selector. A source can use a bounded rolling
+duration or multiple independently visible ranges between existing
+checkpoints. Checkpoint ranges draw stable start/end markers and preserve the
+same honest continuity gaps as rolling trails. All appearance and timing state
+remains local to the current source session. The implementation record is in
+[`r2c2-implementation-spec.md`](./r2c2-implementation-spec.md).
 
 ### R2D — Mobile refinement
 

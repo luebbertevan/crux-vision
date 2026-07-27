@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import type { PoseLandmark, RawPoseSample } from '../types';
-import { buildTrailSegments } from './trail';
+import {
+  buildTrailSegments,
+  buildTrailSegmentsForWindowWithResolver,
+} from './trail';
 
 const sample = (timestampMicroseconds: number, visibility = 1): RawPoseSample => {
   const missing: PoseLandmark = { x: 0, y: 0, z: 0, visibility: 0, presence: 0 };
@@ -111,5 +114,36 @@ describe('trail segmentation', () => {
     expect(segments).toHaveLength(1);
     expect(segments[0]).toHaveLength(1);
     expect(segments[0][0].x).toBeCloseTo(0.4);
+  });
+
+  it('preserves missing and oversized gaps inside a fixed checkpoint window', () => {
+    const samples = [
+      sample(0),
+      sample(40_000),
+      sample(80_000, 0.2),
+      sample(120_000),
+      sample(300_000),
+    ];
+    const segments = buildTrailSegmentsForWindowWithResolver(
+      samples,
+      { startMicroseconds: 0, endMicroseconds: 300_000 },
+      {
+        source: { kind: 'landmark', landmarkIndex: 15 },
+        maximumGapMicroseconds: 100_000,
+      },
+      (pose, source) => {
+        if (source.kind !== 'landmark') return null;
+        const landmark = pose.landmarks[source.landmarkIndex];
+        return landmark.visibility && landmark.visibility >= 0.5
+          ? landmark
+          : null;
+      },
+    );
+
+    expect(
+      segments.map((segment) =>
+        segment.map((point) => point.timestampMicroseconds),
+      ),
+    ).toEqual([[0, 40_000], [120_000], [300_000]]);
   });
 });
