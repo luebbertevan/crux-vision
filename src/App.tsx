@@ -1393,6 +1393,34 @@ export function App() {
                   aria-hidden="true"
                 />
                 <span className="playback-elapsed" aria-hidden="true" />
+                {sourceDurationMicroseconds > 0
+                  ? checkpoints.map((checkpoint, checkpointIndex) => (
+                      <span
+                        key={checkpoint.id}
+                        className={
+                          checkpointIndex === currentCheckpointIndex
+                            ? 'playback-checkpoint-marker is-current'
+                            : 'playback-checkpoint-marker'
+                        }
+                        data-testid="playback-checkpoint-marker"
+                        data-checkpoint-time={checkpoint.timestampMicroseconds}
+                        aria-hidden="true"
+                        style={
+                          {
+                            '--checkpoint-position': `${Math.min(
+                              100,
+                              Math.max(
+                                0,
+                                (checkpoint.timestampMicroseconds /
+                                  sourceDurationMicroseconds) *
+                                  100,
+                              ),
+                            )}%`,
+                          } as CSSProperties
+                        }
+                      />
+                    ))
+                  : null}
                 <input
                   id="playback-position"
                   className="playback-slider"

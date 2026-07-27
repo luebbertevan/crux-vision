@@ -21,6 +21,8 @@ phone layouts.
   stops immediately on release, cancellation, or an unavailable direction.
 - Named checkpoints can be added at the playhead, renamed, selected directly,
   removed, and reached with previous/next navigation.
+- Each checkpoint appears as a small neutral tick on the main playback timeline;
+  the tick at the playhead receives a restrained lime emphasis.
 - Checkpoints are source-session state. Replacing the video clears them;
   persistence remains R3 work.
 

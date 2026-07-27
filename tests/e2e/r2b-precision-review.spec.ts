@@ -137,7 +137,29 @@ test('changes speed and loops the selected range with controls and shortcuts', a
   await page.getByLabel('Checkpoint 2 name').fill('Catch');
 
   const checkpointControls = page.getByTestId('checkpoint-controls');
+  const checkpointMarkers = page.getByTestId('playback-checkpoint-marker');
   await expect(checkpointControls).toHaveAttribute('data-checkpoint-count', '2');
+  await expect(checkpointMarkers).toHaveCount(2);
+  await expect(checkpointMarkers.nth(0)).toHaveAttribute(
+    'data-checkpoint-time',
+    '1200000',
+  );
+  await expect(checkpointMarkers.nth(1)).toHaveAttribute(
+    'data-checkpoint-time',
+    '2400000',
+  );
+  const markerBounds = await checkpointMarkers.evaluateAll((markers) =>
+    markers.map((marker) => {
+      const bounds = marker.getBoundingClientRect();
+      return {
+        left: bounds.left,
+        height: bounds.height,
+      };
+    }),
+  );
+  expect(markerBounds[0].left).toBeLessThan(markerBounds[1].left);
+  expect(markerBounds.every((bounds) => bounds.height >= 10)).toBe(true);
+
   await video.evaluate(async (element) => {
     const media = element as HTMLVideoElement;
     media.currentTime = 0.5;
@@ -155,12 +177,14 @@ test('changes speed and loops the selected range with controls and shortcuts', a
     'data-current-checkpoint-index',
     '1',
   );
+  await expect(checkpointMarkers.nth(1)).toHaveClass(/is-current/);
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await page.keyboard.press('Shift+ArrowLeft');
   await expect(checkpointControls).toHaveAttribute(
     'data-current-checkpoint-index',
     '0',
   );
+  await expect(checkpointMarkers.nth(0)).toHaveClass(/is-current/);
   await expect(page.getByLabel('Checkpoint 1 name')).toHaveValue('Start move');
   await expect(page.getByLabel('Checkpoint 2 name')).toHaveValue('Catch');
 
@@ -173,6 +197,7 @@ test('changes speed and loops the selected range with controls and shortcuts', a
     'data-checkpoint-count',
     '0',
   );
+  await expect(page.getByTestId('playback-checkpoint-marker')).toHaveCount(0);
 });
 
 test('keeps precision controls clear and touchable across review layouts', async ({
@@ -215,6 +240,39 @@ test('keeps precision controls clear and touchable across review layouts', async
     await expect(page.getByRole('button', { name: 'Next analyzed frame' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Previous analyzed frame' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Next analyzed frame' })).toBeDisabled();
+
+    await page.locator('video').evaluate(async (element) => {
+      const media = element as HTMLVideoElement;
+      media.pause();
+      media.currentTime = media.duration * 0.4;
+      await new Promise<void>((resolve) =>
+        media.addEventListener('seeked', () => resolve(), { once: true }),
+      );
+    });
+    await checkpointControls
+      .getByRole('button', { name: 'Add', exact: true })
+      .click();
+    await page.locator('video').evaluate(async (element) => {
+      const media = element as HTMLVideoElement;
+      media.currentTime = media.duration * 0.2;
+      await new Promise<void>((resolve) =>
+        media.addEventListener('seeked', () => resolve(), { once: true }),
+      );
+    });
+
+    const timeline = page.locator('.playback-timeline');
+    const checkpointMarker = page.getByTestId('playback-checkpoint-marker');
+    await expect(checkpointMarker).toHaveCount(1);
+    const [timelineBounds, markerBounds] = await Promise.all([
+      timeline.boundingBox(),
+      checkpointMarker.boundingBox(),
+    ]);
+    expect(timelineBounds).not.toBeNull();
+    expect(markerBounds).not.toBeNull();
+    expect(markerBounds!.x).toBeGreaterThan(timelineBounds!.x);
+    expect(markerBounds!.x + markerBounds!.width).toBeLessThan(
+      timelineBounds!.x + timelineBounds!.width,
+    );
 
     const [controlBounds, rangeBounds] = await Promise.all([
       controls.boundingBox(),

@@ -154,7 +154,8 @@ product. Reuse the tested adapters and contracts, not the diagnostic layout.
 - Provide coarse timeline seeking and a separate fine movement mechanism.
 - Step to adjacent presented frames where the media APIs provide reliable
   timestamps.
-- Mark In/Out, loop that range, and create named checkpoints.
+- Mark In/Out, loop that range, and create named checkpoints with subtle
+  location ticks on the main timeline.
 - Support accurate backward stepping or jog; do not promise smooth negative-rate
   playback.
 
@@ -261,8 +262,6 @@ R2 is complete when:
 
 - Exact navigation and placement of Review, Inspect, and Timeline on the phone.
 - Whether the timeline is always visible or expands on demand.
-- Whether checkpoints appear directly on the main timeline or in a secondary
-  lane.
 - How much pose progress detail normal users should see.
 - Whether R2D phone evidence requires a lower-power Lite or reduced-density
   option for sustained analysis; Full remains the quality default meanwhile.
