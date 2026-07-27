@@ -20,7 +20,7 @@ phone layouts.
   coverage it switches to a visibly labeled estimate based on the source's
   average frame rate, falling back to `30 fps` only when that metadata is not
   usable. A normal tap or click moves once; holding for `350 ms` starts a
-  five-steps-per-second repeat that stops immediately on release, cancellation,
+  ten-steps-per-second repeat that stops immediately on release, cancellation,
   or an unavailable direction.
   The same seeker remains in place when calibration opens; its center readout
   becomes an editable analyzed-frame number and shows the exact timestamp.

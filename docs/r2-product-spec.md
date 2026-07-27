@@ -98,16 +98,28 @@ missing joint from being described as a pose-wide outage. See the
 
 Complete. The ordinary review surface now combines the existing coarse timeline
 and In/Out controls with `0.25×`, `0.5×`, and `1×` speed presets, selected-range
-looping, single-step and five-frames-per-second press-and-hold
+looping, single-step and ten-frames-per-second press-and-hold
 analyzed-presentation-frame jog, and editable in-memory checkpoints. Every
 action has a touch-sized control; desktop shortcuts provide the same fast path.
 Checkpoints deliberately reset with source replacement until local session
 persistence arrives in R3.
 
-### R2C — Visual inspection
+### R2C.1 — Overlay controls and legible trail defaults
 
-Generalize trails to useful joint choices, add overlay controls and missing-pose
-behavior, and add zoom/pan through one shared display transform.
+Add independent master, skeleton, and trail controls; make hip, shoulder,
+wrist, and ankle trails selectable; and strengthen the ordinary trail default
+with a two-second duration, a modestly larger stroke, and a contrast treatment
+that survives light and dark footage. Keep the compact Overlay settings
+disclosure collapsed during ordinary review.
+
+### R2C.2 — Per-trail appearance editor
+
+Add progressively disclosed per-trail duration, fade, width, and color
+settings. Offer a curated high-chroma palette for quick choices and an advanced
+native color picker for custom colors, while preserving a contrast halo
+independently of the chosen color. Display-only changes update cached overlays
+without rerunning pose inference. Dedicated video zoom/pan remains deferred
+until gym feedback establishes a need.
 
 ### R2D — Mobile refinement
 

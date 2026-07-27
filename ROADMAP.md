@@ -355,7 +355,7 @@ R2B adds a compact precision-review strip beside the existing In/Out controls:
 frame jog. The jog follows exact analyzed presentation timestamps where they
 exist and switches to a visibly labeled source-rate estimate before analysis or
 outside analyzed coverage. A tap or click moves one step; holding either frame
-button begins a rapid jog at five steps per second and stops on release or
+button begins a rapid jog at ten steps per second and stops on release or
 pointer cancellation. The loop is checked against presented video frames when
 the browser exposes them, with media events as a fallback. It never changes the
 selected analysis range or pose timestamps.
@@ -380,23 +380,77 @@ gate passes 59 unit tests and 23 Chrome browser tests. See
 **Outcome:** Trails and pose layers reveal movement without forcing one fixed
 visualization.
 
+R2C is split into two reviewable slices. Neither slice reruns pose inference
+when display-only settings change, and neither changes the calibrated
+acceptance or smoothing defaults.
+
+#### R2C.1 — Overlay controls and legible trail defaults
+
+**Outcome:** A climber can quickly choose which pose layers and body paths help
+with the current move, and the default trails remain readable over varied
+footage.
+
 Build:
 
-- selectable wrist, ankle, hip, and shoulder trails;
-- advanced trail duration/fade controls, retaining 1.5 seconds as the ordinary
-  review default unless later testing supports another value;
-- master overlay, skeleton, and trail toggles;
-- compact confidence-aware pose-unavailable behavior rather than slingshots;
-- keep page-level pinch zoom disabled in the phone review shell; do not add
-  dedicated video zoom/pan unless later gym testing establishes a clear need
-  and the video/overlay transform can remain exact;
-- carry the calibrated Strict, Balanced, and Permissive choices into the
-  expanded visual-inspection settings without changing Balanced by accident;
-- retain the completed body-group/joint overrides, rejected-sample inspection,
-  smoothing, and coverage detail under Pose quality → Advanced;
-- extend the completed versioned derived-point contract only for later
-  validated, body-relative visual or analytic anchors;
-- overlay alignment and timestamp tests for portrait and landscape fixtures.
+- replace the single overlay switch with independent master overlay, skeleton,
+  and trails controls while preserving one obvious way to hide everything;
+- let the user enable hip midpoint, shoulder midpoint, left/right wrist, and
+  left/right ankle trails without code changes;
+- retain hip and shoulder midpoints as the initial enabled sources;
+- increase the ordinary trail duration from 1.5 to 2 seconds and increase the
+  ordinary stroke width by roughly 25%, subject to visual review rather than a
+  fixed pixel assumption;
+- add a subtle contrast halo or equivalent two-tone treatment so a bright trail
+  remains distinguishable over both light and dark video regions;
+- place the controls in a compact **Overlay settings** disclosure within the
+  existing Movement overlay card, collapsed by default and usable with keyboard
+  and touch;
+- keep pose-unavailable behavior confidence-aware and gap-honest rather than
+  joining trails across missing or rejected samples;
+- carry Strict, Balanced, and Permissive into the expanded surface without
+  changing Balanced or the selected centered/offline smoothing default.
+
+**Exit:** On real portrait and landscape clips, the stronger default trails are
+easy to distinguish without overwhelming the climber. Master, skeleton, trails,
+and each supported source can be changed independently on desktop and phone,
+and all changes update the cached overlay immediately without reanalysis.
+
+#### R2C.2 — Per-trail appearance editor
+
+**Outcome:** A user can distinguish several simultaneous trails and tune their
+visual persistence without cluttering ordinary review.
+
+Build:
+
+- give every enabled trail a compact row with its name, side, live color swatch,
+  visibility state, and an expandable editor;
+- support per-trail duration, fade, and width controls with bounded,
+  understandable presets and direct values where precision is useful;
+- provide a small curated palette of high-chroma trail colors selected for the
+  graphite/chalk UI and common climbing footage, plus an advanced native color
+  picker for custom colors;
+- preserve the contrast halo independently of the chosen color so white,
+  yellow, dark, and custom colors do not rely on color alone for visibility;
+- include reset for one trail and reset-all to the R2C defaults;
+- keep the editor tucked into the existing Overlay settings disclosure, using
+  progressive disclosure rather than a permanently dense panel;
+- make display-setting changes live, local to the current source session, and
+  independent of raw pose data, filtering, smoothing, and analysis;
+- verify accessible names, focus behavior, touch targets, responsive overflow,
+  and overlay alignment/timestamps with portrait and landscape fixtures.
+
+**Exit:** At least four simultaneous trails can be identified and edited on
+large screens and mobile without obscuring the video or destabilizing the
+Movement overlay card. Preset and custom colors, duration, fade, and width
+remain legible and resettable across representative light, dark, and mixed
+video backgrounds.
+
+Dedicated video zoom/pan remains deferred until gym testing establishes a clear
+need and the shared video/overlay transform can remain exact. The completed
+body-group/joint overrides, rejected-sample inspection, smoothing, and coverage
+detail remain under Pose quality → Advanced. The versioned derived-point
+contract should expand only for later validated, body-relative visual or
+analytic anchors.
 
 ### R2D — Mobile refinement and feedback release
 
