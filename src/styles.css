@@ -1147,13 +1147,13 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 }
 .trail-color-palette {
   display: grid;
-  grid-template-columns: repeat(8, 26px);
+  grid-template-columns: repeat(8, 24px);
   justify-content: start;
   gap: 3px;
 }
 .trail-color-palette button {
-  width: 26px;
-  height: 28px;
+  width: 24px;
+  height: 26px;
   border: 2px solid #111411;
   border-radius: 7px;
   background: var(--trail-source-color);
