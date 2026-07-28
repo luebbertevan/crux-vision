@@ -47,6 +47,9 @@ test('offers global history for clip, overlay, and pose settings', async ({
     page.locator('.control-rail').getByTestId('global-history-controls'),
   ).toHaveCount(1);
   await expect(
+    page.locator('.range-section').getByTestId('global-history-controls'),
+  ).toHaveCount(1);
+  await expect(
     history.getByRole('button', { name: 'Undo last change' }),
   ).toBeDisabled();
   await expect(

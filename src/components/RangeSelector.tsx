@@ -67,8 +67,8 @@ export function RangeSelector({
     <section className="range-section" aria-labelledby="range-title">
       <div className="section-heading">
         <div>
-          <span className="section-kicker">Clip selection</span>
-          <h2 id="range-title">Analysis range</h2>
+          <span className="section-kicker">Clip &amp; analysis</span>
+          <h2 id="range-title">Review controls</h2>
         </div>
         <span className="range-duration">
           {(microsecondsToSeconds(range.endMicroseconds - range.startMicroseconds)).toFixed(1)}s
@@ -76,9 +76,65 @@ export function RangeSelector({
       </div>
 
       <div className="range-readout" aria-live="polite">
-        <span><small>START</small>{formatTime(microsecondsToSeconds(range.startMicroseconds))}</span>
+        <div className="range-readout-edge">
+          <span>
+            <small>START</small>
+            <strong>
+              {formatTime(microsecondsToSeconds(range.startMicroseconds))}
+            </strong>
+          </span>
+          <button
+            type="button"
+            className="range-set-button"
+            disabled={disabled}
+            onClick={() =>
+              onChange(
+                setRangeFromPlayhead(
+                  range,
+                  'start',
+                  playheadMicroseconds,
+                  durationMicroseconds,
+                ),
+                {
+                  key: 'analysis-start',
+                  label: 'Analysis start',
+                },
+              )
+            }
+          >
+            Set start
+          </button>
+        </div>
         <span className="range-arrow" aria-hidden="true">→</span>
-        <span><small>END</small>{formatTime(microsecondsToSeconds(range.endMicroseconds))}</span>
+        <div className="range-readout-edge is-end">
+          <span>
+            <small>END</small>
+            <strong>
+              {formatTime(microsecondsToSeconds(range.endMicroseconds))}
+            </strong>
+          </span>
+          <button
+            type="button"
+            className="range-set-button"
+            disabled={disabled}
+            onClick={() =>
+              onChange(
+                setRangeFromPlayhead(
+                  range,
+                  'end',
+                  playheadMicroseconds,
+                  durationMicroseconds,
+                ),
+                {
+                  key: 'analysis-end',
+                  label: 'Analysis end',
+                },
+              )
+            }
+          >
+            Set end
+          </button>
+        </div>
       </div>
 
       <div className="range-track-wrap" style={trackStyle}>
@@ -108,51 +164,6 @@ export function RangeSelector({
           disabled={disabled}
           onChange={(event) => updateEdge('end', Number(event.currentTarget.value))}
         />
-      </div>
-
-      <div className="range-actions">
-        <button
-          type="button"
-          className="button-subtle"
-          disabled={disabled}
-          onClick={() =>
-            onChange(
-              setRangeFromPlayhead(
-                range,
-                'start',
-                playheadMicroseconds,
-                durationMicroseconds,
-              ),
-              {
-                key: 'analysis-start',
-                label: 'Analysis start',
-              },
-            )
-          }
-        >
-          Set start
-        </button>
-        <button
-          type="button"
-          className="button-subtle"
-          disabled={disabled}
-          onClick={() =>
-            onChange(
-              setRangeFromPlayhead(
-                range,
-                'end',
-                playheadMicroseconds,
-                durationMicroseconds,
-              ),
-              {
-                key: 'analysis-end',
-                label: 'Analysis end',
-              },
-            )
-          }
-        >
-          Set end
-        </button>
       </div>
 
       {children}

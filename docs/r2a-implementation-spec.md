@@ -72,13 +72,14 @@ pending-analysis, and application-error messages must remain distinct.
 
 - Portrait review replaces the horizontal top bar with an unboxed 190–230 px
   side brand lockup. Its icon-left, two-line treatment matches the
-  landscape header without secondary utilities. The Clip selection card uses
-  Analysis range as its title and holds readiness plus the analysis actions;
-  Replace video sits beneath Analyze range and matches that action's full width
-  and height. At laptop widths of 1100 px and above, both review cards and
+  landscape header without secondary utilities. The **Clip & analysis** card
+  uses **Review controls** as its title and groups range selection, transport,
+  pose-analysis actions, source-session Edit history, and Review marks in
+  divided sections. Set start/end sit beside their values, while Analyze range
+  and Replace video share one row. At laptop widths of 1100 px and above, both review cards and
   their complete contents render at 125% scale as 380 px-wide surfaces. Narrower
   desktop and mobile layouts keep their established sizing. At wide portrait
-  widths, Clip selection moves into the open space beneath a 125%-scale brand
+  widths, Clip & analysis moves into the open space beneath a 125%-scale brand
   lockup at the left of the player; On-device pose occupies the matching right
   gutter. Both cards share a top edge and increase by a further 10% to 137.5%
   of their original scale while remaining centered between the player and
@@ -597,7 +598,7 @@ address over timestamped pose samples; timestamps remain the identity and
 source frames above the analysis density are not implied.
 
 The original calibration-local stack has been promoted to a bounded 100-step
-source-session history with Undo/Redo in the global header. It covers clip,
+source-session history with Undo/Redo in the **Clip & analysis** review card. It covers clip,
 checkpoint, overlay/trail, pose-quality, model, and manual-label edits. Rapid
 continuous edits to one control coalesce after 750 ms idle; manual and exact
 frame seeks are navigation and do not enter history. Source import/replacement

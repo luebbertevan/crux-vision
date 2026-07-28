@@ -147,10 +147,18 @@ test('desktop portrait and landscape stages use the available review surface', a
   await expect(page.locator('.portrait-review-filename')).toHaveCSS('text-align', 'right');
   await expect(page.locator('.topbar-actions')).toHaveCount(0);
   await expect(page.getByText('Local only')).toHaveCount(0);
-  await expect(page.locator('.range-section .section-kicker')).toHaveText('Clip selection');
-  await expect(page.locator('.range-section h2')).toHaveText('Analysis range');
+  await expect(
+    page.locator('.range-section > .section-heading .section-kicker'),
+  ).toHaveText('Clip & analysis');
+  await expect(page.locator('.range-section h2')).toHaveText('Review controls');
   await expect(page.locator('.range-section [data-testid="analysis-status"]')).toBeVisible();
   await expect(page.locator('.analysis-section [data-testid="analysis-status"]')).toHaveCount(0);
+  await expect(
+    page.locator('.range-section').getByTestId('checkpoint-controls'),
+  ).toHaveCount(1);
+  await expect(
+    page.locator('.analysis-section').getByTestId('checkpoint-controls'),
+  ).toHaveCount(0);
   await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
   await expect(page.locator('.file-button-label-full')).toBeVisible();
   expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(47);
@@ -176,10 +184,11 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(replaceBounds).not.toBeNull();
   expect(rangeSectionBounds).not.toBeNull();
   expect(rangeSectionBounds!.width).toBeGreaterThanOrEqual(414);
-  expect(analyzeBounds!.height).toBeGreaterThanOrEqual(60);
+  expect(analyzeBounds!.height).toBeGreaterThanOrEqual(44);
+  expect(analyzeBounds!.height).toBeLessThanOrEqual(56);
   expect(Math.abs(replaceBounds!.width - analyzeBounds!.width)).toBeLessThanOrEqual(0.5);
   expect(Math.abs(replaceBounds!.height - analyzeBounds!.height)).toBeLessThanOrEqual(0.5);
-  expect(replaceBounds!.y).toBeGreaterThan(analyzeBounds!.y + analyzeBounds!.height);
+  expect(Math.abs(replaceBounds!.y - analyzeBounds!.y)).toBeLessThanOrEqual(0.5);
   expect(
     (await page.getByRole('button', { name: /Play video|Pause video/ }).boundingBox())?.height,
   ).toBeLessThanOrEqual(36);

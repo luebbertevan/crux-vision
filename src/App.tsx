@@ -1828,60 +1828,6 @@ export function App() {
           </div>
 
           <aside className="control-rail">
-            <div
-              className="settings-history-bar"
-              data-testid="settings-history-bar"
-            >
-              <span className="settings-history-label">Edit history</span>
-              <div
-                className="edit-history-controls"
-                role="group"
-                aria-label="Edit history"
-                data-testid="global-history-controls"
-                data-undo-label={undoEditLabel ?? ''}
-                data-redo-label={redoEditLabel ?? ''}
-              >
-                <button
-                  type="button"
-                  aria-label="Undo last change"
-                  aria-description={
-                    undoEditLabel
-                      ? `Last change: ${undoEditLabel}`
-                      : 'Nothing to undo'
-                  }
-                  title={
-                    undoEditLabel
-                      ? `Undo ${undoEditLabel} (Cmd/Ctrl+Z)`
-                      : 'Nothing to undo'
-                  }
-                  disabled={!editHistoryRef.current.canUndo}
-                  onClick={undoEdit}
-                >
-                  <UndoIcon />
-                  <span>Undo</span>
-                </button>
-                <button
-                  type="button"
-                  aria-label="Redo last change"
-                  aria-description={
-                    redoEditLabel
-                      ? `Next change: ${redoEditLabel}`
-                      : 'Nothing to redo'
-                  }
-                  title={
-                    redoEditLabel
-                      ? `Redo ${redoEditLabel} (Cmd/Ctrl+Shift+Z)`
-                      : 'Nothing to redo'
-                  }
-                  disabled={!editHistoryRef.current.canRedo}
-                  onClick={redoEdit}
-                >
-                  <RedoIcon />
-                  <span>Redo</span>
-                </button>
-              </div>
-            </div>
-
             <div className="range-panel-slot">
               {range && (
                 <RangeSelector
@@ -1917,101 +1863,173 @@ export function App() {
                   onNextFrame={() => seekToReviewFrame('next')}
                   onExactFrameChange={seekToCalibrationFrame}
                 />
-                <div
-                  className={`analysis-status analysis-status-${analysis.phase}`}
-                  aria-live="polite"
-                  data-testid="analysis-status"
+                <section
+                  className="review-tool-section analysis-run-section"
+                  aria-label="Pose analysis"
                 >
-                  <span className="status-icon"><SparkIcon /></span>
-                  <span>
-                    <strong>{analysisStatus}</strong>
-                    <small>
-                      {analysis.delegate
-                        ? `${modelLabel} · ${analysis.delegate}`
-                        : `${POSE_MODELS[selectedModel].label} · 30 samples/sec`}
-                    </small>
-                  </span>
-                  {analysis.total > 0 && (
-                    <span className="status-percent">{Math.round(progress * 100)}%</span>
-                  )}
-                </div>
-
-                {analysis.total > 0 && (
+                  <span className="review-tool-label">Pose analysis</span>
                   <div
-                    className="analysis-progress"
-                    role="progressbar"
-                    aria-label="Analysis progress"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={Math.round(progress * 100)}
-                    data-testid="analysis-progress"
+                    className={`analysis-status analysis-status-${analysis.phase}`}
+                    aria-live="polite"
+                    data-testid="analysis-status"
                   >
-                    <span style={{ width: `${Math.min(100, progress * 100)}%` }} />
+                    <span className="status-icon"><SparkIcon /></span>
+                    <span>
+                      <strong>{analysisStatus}</strong>
+                      <small>
+                        {analysis.delegate
+                          ? `${modelLabel} · ${analysis.delegate}`
+                          : `${POSE_MODELS[selectedModel].label} · 30 samples/sec`}
+                      </small>
+                    </span>
+                    {analysis.total > 0 && (
+                      <span className="status-percent">{Math.round(progress * 100)}%</span>
+                    )}
                   </div>
-                )}
 
-                {analysis.error && (
-                  <>
-                    <p className="analysis-error" role="alert">{analysis.error}</p>
-                    {analysis.errorDetails && (
-                      <details className="analysis-diagnostics">
-                        <summary>Diagnostic details</summary>
-                        <pre>{analysis.errorDetails}</pre>
+                  {analysis.total > 0 && (
+                    <div
+                      className="analysis-progress"
+                      role="progressbar"
+                      aria-label="Analysis progress"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(progress * 100)}
+                      data-testid="analysis-progress"
+                    >
+                      <span style={{ width: `${Math.min(100, progress * 100)}%` }} />
+                    </div>
+                  )}
+
+                  {analysis.error && (
+                    <>
+                      <p className="analysis-error" role="alert">{analysis.error}</p>
+                      {analysis.errorDetails && (
+                        <details className="analysis-diagnostics">
+                          <summary>Diagnostic details</summary>
+                          <pre>{analysis.errorDetails}</pre>
+                          <button
+                            type="button"
+                            className="button-subtle"
+                            onClick={() =>
+                              void navigator.clipboard?.writeText(analysis.errorDetails ?? '')
+                            }
+                          >
+                            Copy diagnostics
+                          </button>
+                        </details>
+                      )}
+                    </>
+                  )}
+                  {!source.metadata.browserCanDecode && (
+                    <p className="analysis-error" role="alert">
+                      This browser can preview the clip, but cannot decode frames for local analysis.
+                    </p>
+                  )}
+
+                  <div className="analysis-actions">
+                    {isRunning(analysis.phase) ? (
+                      <button type="button" className="button-secondary" onClick={cancelAnalysis}>
+                        Cancel analysis
+                      </button>
+                    ) : analysis.phase === 'cancelled' || analysis.phase === 'error' ? (
+                      <>
                         <button
                           type="button"
-                          className="button-subtle"
-                          onClick={() =>
-                            void navigator.clipboard?.writeText(analysis.errorDetails ?? '')
-                          }
+                          className="button-primary"
+                          disabled={!source.metadata.browserCanDecode}
+                          onClick={() => runAnalysis(true)}
                         >
-                          Copy diagnostics
+                          <SparkIcon /> Resume analysis
                         </button>
-                      </details>
-                    )}
-                  </>
-                )}
-                {!source.metadata.browserCanDecode && (
-                  <p className="analysis-error" role="alert">
-                    This browser can preview the clip, but cannot decode frames for local analysis.
-                  </p>
-                )}
-
-                <div className="analysis-actions">
-                  {isRunning(analysis.phase) ? (
-                    <button type="button" className="button-secondary" onClick={cancelAnalysis}>
-                      Cancel analysis
-                    </button>
-                  ) : analysis.phase === 'cancelled' || analysis.phase === 'error' ? (
-                    <>
+                        <button type="button" className="button-subtle" onClick={() => runAnalysis(false)}>
+                          Start over
+                        </button>
+                      </>
+                    ) : (
                       <button
                         type="button"
                         className="button-primary"
-                        disabled={!source.metadata.browserCanDecode}
-                        onClick={() => runAnalysis(true)}
+                        disabled={!sourceReady || !source.metadata.browserCanDecode}
+                        onClick={() => runAnalysis(false)}
                       >
-                        <SparkIcon /> Resume analysis
+                        <SparkIcon /> {analysis.phase === 'ready' ? 'Analyze again' : 'Analyze range'}
                       </button>
-                      <button type="button" className="button-subtle" onClick={() => runAnalysis(false)}>
-                        Start over
-                      </button>
-                    </>
-                  ) : (
+                    )}
+                    <FileButton
+                      compact
+                      label="Replace video"
+                      onFile={(file) => void openFile(file)}
+                    />
+                  </div>
+                  <p className="privacy-note"><ShieldIcon /> Video and pose stay on this device.</p>
+                </section>
+                <section
+                  className="review-tool-section settings-history-bar"
+                  data-testid="settings-history-bar"
+                  aria-label="Edit history"
+                >
+                  <span className="settings-history-label">Edit history</span>
+                  <div
+                    className="edit-history-controls"
+                    role="group"
+                    aria-label="Edit history"
+                    data-testid="global-history-controls"
+                    data-undo-label={undoEditLabel ?? ''}
+                    data-redo-label={redoEditLabel ?? ''}
+                  >
                     <button
                       type="button"
-                      className="button-primary"
-                      disabled={!sourceReady || !source.metadata.browserCanDecode}
-                      onClick={() => runAnalysis(false)}
+                      aria-label="Undo last change"
+                      aria-description={
+                        undoEditLabel
+                          ? `Last change: ${undoEditLabel}`
+                          : 'Nothing to undo'
+                      }
+                      title={
+                        undoEditLabel
+                          ? `Undo ${undoEditLabel} (Cmd/Ctrl+Z)`
+                          : 'Nothing to undo'
+                      }
+                      disabled={!editHistoryRef.current.canUndo}
+                      onClick={undoEdit}
                     >
-                      <SparkIcon /> {analysis.phase === 'ready' ? 'Analyze again' : 'Analyze range'}
+                      <UndoIcon />
+                      <span>Undo</span>
                     </button>
-                  )}
-                  <FileButton
-                    compact
-                    label="Replace video"
-                    onFile={(file) => void openFile(file)}
-                  />
-                </div>
-                  <p className="privacy-note"><ShieldIcon /> Video and pose stay on this device.</p>
+                    <button
+                      type="button"
+                      aria-label="Redo last change"
+                      aria-description={
+                        redoEditLabel
+                          ? `Next change: ${redoEditLabel}`
+                          : 'Nothing to redo'
+                      }
+                      title={
+                        redoEditLabel
+                          ? `Redo ${redoEditLabel} (Cmd/Ctrl+Shift+Z)`
+                          : 'Nothing to redo'
+                      }
+                      disabled={!editHistoryRef.current.canRedo}
+                      onClick={redoEdit}
+                    >
+                      <RedoIcon />
+                      <span>Redo</span>
+                    </button>
+                  </div>
+                </section>
+                <CheckpointControls
+                  checkpoints={checkpoints}
+                  currentCheckpointIndex={currentCheckpointIndex}
+                  canGoPrevious={previousCheckpointIndex !== null}
+                  canGoNext={nextCheckpointIndex !== null}
+                  onAdd={addCheckpoint}
+                  onSelect={seekToCheckpoint}
+                  onRename={renameCheckpoint}
+                  onRemove={removeCheckpoint}
+                  onPrevious={() => goToAdjacentCheckpoint('previous')}
+                  onNext={() => goToAdjacentCheckpoint('next')}
+                />
                 </RangeSelector>
               )}
             </div>
@@ -2056,19 +2074,6 @@ export function App() {
                 open={overlaySettingsOpen}
                 onOpenChange={setOverlaySettingsOpen}
                 onSettingsChange={changeOverlaySettings}
-              />
-
-              <CheckpointControls
-                checkpoints={checkpoints}
-                currentCheckpointIndex={currentCheckpointIndex}
-                canGoPrevious={previousCheckpointIndex !== null}
-                canGoNext={nextCheckpointIndex !== null}
-                onAdd={addCheckpoint}
-                onSelect={seekToCheckpoint}
-                onRename={renameCheckpoint}
-                onRemove={removeCheckpoint}
-                onPrevious={() => goToAdjacentCheckpoint('previous')}
-                onNext={() => goToAdjacentCheckpoint('next')}
               />
 
               <PoseQualityPanel

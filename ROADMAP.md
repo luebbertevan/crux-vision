@@ -129,12 +129,13 @@ flexible main column beside the rail. At narrow widths, the rail follows the
 stage and transport in document order. Desktop portrait review uses an unboxed
 190–230 px side brand lockup instead of a top bar. Its horizontal
 icon-and-wordmark lockup matches the landscape header without secondary
-utilities. Analysis readiness and actions live with the range controls in the
-Clip selection card: Replace video sits beneath Analyze range and matches the
-primary action's full width and height. At laptop widths of 1100 px and above,
-the Clip selection and On-device pose cards and their complete contents render
+utilities. Range selection, playback review, analysis actions, source-session
+Edit history, and Review marks now live in divided sections of the
+**Clip & analysis** card. Set start/end sit beside their values, and Analyze
+range and Replace video share one row. At laptop widths of 1100 px and above,
+the Clip & analysis and On-device pose cards and their complete contents render
 at 125% scale as 380 px-wide surfaces; narrower desktop and mobile layouts retain their
-established sizing. For wide portrait review, Clip selection uses the open
+established sizing. For wide portrait review, Clip & analysis uses the open
 space beneath an enlarged brand lockup at the left of the player, while
 On-device pose occupies the matching right gutter. Both cards share a top edge
 and increase by a further 10% to 137.5% of their original scale while remaining
