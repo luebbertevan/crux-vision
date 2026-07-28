@@ -73,10 +73,12 @@ pending-analysis, and application-error messages must remain distinct.
 - Portrait review replaces the horizontal top bar with an unboxed 190–230 px
   side brand lockup. Its icon-left, two-line treatment matches the
   landscape header without secondary utilities. The **Clip & analysis** card
-  uses **Review controls** as its title and groups range selection, transport,
-  pose-analysis actions, source-session Edit history, and Review marks in
-  divided sections. Set start/end sit beside their values, while Analyze range
-  and Replace video share one row. At laptop widths of 1100 px and above, both review cards and
+  uses **Review controls** as its title and groups range selection, analysis,
+  transport, source-session Edit history, and Review marks in divided sections.
+  Analysis readiness and its primary actions immediately follow the range;
+  playback speed, looping, and frame stepping follow below. Set start/end sit
+  beside their values, while Analyze range and Replace video share one row. At
+  laptop widths of 1100 px and above, both review cards and
   their complete contents render at 125% scale as 380 px-wide surfaces. Narrower
   desktop and mobile layouts keep their established sizing. At wide portrait
   widths, Clip & analysis moves into the open space beneath a 125%-scale brand

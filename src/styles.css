@@ -657,15 +657,6 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   padding-top: 10px;
   border-top: 1px solid #30352e;
 }
-.review-tool-label {
-  display: block;
-  margin-bottom: 7px;
-  color: #777c73;
-  font-size: .52rem;
-  font-weight: 850;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
 .precision-speed-row {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

@@ -153,6 +153,19 @@ test('desktop portrait and landscape stages use the available review surface', a
   await expect(page.locator('.range-section h2')).toHaveText('Review controls');
   await expect(page.locator('.range-section [data-testid="analysis-status"]')).toBeVisible();
   await expect(page.locator('.analysis-section [data-testid="analysis-status"]')).toHaveCount(0);
+  await expect(page.getByText('Pose analysis', { exact: true })).toHaveCount(0);
+  expect(
+    await page.locator('.range-section').evaluate((section) => {
+      const analysis = section.querySelector('.analysis-run-section');
+      const playback = section.querySelector('.precision-review');
+      return Boolean(
+        analysis &&
+          playback &&
+          analysis.compareDocumentPosition(playback) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    }),
+  ).toBe(true);
   await expect(
     page.locator('.range-section').getByTestId('checkpoint-controls'),
   ).toHaveCount(1);

@@ -129,7 +129,8 @@ flexible main column beside the rail. At narrow widths, the rail follows the
 stage and transport in document order. Desktop portrait review uses an unboxed
 190–230 px side brand lockup instead of a top bar. Its horizontal
 icon-and-wordmark lockup matches the landscape header without secondary
-utilities. Range selection, playback review, analysis actions, source-session
+utilities. Range selection and the primary analysis actions lead the card,
+followed by playback review, source-session
 Edit history, and Review marks now live in divided sections of the
 **Clip & analysis** card. Set start/end sit beside their values, and Analyze
 range and Replace video share one row. At laptop widths of 1100 px and above,

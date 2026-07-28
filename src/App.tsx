@@ -1838,36 +1838,10 @@ export function App() {
                   disabled={opening}
                   onChange={changeRange}
                 >
-                <PrecisionReviewControls
-                  playbackRate={playerSnapshot.playbackRate}
-                  loopEnabled={rangeLoopEnabled}
-                  analyzedFrameCount={qualityEvaluation.samples.length}
-                  currentFrameIndex={calibrationFrameIndex}
-                  canStepPrevious={previousFrameStepTarget !== null}
-                  canStepNext={nextFrameStepTarget !== null}
-                  frameStepMode={frameStepMode}
-                  previousFrameStepMode={
-                    previousFrameStepTarget?.kind ?? frameStepMode
-                  }
-                  nextFrameStepMode={
-                    nextFrameStepTarget?.kind ?? frameStepMode
-                  }
-                  estimatedFrameRate={estimatedFrameRate}
-                  exactFrameEditing={calibrationWorkspaceOpen}
-                  currentFrameTimestampMicroseconds={
-                    currentQualitySample?.timestampMicroseconds ?? null
-                  }
-                  onPlaybackRateChange={changePlaybackRate}
-                  onLoopToggle={toggleRangeLoop}
-                  onPreviousFrame={() => seekToReviewFrame('previous')}
-                  onNextFrame={() => seekToReviewFrame('next')}
-                  onExactFrameChange={seekToCalibrationFrame}
-                />
                 <section
                   className="review-tool-section analysis-run-section"
                   aria-label="Pose analysis"
                 >
-                  <span className="review-tool-label">Pose analysis</span>
                   <div
                     className={`analysis-status analysis-status-${analysis.phase}`}
                     aria-live="polite"
@@ -1964,6 +1938,31 @@ export function App() {
                   </div>
                   <p className="privacy-note"><ShieldIcon /> Video and pose stay on this device.</p>
                 </section>
+                <PrecisionReviewControls
+                  playbackRate={playerSnapshot.playbackRate}
+                  loopEnabled={rangeLoopEnabled}
+                  analyzedFrameCount={qualityEvaluation.samples.length}
+                  currentFrameIndex={calibrationFrameIndex}
+                  canStepPrevious={previousFrameStepTarget !== null}
+                  canStepNext={nextFrameStepTarget !== null}
+                  frameStepMode={frameStepMode}
+                  previousFrameStepMode={
+                    previousFrameStepTarget?.kind ?? frameStepMode
+                  }
+                  nextFrameStepMode={
+                    nextFrameStepTarget?.kind ?? frameStepMode
+                  }
+                  estimatedFrameRate={estimatedFrameRate}
+                  exactFrameEditing={calibrationWorkspaceOpen}
+                  currentFrameTimestampMicroseconds={
+                    currentQualitySample?.timestampMicroseconds ?? null
+                  }
+                  onPlaybackRateChange={changePlaybackRate}
+                  onLoopToggle={toggleRangeLoop}
+                  onPreviousFrame={() => seekToReviewFrame('previous')}
+                  onNextFrame={() => seekToReviewFrame('next')}
+                  onExactFrameChange={seekToCalibrationFrame}
+                />
                 <section
                   className="review-tool-section settings-history-bar"
                   data-testid="settings-history-bar"
