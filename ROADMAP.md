@@ -427,7 +427,7 @@ Build:
 - add a subtle contrast halo or equivalent two-tone treatment so a bright trail
   remains distinguishable over both light and dark video regions;
 - place the controls in a compact **Overlay settings** disclosure within the
-  existing Movement overlay card, collapsed by default and usable with keyboard
+  existing Movement overlay card, open by default and usable with keyboard
   and touch;
 - keep pose-unavailable behavior confidence-aware and gap-honest rather than
   joining trails across missing or rejected samples;
@@ -439,9 +439,9 @@ easy to distinguish without overwhelming the climber. Master, skeleton, trails,
 and each supported source can be changed independently on desktop and phone,
 and all changes update the cached overlay immediately without reanalysis.
 
-R2C.1 keeps the master **Overlays** switch prominent while adding a collapsed,
-touch-sized **Overlay settings** disclosure with separately grouped layer and
-trail-source controls. Skeleton, trails, hip midpoint, and shoulder midpoint
+R2C.1 keeps the master **Overlays** switch prominent while adding an initially
+open, touch-sized **Overlay settings** disclosure with separately grouped layer
+and trail-source controls. Skeleton, trails, hip midpoint, and shoulder midpoint
 remain enabled by default. Active sources appear as compact removable rows; a
 grouped **Add trail source** picker exposes left/right elbows, wrists, knees,
 and ankles without showing a ten-item checklist during ordinary review. The

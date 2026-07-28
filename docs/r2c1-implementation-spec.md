@@ -12,7 +12,7 @@ change the user's skeleton, trails, or source selections. Turning it back on
 restores the same selection.
 
 A native, keyboard-operable **Overlay settings** disclosure sits below the
-heading and is collapsed by default. It separates:
+heading and is open by default while remaining collapsible. It separates:
 
 - layer visibility: Skeleton and Trails;
 - active trail sources: compact removable rows for only the sources currently
@@ -102,7 +102,7 @@ Focused Chrome browser coverage uses real local video and Full-model analysis
 to verify that display controls redraw a paused cached result while the raw
 sample count and ready analysis phase remain unchanged. It also verifies master
 preservation, one-step add/remove behavior, explicit elbow/knee availability,
-source-session reset, collapsed defaults, grouped picker labels, 44 px phone
+source-session reset, open defaults, grouped picker labels, 44 px phone
 targets, no horizontal overflow, and stable stage dimensions at approximately
 1440×900, 393×852, and 852×393.
 

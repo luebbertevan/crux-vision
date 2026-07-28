@@ -112,9 +112,10 @@ Add independent master, skeleton, and trail controls; make hip, shoulder,
 elbow, wrist, knee, and ankle trails selectable; and strengthen the ordinary
 trail default with a two-second duration, a modestly larger stroke, and a
 contrast treatment that survives light and dark footage. Keep the compact
-Overlay settings disclosure collapsed during ordinary review.
+Overlay settings disclosure open initially and collapsible during ordinary
+review.
 
-Complete. The master remains outside the collapsed disclosure and preserves
+Complete. The master remains outside the disclosure and preserves
 all layer/source choices while hidden. The disclosure groups skeleton/trails
 separately from a compact active-source list and grouped add-source picker.
 Ten stable sources cover midpoints plus explicit left/right elbows, wrists,

@@ -243,7 +243,7 @@ export function App() {
   const [overlaySettings, setOverlaySettings] = useState(
     createDefaultOverlaySettings,
   );
-  const [overlaySettingsOpen, setOverlaySettingsOpen] = useState(false);
+  const [overlaySettingsOpen, setOverlaySettingsOpen] = useState(true);
   const [rangeLoopEnabled, setRangeLoopEnabled] = useState(false);
   const [checkpoints, setCheckpoints] = useState<ReviewCheckpoint[]>([]);
   const [stageFeedback, setStageFeedback] = useState<StageFeedback>('none');
@@ -411,7 +411,7 @@ export function App() {
         const nextOverlaySettings = createDefaultOverlaySettings();
         overlaySettingsRef.current = nextOverlaySettings;
         setOverlaySettings(nextOverlaySettings);
-        setOverlaySettingsOpen(false);
+        setOverlaySettingsOpen(true);
         calibrationLabelsRef.current = [];
         setCalibrationLabels([]);
         editHistoryRef.current.clear();

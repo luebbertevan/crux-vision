@@ -49,9 +49,12 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
   await importVideo(page, climbingFixture);
 
   const overlaySettings = page.getByTestId('overlay-settings');
-  await expect(overlaySettings).not.toHaveAttribute('open', '');
-  await overlaySettings.locator(':scope > summary').click();
   await expect(overlaySettings).toHaveAttribute('open', '');
+  await expect(
+    page.getByText(
+      'Balanced v2: responsive smoothing with balanced pose retention.',
+    ),
+  ).toHaveCount(0);
 
   const skeleton = page.getByRole('checkbox', { name: 'Skeleton' });
   const trails = page.getByRole('checkbox', { name: 'Trails', exact: true });
@@ -281,14 +284,10 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
     'data-display-width',
     '1920',
   );
-  await expect(page.getByTestId('overlay-settings')).not.toHaveAttribute(
+  await expect(page.getByTestId('overlay-settings')).toHaveAttribute(
     'open',
     '',
   );
-  await page
-    .getByTestId('overlay-settings')
-    .locator(':scope > summary')
-    .click();
   await expect(page.getByRole('checkbox', { name: 'Overlays' })).toBeChecked();
   await expect(
     page.getByRole('checkbox', { name: 'Skeleton' }),
@@ -327,7 +326,6 @@ test('keeps the disclosure touchable without changing or obscuring the stage', a
     const stage = page.getByTestId('video-stage');
     const before = await stage.boundingBox();
     const settings = page.getByTestId('overlay-settings');
-    await settings.locator(':scope > summary').click();
     await expect(settings).toHaveAttribute('open', '');
     const after = await stage.boundingBox();
 
@@ -447,7 +445,7 @@ test('captures the R2C.2 real-fixture visual review matrix', async ({
       await checkpointControls.getByRole('button', { name: 'Add' }).click();
       await seekPaused(page, visualCase.moment);
     }
-    if (visualCase.settingsOpen) {
+    if (!visualCase.settingsOpen) {
       await page.getByTestId('overlay-settings').locator(':scope > summary').click();
     }
     if (visualCase.label === 'desktop-portrait') {

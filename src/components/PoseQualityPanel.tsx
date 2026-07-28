@@ -260,7 +260,6 @@ export function PoseQualityPanel({
             ))}
           </select>
         </label>
-        <p>{POSE_QUALITY_PROFILES[presetId].description}</p>
       </div>
 
       <details

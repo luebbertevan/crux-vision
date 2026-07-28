@@ -90,7 +90,7 @@ test('offers global history for clip, overlay, and pose settings', async ({
   await expect(master).toBeChecked();
 
   const overlaySettings = page.getByTestId('overlay-settings');
-  await overlaySettings.locator(':scope > summary').click();
+  await expect(overlaySettings).toHaveAttribute('open', '');
   const skeleton = page.getByRole('checkbox', { name: 'Skeleton' });
   await skeleton.uncheck();
   await undo(page, 'Skeleton visibility');
