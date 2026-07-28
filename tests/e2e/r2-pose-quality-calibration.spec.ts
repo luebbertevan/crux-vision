@@ -419,18 +419,39 @@ test('seeks deterministic analyzed presentation frames for calibration', async (
   await expect(navigator).toHaveAttribute('data-frame-index', '9');
   await expect(page.getByLabel('Exact analyzed frame')).toHaveValue('10');
 
-  await page.getByRole('button', { name: 'Undo change' }).click();
+  await expect(page.getByTestId('global-history-controls')).toHaveAttribute(
+    'data-undo-label',
+    'Analysis start',
+  );
+  await page.getByRole('button', { name: 'Next analyzed frame' }).click();
   await expect(navigator).toHaveAttribute('data-frame-index', '10');
-  await page.getByRole('button', { name: 'Redo change' }).click();
-  await expect(navigator).toHaveAttribute('data-frame-index', '9');
+  await expect(page.getByTestId('global-history-controls')).toHaveAttribute(
+    'data-undo-label',
+    'Analysis start',
+  );
 });
 
-test('undoes and redoes calibration settings with standard shortcuts and collapsible groups', async ({
+test('uses global undo and redo for calibration settings with standard shortcuts', async ({
   page,
 }) => {
   await page.goto('/');
   await importVideo(page, portraitFixture);
+  const calibrationWorkspace = page.locator('details.calibration-workspace');
+  const workspaceArrow = calibrationWorkspace.locator(
+    ':scope > summary > .disclosure-arrow',
+  );
+  await expect(workspaceArrow).toBeVisible();
   await page.getByText('Pose quality calibration').click();
+  const historyControls = page.getByTestId('global-history-controls');
+  await expect(historyControls).toBeVisible();
+  await expect(
+    calibrationWorkspace.locator('.calibration-history-actions'),
+  ).toHaveCount(0);
+  await expect(
+    calibrationWorkspace.locator(
+      'details.calibration-fieldset > summary > .disclosure-arrow',
+    ),
+  ).toHaveCount(5);
 
   const smoothingSection = page
     .locator('details.calibration-fieldset')
@@ -439,16 +460,28 @@ test('undoes and redoes calibration settings with standard shortcuts and collaps
   await smoothingSection.getByText('Segment-local smoothing', { exact: true }).click();
   await expect(smoothingSection).toHaveAttribute('open', '');
 
-  const minimumCutoff = page.getByLabel('Minimum cutoff');
+  const minimumCutoff = page.getByRole('spinbutton', {
+    name: 'Minimum cutoff',
+  });
   await expect(minimumCutoff).toHaveValue('2');
   await minimumCutoff.fill('3');
-  await expect(page.getByRole('button', { name: 'Undo change' })).toBeEnabled();
-  await page.getByRole('button', { name: 'Undo change' }).click();
+  await expect(historyControls).toHaveAttribute(
+    'data-undo-label',
+    'Smoothing minimum cutoff',
+  );
+  const undoCutoff = page.getByRole('button', { name: 'Undo last change' });
+  await expect(undoCutoff).toBeEnabled();
+  await undoCutoff.click();
   await expect(minimumCutoff).toHaveValue('2');
-  await page.getByRole('button', { name: 'Redo change' }).click();
+  await expect(historyControls).toHaveAttribute(
+    'data-redo-label',
+    'Smoothing minimum cutoff',
+  );
+  await page.getByRole('button', { name: 'Redo last change' }).click();
   await expect(minimumCutoff).toHaveValue('3');
 
   await minimumCutoff.fill('4');
+  await minimumCutoff.blur();
   await page.keyboard.press('Control+z');
   await expect(minimumCutoff).toHaveValue('3');
   await page.keyboard.press('Control+Shift+z');
@@ -549,7 +582,7 @@ test('exposes full effective and unbounded safe developer calibration ranges', a
   const centeredRadius = page.getByLabel('Centered radius (ms)');
   await centeredRadius.fill('100');
   await expect(centeredRadius).toHaveValue('100');
-  await page.getByRole('button', { name: 'Undo change' }).click();
+  await page.getByRole('button', { name: 'Undo last change' }).click();
   await expect(centeredRadius).toHaveValue('66.667');
 });
 

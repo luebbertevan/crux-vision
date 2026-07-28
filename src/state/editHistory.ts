@@ -1,10 +1,16 @@
+export type EditHistoryChange = {
+  key: string;
+  label: string;
+  coalesce?: boolean;
+};
+
 type HistoryEntry<T> = {
   value: T;
-  changeKey: string;
+  change: EditHistoryChange;
   changedAt: number;
 };
 
-export class CalibrationHistory<T> {
+export class EditHistory<T> {
   private readonly past: HistoryEntry<T>[] = [];
   private readonly future: HistoryEntry<T>[] = [];
 
@@ -21,21 +27,35 @@ export class CalibrationHistory<T> {
     return this.future.length > 0;
   }
 
+  get undoLabel(): string | null {
+    return this.past.at(-1)?.change.label ?? null;
+  }
+
+  get redoLabel(): string | null {
+    return this.future.at(-1)?.change.label ?? null;
+  }
+
   clear(): void {
     this.past.length = 0;
     this.future.length = 0;
   }
 
-  record(valueBeforeChange: T, changeKey: string, changedAt: number): void {
+  record(
+    valueBeforeChange: T,
+    change: EditHistoryChange,
+    changedAt: number,
+  ): void {
     const previous = this.past.at(-1);
     if (
-      previous &&
-      previous.changeKey === changeKey &&
+      change.coalesce &&
+      previous?.change.coalesce &&
+      previous.change.key === change.key &&
       changedAt - previous.changedAt <= this.coalesceMilliseconds
     ) {
       previous.changedAt = changedAt;
+      previous.change = change;
     } else {
-      this.past.push({ value: valueBeforeChange, changeKey, changedAt });
+      this.past.push({ value: valueBeforeChange, change, changedAt });
       if (this.past.length > this.maximumEntries) this.past.shift();
     }
     this.future.length = 0;

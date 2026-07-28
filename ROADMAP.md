@@ -297,7 +297,7 @@ uses a presentation-timestamp-weighted symmetric moving average over each
 accepted product-joint segment, shrinks evenly to Accepted raw at segment
 boundaries, and never crosses a rejected, repeated/backward, or oversized gap.
 The default radius is `66.667 ms`, `0 ms` equals Accepted raw, and radius edits
-participate in calibration undo/redo. It is intentionally separate from the
+participate in session-wide undo/redo. It is intentionally separate from the
 Balanced acceptance policy. Human review found it the best-looking default
 among the available views; ongoing calibration must still compare fast
 alignment, stationary jitter, motion onset, stopping/landing, and reacquisition
@@ -316,13 +316,15 @@ intended real frame. The exact regression covered all 371 source frames and
 played without unavailable intervals; no pose holding or interpolation was
 added. Calibration-setting comparisons still reuse one cached raw run.
 
-The calibration workspace also now supports bounded, coalescing undo/redo
-through visible controls and standard `Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`, and
-`Ctrl+Y` shortcuts. Manual seeking while the workspace is open is included,
-with exact analyzed-frame seeks preserved as individual steps. Model changes
-and labels remain outside history. Global, group, joint, continuity, and
-smoothing setting families are independently collapsible so one calibration
-task can stay in focus.
+Undo/redo now lives in the global header rather than the calibration workspace.
+Its bounded session stack covers clip range, playback choices, checkpoints,
+overlay/trail configuration, pose-quality policy, inference-model choice, and
+manual calibration labels. Continuous slider, number, and name edits coalesce
+after a 750 ms idle boundary; navigation and analysis commands remain outside
+history. Source replacement clears the stack. Global, group, joint, continuity,
+and smoothing setting families remain independently collapsible so one
+calibration task can stay in focus. The inclusion rules for future settings are
+in the [`settings history contract`](docs/settings-history-contract.md).
 
 Developer calibration controls expose full effective confidence/hysteresis
 domains and remove artificial maxima from finite nonnegative temporal and
@@ -505,6 +507,23 @@ ordinary gym session.
 Build and validate:
 
 - the phone Review/Inspect/Timeline interaction model;
+- a dedicated mobile navigation and settings UX pass: keep playback and other
+  high-frequency actions immediately reachable, move secondary/global settings
+  into a compact hamburger or tool menu, and use quick-opening disclosures for
+  contextual setting groups;
+- reduce mobile vertical whitespace and control padding enough to keep the
+  video and current task in view without weakening safe-area handling,
+  readable type, 44 px touch targets, or clear separation between controls;
+- use familiar icons for compact, repeated actions, with visible selected
+  states and accessible names; retain short text labels where an icon would be
+  ambiguous rather than optimizing for icon count alone;
+- preserve the user's place when opening, closing, or switching menus, avoid
+  deep nesting, and make the most common review-to-overlay-settings path
+  reachable in one or two deliberate taps;
+- audit the mobile information architecture and interaction density against
+  Instagram's video-editing flow and a small set of phone-native video editors,
+  then validate the resulting Crux-specific hierarchy with real gym tasks
+  rather than copying another product's visual treatment;
 - responsive layout, safe areas, touch behavior, and distraction-free review;
 - sustained 20–30 second phone analysis, responsiveness, heat, battery, and
   browser-reload observations;
@@ -517,18 +536,27 @@ Build and validate:
   where source frame rate and device performance make them meaningful;
 - a real gym-session feedback pass and a short findings report.
 
+The R2D navigation pass should produce a compact, portable information
+architecture for Review, Inspect, Timeline, overlays, pose quality, and advanced
+settings. The web implementation is the first proving ground, but interaction
+contracts and terminology should not depend on browser-specific layout so they
+can inform a later native app.
+
 **R2 feedback question:** Can a climber import a phone clip at the gym, reach the
 interesting move quickly, and learn something from the skeleton or trails in
 one session?
 
 ## R3 — Confidence-aware analysis workspace and local presets
 
-- User-named local settings presets, including pose-quality, trail, and view
-  choices.
+- Curated, inspectable overlay presets organized by review goal and climbing
+  context, plus user-named local variants containing pose-quality, trail, and
+  view choices.
 - Per-range or per-joint overrides for specialist review.
 - Coverage timeline and quality summaries.
 - Raw and filtered pose cache with local session reload.
 - Multiple named ranges and checkpoints.
+- Confidence-aware ghost poses from checkpoints, consistent time intervals, or
+  selected-range start/midpoint/end.
 - Current limb angles and a small pose-quality/coverage readout.
 - Adaptive phone analysis settings informed by R2 measurements.
 
@@ -580,6 +608,9 @@ Do not combine these into one technique score. Keep every component inspectable.
 The early product, detection, UI, terminology, calibration, and validation
 decisions for Contact base are recorded in
 [`docs/future-contact-base-overlay-notes.md`](docs/future-contact-base-overlay-notes.md).
+The broader, non-binding movement-overlay inventory and pose-aware delivery
+recommendation are consolidated in
+[`docs/future-movement-overlay-report.md`](docs/future-movement-overlay-report.md).
 
 ## R7 — Persistence, capture, and sharing
 
@@ -609,8 +640,11 @@ it does not add work to the current roadmap.
   labeled evaluation shows an advantage over MediaPipe and with user
   confirmation plus explicit privacy/compute terms.
 - More than two simultaneous videos.
-- A native mobile app or capture companion if mobile web fails a demonstrated
-  product requirement.
+- A native mobile app or capture companion is a likely long-term path to the
+  most seamless gym experience. Revisit it after the mobile-web workflow proves
+  which capture, media-library, navigation, precision-control, performance, and
+  background-processing requirements genuinely benefit from native platform
+  integration; do not maintain two product surfaces before that evidence.
 - Sensor fusion with IMU, depth, or force/contact data.
 - LLM summaries limited to validated structured observations.
 

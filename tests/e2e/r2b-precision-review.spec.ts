@@ -54,6 +54,13 @@ test('changes speed and loops the selected range with controls and shortcuts', a
   const quarterSpeed = page.getByRole('button', {
     name: 'Play at 0.25× speed',
   });
+  await expect(quarterSpeed).toHaveText('.25x');
+  await expect(
+    page.getByRole('button', { name: 'Play at 0.5× speed' }),
+  ).toHaveText('.5x');
+  await expect(
+    page.getByRole('button', { name: 'Play at 1× speed' }),
+  ).toHaveText('1x');
   await quarterSpeed.click();
   await expect(quarterSpeed).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('main')).toHaveAttribute('data-playback-rate', '0.25');

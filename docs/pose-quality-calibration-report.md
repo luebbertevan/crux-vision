@@ -80,16 +80,18 @@ Permissive. The advanced calibration disclosure adds Lite/Full selection,
 display/analytics target selection, raw/accepted/rejected/One Euro/centered
 preview, global/group/joint controls, hysteresis, temporal and smoothing controls,
 reason-coded joint inspection, coverage/gap/lag metrics, manual labels, reset,
-JSON export, setting undo/redo, and collapsible setting families. Policy changes
+JSON export, and collapsible setting families. Policy changes
 recompute cached samples without rerunning
 inference; a model change deliberately clears raw results and requires a new
 analysis.
 
-The calibration history holds up to 100 steps and coalesces rapid changes to one
-control or transport drag. Standard Mac and Windows/Linux undo/redo shortcuts
-work while the workspace is open. Exact-frame seeks are individual history
-steps. Model changes and labels remain excluded; importing a source or changing
-the model clears history.
+Undo/redo is now session-wide and visible in the global header. The bounded
+100-step stack includes calibration policy, inference-model choice, and manual
+labels alongside clip, checkpoint, overlay, and trail settings. Continuous
+edits to one control coalesce after 750 ms idle. Frame and transport seeks are
+navigation and remain outside history; importing or replacing a source clears
+the stack. See the
+[`settings history contract`](./settings-history-contract.md).
 
 The UI prevents a One Euro smoothed preview when the active policy has smoothing
 disabled and falls back to Accepted raw if smoothing is turned off. Centered
@@ -210,7 +212,7 @@ current sample. The radius shrinks symmetrically at segment boundaries, the
 boundary output remains Accepted raw, and no rejected, non-monotonic, or
 oversized gap is crossed.
 
-The radius is undoable workspace state rather than part of the Balanced
+The radius is undoable source-session state rather than part of the Balanced
 acceptance policy. `0 ms` exactly matches Accepted raw. A synthetic irregular-
 timestamp constant-velocity regression verifies that the centered result does
 not inherit causal phase delay, while gap tests verify exact resets. Human

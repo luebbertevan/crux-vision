@@ -82,6 +82,10 @@ Balanced/Strict/Permissive policies, accepted decisions, centered/offline or
 causal smoothing, the selected range, playback rate, loop state, checkpoints,
 or the playhead.
 
+Every overlay master, layer, source, and visibility edit participates in the
+global source-session undo/redo stack. Future overlay settings follow the
+[`settings history contract`](./settings-history-contract.md).
+
 Trail segmentation remains timestamp based. Missing or rejected points and
 gaps larger than the calibrated maximum end a segment. R2C.1 also makes
 repeated and backward timestamps explicit continuity breaks, so a rendered

@@ -267,6 +267,32 @@ export function createDefaultOverlaySettings(): OverlaySettings {
   };
 }
 
+export function cloneOverlaySettings(
+  settings: OverlaySettings,
+): OverlaySettings {
+  return {
+    ...settings,
+    layers: { ...settings.layers },
+    trailSources: { ...settings.trailSources },
+    trailVisibility: { ...settings.trailVisibility },
+    trailAppearance: Object.fromEntries(
+      TRAIL_SOURCE_IDS.map((sourceId) => [
+        sourceId,
+        { ...settings.trailAppearance[sourceId] },
+      ]),
+    ) as Record<TrailSourceId, TrailAppearanceConfig>,
+    trailTimingMode: { ...settings.trailTimingMode },
+    trailCheckpointRanges: Object.fromEntries(
+      TRAIL_SOURCE_IDS.map((sourceId) => [
+        sourceId,
+        settings.trailCheckpointRanges[sourceId].map((range) => ({
+          ...range,
+        })),
+      ]),
+    ) as Record<TrailSourceId, TrailCheckpointRange[]>,
+  };
+}
+
 export function withOverlayMasterVisibility(
   settings: OverlaySettings,
   masterVisible: boolean,

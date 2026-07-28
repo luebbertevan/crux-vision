@@ -59,9 +59,10 @@ last exact stored timestamp.
 | Add checkpoint | C |
 | Previous / next checkpoint | Shift + Left / Right arrow |
 
-Shortcuts do not intercept text fields, sliders, buttons, selects, links, or
-calibration undo/redo. Mobile exposes the same actions through touch targets of
-at least 44 CSS pixels.
+Playback/navigation shortcuts do not intercept form controls, links, or
+editable text. Global undo/redo is a separate source-session command and keeps
+native text editing priority while an editor has focus. Mobile exposes the same
+actions through touch targets of at least 44 CSS pixels.
 
 ## Responsive placement
 

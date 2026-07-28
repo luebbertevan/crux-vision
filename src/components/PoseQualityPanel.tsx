@@ -30,13 +30,18 @@ type PoseQualityPanelProps = {
   selectedModel: PoseModelId;
   labelMetrics: CalibrationLabelMetrics;
   labelCount: number;
-  canUndo: boolean;
-  canRedo: boolean;
   onPresetChange: (preset: PoseQualityPresetId) => void;
   onPolicyTargetChange: (target: PosePolicyTarget) => void;
-  onPolicyChange: (policy: PoseQualityPolicy, changeKey: string) => void;
+  onPolicyChange: (
+    policy: PoseQualityPolicy,
+    changeKey: string,
+    coalesce?: boolean,
+  ) => void;
   onPreviewModeChange: (mode: PosePreviewMode) => void;
-  onCenteredSmoothingRadiusChange: (radiusMicroseconds: number) => void;
+  onCenteredSmoothingRadiusChange: (
+    radiusMicroseconds: number,
+    coalesce?: boolean,
+  ) => void;
   onModelChange: (model: PoseModelId) => void;
   onLabel: (
     landmarkIndex: number,
@@ -46,8 +51,6 @@ type PoseQualityPanelProps = {
   onClearLabels: () => void;
   onResetPolicy: () => void;
   onExport: () => void;
-  onUndo: () => void;
-  onRedo: () => void;
   onWorkspaceToggle: (open: boolean) => void;
 };
 
@@ -143,8 +146,6 @@ export function PoseQualityPanel({
   selectedModel,
   labelMetrics,
   labelCount,
-  canUndo,
-  canRedo,
   onPresetChange,
   onPolicyTargetChange,
   onPolicyChange,
@@ -155,8 +156,6 @@ export function PoseQualityPanel({
   onClearLabels,
   onResetPolicy,
   onExport,
-  onUndo,
-  onRedo,
   onWorkspaceToggle,
 }: PoseQualityPanelProps) {
   const [selectedGroup, setSelectedGroup] = useState<BodyGroup>('wristsHands');
@@ -197,6 +196,7 @@ export function PoseQualityPanel({
         },
       },
       `group-${selectedGroup}-${key}`,
+      true,
     );
   };
 
@@ -216,6 +216,7 @@ export function PoseQualityPanel({
         },
       },
       `joint-${selectedJoint}-${key}`,
+      true,
     );
   };
 
@@ -271,6 +272,7 @@ export function PoseQualityPanel({
             <strong id="quality-title">Pose quality calibration</strong>
             <small>Recompute cached raw pose · no inference</small>
           </span>
+          <i className="disclosure-arrow" aria-hidden="true" />
         </summary>
 
         <div className="calibration-body">
@@ -330,17 +332,6 @@ export function PoseQualityPanel({
                     : 'Enable One Euro below to make its smoothed preview available.'}
               </small>
             </label>
-          </div>
-
-          <div className="calibration-history-actions">
-            <button type="button" disabled={!canUndo} onClick={onUndo}>
-              <span>Undo change</span>
-              <kbd>⌘/Ctrl Z</kbd>
-            </button>
-            <button type="button" disabled={!canRedo} onClick={onRedo}>
-              <span>Redo change</span>
-              <kbd>⌘/Ctrl ⇧Z</kbd>
-            </button>
           </div>
 
           <div
@@ -409,7 +400,10 @@ export function PoseQualityPanel({
           </div>
 
           <details className="calibration-fieldset">
-            <summary>Global confidence</summary>
+            <summary>
+              <span>Global confidence</span>
+              <i className="disclosure-arrow" aria-hidden="true" />
+            </summary>
             <div className="calibration-fieldset-body">
             <ThresholdSlider
               label="Visibility"
@@ -422,6 +416,7 @@ export function PoseQualityPanel({
                     global: { ...policy.global, visibility },
                   },
                   'global-visibility',
+                  true,
                 )
               }
             />
@@ -435,6 +430,7 @@ export function PoseQualityPanel({
                     global: { ...policy.global, presence },
                   },
                   'global-presence',
+                  true,
                 )
               }
             />
@@ -442,7 +438,10 @@ export function PoseQualityPanel({
           </details>
 
           <details className="calibration-fieldset">
-            <summary>Body-group override</summary>
+            <summary>
+              <span>Body-group override</span>
+              <i className="disclosure-arrow" aria-hidden="true" />
+            </summary>
             <div className="calibration-fieldset-body">
             <label className="calibration-select">
               <span>Group</span>
@@ -486,7 +485,10 @@ export function PoseQualityPanel({
           </details>
 
           <details className="calibration-fieldset">
-            <summary>Joint override and inspection</summary>
+            <summary>
+              <span>Joint override and inspection</span>
+              <i className="disclosure-arrow" aria-hidden="true" />
+            </summary>
             <div className="calibration-fieldset-body">
             <label className="calibration-select">
               <span>Joint</span>
@@ -567,7 +569,10 @@ export function PoseQualityPanel({
           </details>
 
           <details className="calibration-fieldset">
-            <summary>Continuity and plausibility</summary>
+            <summary>
+              <span>Continuity and plausibility</span>
+              <i className="disclosure-arrow" aria-hidden="true" />
+            </summary>
             <div className="calibration-fieldset-body">
             <label className="calibration-toggle">
               <input
@@ -602,6 +607,7 @@ export function PoseQualityPanel({
                     hysteresis: { ...policy.hysteresis, acquireDelta },
                   },
                   'hysteresis-acquire-delta',
+                  true,
                 )
               }
             />
@@ -619,6 +625,7 @@ export function PoseQualityPanel({
                     hysteresis: { ...policy.hysteresis, keepDelta },
                   },
                   'hysteresis-keep-delta',
+                  true,
                 )
               }
             />
@@ -657,6 +664,7 @@ export function PoseQualityPanel({
                     },
                   },
                   'temporal-maximum-speed',
+                  true,
                 )
               }
             />
@@ -676,6 +684,7 @@ export function PoseQualityPanel({
                     },
                   },
                   'temporal-maximum-acceleration',
+                  true,
                 )
               }
             />
@@ -695,6 +704,7 @@ export function PoseQualityPanel({
                     },
                   },
                   'temporal-maximum-segment-change',
+                  true,
                 )
               }
             />
@@ -702,7 +712,10 @@ export function PoseQualityPanel({
           </details>
 
           <details className="calibration-fieldset">
-            <summary>Segment-local smoothing</summary>
+            <summary>
+              <span>Segment-local smoothing</span>
+              <i className="disclosure-arrow" aria-hidden="true" />
+            </summary>
             <div className="calibration-fieldset-body">
             <label className="calibration-toggle">
               <input
@@ -736,6 +749,7 @@ export function PoseQualityPanel({
                     smoothing: { ...policy.smoothing, minimumCutoff },
                   },
                   'smoothing-minimum-cutoff',
+                  true,
                 )
               }
             />
@@ -752,6 +766,7 @@ export function PoseQualityPanel({
                     smoothing: { ...policy.smoothing, beta },
                   },
                   'smoothing-speed-coefficient',
+                  true,
                 )
               }
             />
@@ -765,6 +780,7 @@ export function PoseQualityPanel({
                 if (!Number.isFinite(radiusMicroseconds)) return;
                 onCenteredSmoothingRadiusChange(
                   Math.round(radiusMicroseconds),
+                  true,
                 );
               }}
             />

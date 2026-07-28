@@ -674,6 +674,11 @@ This is more useful than a single average pose confidence.
 
 ## Visual analysis ideas
 
+This section records the rebuild's original broad inventory. The consolidated
+pose-aware prioritization, measurement rules, combined treatments, and delivery
+sequence now live in
+[`future-movement-overlay-report.md`](./future-movement-overlay-report.md).
+
 ### High-value, early layers
 
 | Layer | Purpose | Notes |

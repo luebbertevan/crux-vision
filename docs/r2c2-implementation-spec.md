@@ -28,6 +28,12 @@ The contrast halo remains renderer-owned and independent of the selected color.
 Appearance, visibility, timing, and disclosure choices are local to the
 current source session and are not persisted.
 
+Appearance, visibility, timing, range, and reset edits participate in the
+global source-session undo/redo stack. Disclosure and editor selection are
+navigation state and do not. Slider changes coalesce by control after 750 ms
+idle; the full rule for future settings is in the
+[`settings history contract`](./settings-history-contract.md).
+
 ## Checkpoint ranges
 
 Each trail can switch from rolling duration to **Checkpoint ranges**. A user
@@ -35,6 +41,7 @@ may add multiple ranges, independently show or hide each one, and choose any
 existing checkpoint for its start and end. Reversed selections are normalized
 chronologically. Deleting a checkpoint removes every trail range that
 references it rather than leaving a broken selector.
+Checkpoint deletion and dependent range cleanup are one atomic undo step.
 
 Checkpoint trails are fixed paths over cached accepted pose samples; they do
 not move with the rolling playhead window. A ring marks the first accepted

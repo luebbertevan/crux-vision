@@ -164,22 +164,21 @@ the same exact frames.
 
 ### Calibration workspace safeguards
 
-Calibration setting changes now have a bounded 100-step undo/redo history.
-Rapid changes to the same slider or number control within 750 ms coalesce into
-one step. Buttons remain visible near the top of the workspace, and while that
-workspace is open the normal shortcuts are supported:
+Calibration settings now participate in the bounded 100-step source-session
+history. Rapid changes to the same slider or number control within 750 ms
+coalesce into one step. Buttons remain visible in the global header, and the
+normal shortcuts work throughout the source session:
 
 - `Cmd/Ctrl+Z` undo;
 - `Cmd/Ctrl+Shift+Z` redo;
 - `Ctrl+Y` redo.
 
 History covers the preset, display/analytics target, preview mode, thresholds,
-hysteresis, temporal limits, smoothing values, overrides, preset reset, and
-manual seeking while the workspace is open. Exact analyzed-frame steps remain
-separate history entries; rapid transport-slider events coalesce.
-Inference-model changes are excluded because they clear raw analysis, and manual
-labels remain separate evidence. Importing a source or changing the model clears
-history.
+hysteresis, temporal limits, smoothing values, overrides, preset reset,
+inference-model choice, and manual labels. Frame and transport seeking are
+navigation and remain outside history. Importing or replacing a source clears
+history. The cross-surface rules are in the
+[`settings history contract`](./settings-history-contract.md).
 
 The Smoothed preview is disabled when the active policy has smoothing disabled.
 Turning smoothing off while Smoothed is visible falls back to Accepted raw.

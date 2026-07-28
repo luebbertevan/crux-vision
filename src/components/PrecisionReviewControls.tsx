@@ -39,7 +39,7 @@ type PrecisionReviewControlsProps = {
 };
 
 const speedLabel = (rate: number) =>
-  rate === 0.25 ? '¼×' : rate === 0.5 ? '½×' : '1×';
+  rate === 0.25 ? '.25x' : rate === 0.5 ? '.5x' : '1x';
 
 function useFrameHold(
   onStep: () => void,

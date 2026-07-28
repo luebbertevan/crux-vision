@@ -596,13 +596,14 @@ the stored presentation timestamp. Frame numbering is only a calibration
 address over timestamped pose samples; timestamps remain the identity and
 source frames above the analysis density are not implied.
 
-Calibration changes have a bounded 100-step undo/redo history. Rapid changes to
-the same control or transport drag coalesce, exact analyzed-frame seeks remain
-individual steps, visible Undo/Redo buttons expose state, and the standard Mac
-and Windows/Linux shortcuts work while the calibration workspace is open.
-Inference-model changes and manual labels are excluded; source import or model
-change clears history. The five advanced setting families are native independent
-disclosures and start collapsed.
+The original calibration-local stack has been promoted to a bounded 100-step
+source-session history with Undo/Redo in the global header. It covers clip,
+checkpoint, overlay/trail, pose-quality, model, and manual-label edits. Rapid
+continuous edits to one control coalesce after 750 ms idle; manual and exact
+frame seeks are navigation and do not enter history. Source import/replacement
+clears history. The five advanced setting families remain native independent
+disclosures and start collapsed. See the
+[`settings history contract`](./settings-history-contract.md).
 
 One Euro smoothed preview is unavailable when the active policy has smoothing
 disabled. Turning smoothing off while it is selected falls back to Accepted raw.

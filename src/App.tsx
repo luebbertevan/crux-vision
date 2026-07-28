@@ -26,8 +26,10 @@ import {
   CloseIcon,
   PauseIcon,
   PlayIcon,
+  RedoIcon,
   ShieldIcon,
   SparkIcon,
+  UndoIcon,
   UploadIcon,
 } from './components/Icons';
 import { OverlayCanvas, type StageFeedback } from './components/OverlayCanvas';
@@ -42,9 +44,11 @@ import { useReviewStageSize } from './layout/useReviewStageSize';
 import type { BrowserMediaAdapter } from './media/mediaAdapter';
 import { PlayerController } from './player/PlayerController';
 import {
+  cloneOverlaySettings,
   createDefaultOverlaySettings,
   withOverlayMasterVisibility,
   withoutTrailCheckpoint,
+  type OverlaySettings,
 } from './overlay/overlaySettings';
 import {
   adjacentPresentationFrameIndex,
@@ -66,13 +70,16 @@ import {
   type PoseQualityPolicy,
   type PoseQualityPresetId,
 } from './pose/poseQuality';
-import { CalibrationHistory } from './pose/calibrationHistory';
 import { DEFAULT_POSE_MODEL, POSE_MODELS } from './pose/modelCatalog';
 import {
   analysisReducer,
   initialAnalysisState,
   type AnalysisPhase,
 } from './state/analysisReducer';
+import {
+  EditHistory,
+  type EditHistoryChange,
+} from './state/editHistory';
 import type {
   AnalysisRange,
   PoseModelId,
@@ -94,14 +101,45 @@ type CalibrationSettingsSnapshot = {
   centeredSmoothingRadiusMicroseconds: number;
 };
 
-type CalibrationHistorySnapshot =
+type CheckpointEditSnapshot = {
+  checkpoints: ReviewCheckpoint[];
+  overlaySettings: OverlaySettings;
+  sequence: number;
+};
+
+type ReviewEditSnapshot =
   | {
-      kind: 'settings';
+      kind: 'pose-quality';
       settings: CalibrationSettingsSnapshot;
     }
   | {
-      kind: 'playhead';
-      timeSeconds: number;
+      kind: 'analysis-range';
+      range: AnalysisRange;
+    }
+  | {
+      kind: 'overlay-settings';
+      settings: OverlaySettings;
+    }
+  | {
+      kind: 'playback-rate';
+      rate: number;
+    }
+  | {
+      kind: 'range-loop';
+      enabled: boolean;
+    }
+  | {
+      kind: 'checkpoints';
+      state: CheckpointEditSnapshot;
+    }
+  | {
+      kind: 'calibration-labels';
+      labels: CalibrationLabelRecord[];
+    }
+  | {
+      kind: 'analysis-model';
+      model: PoseModelId;
+      labels: CalibrationLabelRecord[];
     };
 
 const cloneCalibrationSettings = (
@@ -110,6 +148,42 @@ const cloneCalibrationSettings = (
   ...snapshot,
   policy: clonePoseQualityPolicy(snapshot.policy),
 });
+
+const cloneRange = (range: AnalysisRange): AnalysisRange => ({ ...range });
+
+const cloneCalibrationLabels = (
+  labels: readonly CalibrationLabelRecord[],
+): CalibrationLabelRecord[] => labels.map((label) => ({ ...label }));
+
+const cloneCheckpointEditSnapshot = (
+  checkpoints: readonly ReviewCheckpoint[],
+  overlaySettings: OverlaySettings,
+  sequence: number,
+): CheckpointEditSnapshot => ({
+  checkpoints: checkpoints.map((checkpoint) => ({ ...checkpoint })),
+  overlaySettings: cloneOverlaySettings(overlaySettings),
+  sequence,
+});
+
+const qualityEditLabel = (changeKey: string): string => {
+  if (changeKey.startsWith('group-')) return 'Body-group confidence';
+  if (changeKey.startsWith('joint-')) return 'Joint confidence';
+  const labels: Record<string, string> = {
+    'global-visibility': 'Global visibility threshold',
+    'global-presence': 'Global presence threshold',
+    'hysteresis-enabled': 'Confidence hysteresis',
+    'hysteresis-acquire-delta': 'Hysteresis acquire threshold',
+    'hysteresis-keep-delta': 'Hysteresis keep threshold',
+    'temporal-enabled': 'Temporal rejection',
+    'temporal-maximum-speed': 'Maximum joint speed',
+    'temporal-maximum-acceleration': 'Maximum joint acceleration',
+    'temporal-maximum-segment-change': 'Maximum segment change',
+    'smoothing-enabled': 'One Euro smoothing',
+    'smoothing-minimum-cutoff': 'Smoothing minimum cutoff',
+    'smoothing-speed-coefficient': 'Smoothing speed coefficient',
+  };
+  return labels[changeKey] ?? 'Pose quality setting';
+};
 
 const isRunning = (phase: AnalysisPhase) =>
   phase === 'analyzing' || phase === 'partial';
@@ -187,7 +261,7 @@ export function App() {
   const [selectedModel, setSelectedModel] =
     useState<PoseModelId>(DEFAULT_POSE_MODEL);
   const [calibrationWorkspaceOpen, setCalibrationWorkspaceOpen] = useState(false);
-  const [, setCalibrationHistoryRevision] = useState(0);
+  const [, setEditHistoryRevision] = useState(0);
   const [calibrationLabels, setCalibrationLabels] = useState<
     CalibrationLabelRecord[]
   >([]);
@@ -205,11 +279,17 @@ export function App() {
   const sessionSequenceRef = useRef(0);
   const jobSequenceRef = useRef(0);
   const autoplaySessionRef = useRef<number | null>(null);
-  const calibrationSeekSequenceRef = useRef(0);
   const checkpointSequenceRef = useRef(0);
-  const calibrationHistoryRef = useRef(
-    new CalibrationHistory<CalibrationHistorySnapshot>(),
+  const editHistoryRef = useRef(
+    new EditHistory<ReviewEditSnapshot>(),
   );
+  const rangeRef = useRef<AnalysisRange | null>(range);
+  const overlaySettingsRef = useRef(overlaySettings);
+  const rangeLoopEnabledRef = useRef(rangeLoopEnabled);
+  const checkpointsRef = useRef<ReviewCheckpoint[]>(checkpoints);
+  const calibrationLabelsRef =
+    useRef<CalibrationLabelRecord[]>(calibrationLabels);
+  const selectedModelRef = useRef<PoseModelId>(selectedModel);
   const calibrationSettingsRef = useRef<CalibrationSettingsSnapshot>({
     presetId: qualityPresetId,
     policyTarget,
@@ -218,6 +298,12 @@ export function App() {
     centeredSmoothingRadiusMicroseconds,
   });
   analysisRef.current = analysis;
+  rangeRef.current = range;
+  overlaySettingsRef.current = overlaySettings;
+  rangeLoopEnabledRef.current = rangeLoopEnabled;
+  checkpointsRef.current = checkpoints;
+  calibrationLabelsRef.current = calibrationLabels;
+  selectedModelRef.current = selectedModel;
   calibrationSettingsRef.current = {
     presetId: qualityPresetId,
     policyTarget,
@@ -309,18 +395,27 @@ export function App() {
           posterUrl: nextPosterUrl,
           metadata: candidate.metadata,
         });
-        setRange(defaultAnalysisRange(candidate.metadata.durationMicroseconds));
+        const nextRange = defaultAnalysisRange(
+          candidate.metadata.durationMicroseconds,
+        );
+        rangeRef.current = nextRange;
+        setRange(nextRange);
+        rangeLoopEnabledRef.current = false;
         setRangeLoopEnabled(false);
         player.setLoopRange(null);
         player.setPlaybackRate(1);
+        checkpointsRef.current = [];
         setCheckpoints([]);
         checkpointSequenceRef.current = 0;
         setStageFeedback('none');
-        setOverlaySettings(createDefaultOverlaySettings());
+        const nextOverlaySettings = createDefaultOverlaySettings();
+        overlaySettingsRef.current = nextOverlaySettings;
+        setOverlaySettings(nextOverlaySettings);
         setOverlaySettingsOpen(false);
+        calibrationLabelsRef.current = [];
         setCalibrationLabels([]);
-        calibrationHistoryRef.current.clear();
-        setCalibrationHistoryRevision((revision) => revision + 1);
+        editHistoryRef.current.clear();
+        setEditHistoryRevision((revision) => revision + 1);
         autoplaySessionRef.current = null;
         dispatch({ type: 'reset', sessionId });
       } catch (error) {
@@ -397,14 +492,74 @@ export function App() {
     [player],
   );
 
-  const changeRange = useCallback(
+  const recordEdit = useCallback(
+    (snapshot: ReviewEditSnapshot, change: EditHistoryChange) => {
+      editHistoryRef.current.record(snapshot, change, performance.now());
+      setEditHistoryRevision((revision) => revision + 1);
+    },
+    [],
+  );
+
+  const applyRange = useCallback(
     (nextRange: AnalysisRange) => {
       cancelAnalysis();
-      setRange(nextRange);
+      const cloned = cloneRange(nextRange);
+      rangeRef.current = cloned;
+      setRange(cloned);
       setStageFeedback('none');
       if (source) dispatch({ type: 'reset', sessionId: source.id });
     },
     [cancelAnalysis, source],
+  );
+
+  const changeRange = useCallback(
+    (nextRange: AnalysisRange, change: EditHistoryChange) => {
+      const current = rangeRef.current;
+      if (
+        !current ||
+        (current.startMicroseconds === nextRange.startMicroseconds &&
+          current.endMicroseconds === nextRange.endMicroseconds)
+      ) {
+        return;
+      }
+      recordEdit(
+        { kind: 'analysis-range', range: cloneRange(current) },
+        change,
+      );
+      applyRange(nextRange);
+    },
+    [applyRange, recordEdit],
+  );
+
+  const applyOverlaySettings = useCallback((settings: OverlaySettings) => {
+    const cloned = cloneOverlaySettings(settings);
+    overlaySettingsRef.current = cloned;
+    setOverlaySettings(cloned);
+  }, []);
+
+  const changeOverlaySettings = useCallback(
+    (
+      updater: (current: OverlaySettings) => OverlaySettings,
+      change: EditHistoryChange,
+    ) => {
+      const current = overlaySettingsRef.current;
+      const next = updater(current);
+      if (
+        next === current ||
+        JSON.stringify(next) === JSON.stringify(current)
+      ) {
+        return;
+      }
+      recordEdit(
+        {
+          kind: 'overlay-settings',
+          settings: cloneOverlaySettings(current),
+        },
+        change,
+      );
+      applyOverlaySettings(next);
+    },
+    [applyOverlaySettings, recordEdit],
   );
 
   const runAnalysis = useCallback(
@@ -593,97 +748,187 @@ export function App() {
     [],
   );
 
+  const applyRangeLoop = useCallback(
+    (enabled: boolean) => {
+      rangeLoopEnabledRef.current = enabled;
+      setRangeLoopEnabled(enabled);
+      const currentRange = rangeRef.current;
+      if (!enabled || !currentRange) {
+        player.setLoopRange(null);
+        return;
+      }
+      const loopRange = {
+        start: microsecondsToSeconds(currentRange.startMicroseconds),
+        end: microsecondsToSeconds(currentRange.endMicroseconds),
+      };
+      player.setLoopRange(loopRange);
+      const currentTime = player.getSnapshot().currentTimeSeconds;
+      if (currentTime < loopRange.start || currentTime >= loopRange.end) {
+        player.seek(loopRange.start);
+      }
+    },
+    [player],
+  );
+
   const currentHistorySnapshotFor = useCallback(
-    (
-      valueBeingRestored: CalibrationHistorySnapshot,
-    ): CalibrationHistorySnapshot =>
-      valueBeingRestored.kind === 'settings'
-        ? {
-            kind: 'settings',
+    (valueBeingRestored: ReviewEditSnapshot): ReviewEditSnapshot => {
+      switch (valueBeingRestored.kind) {
+        case 'pose-quality':
+          return {
+            kind: 'pose-quality',
             settings: cloneCalibrationSettings(calibrationSettingsRef.current),
-          }
-        : {
-            kind: 'playhead',
-            timeSeconds: player.getSnapshot().currentTimeSeconds,
-          },
+          };
+        case 'analysis-range':
+          return {
+            kind: 'analysis-range',
+            range: cloneRange(rangeRef.current ?? valueBeingRestored.range),
+          };
+        case 'overlay-settings':
+          return {
+            kind: 'overlay-settings',
+            settings: cloneOverlaySettings(overlaySettingsRef.current),
+          };
+        case 'playback-rate':
+          return {
+            kind: 'playback-rate',
+            rate: player.getSnapshot().playbackRate,
+          };
+        case 'range-loop':
+          return {
+            kind: 'range-loop',
+            enabled: rangeLoopEnabledRef.current,
+          };
+        case 'checkpoints':
+          return {
+            kind: 'checkpoints',
+            state: cloneCheckpointEditSnapshot(
+              checkpointsRef.current,
+              overlaySettingsRef.current,
+              checkpointSequenceRef.current,
+            ),
+          };
+        case 'calibration-labels':
+          return {
+            kind: 'calibration-labels',
+            labels: cloneCalibrationLabels(calibrationLabelsRef.current),
+          };
+        case 'analysis-model':
+          return {
+            kind: 'analysis-model',
+            model: selectedModelRef.current,
+            labels: cloneCalibrationLabels(calibrationLabelsRef.current),
+          };
+      }
+    },
     [player],
   );
 
   const applyHistorySnapshot = useCallback(
-    (snapshot: CalibrationHistorySnapshot) => {
-      if (snapshot.kind === 'settings') {
-        applyCalibrationSettings(snapshot.settings);
-        return;
+    (snapshot: ReviewEditSnapshot) => {
+      switch (snapshot.kind) {
+        case 'pose-quality':
+          applyCalibrationSettings(snapshot.settings);
+          return;
+        case 'analysis-range':
+          applyRange(snapshot.range);
+          return;
+        case 'overlay-settings':
+          applyOverlaySettings(snapshot.settings);
+          return;
+        case 'playback-rate':
+          player.setPlaybackRate(snapshot.rate);
+          return;
+        case 'range-loop':
+          applyRangeLoop(snapshot.enabled);
+          return;
+        case 'checkpoints': {
+          const state = cloneCheckpointEditSnapshot(
+            snapshot.state.checkpoints,
+            snapshot.state.overlaySettings,
+            snapshot.state.sequence,
+          );
+          checkpointsRef.current = state.checkpoints;
+          setCheckpoints(state.checkpoints);
+          checkpointSequenceRef.current = state.sequence;
+          applyOverlaySettings(state.overlaySettings);
+          return;
+        }
+        case 'calibration-labels': {
+          const labels = cloneCalibrationLabels(snapshot.labels);
+          calibrationLabelsRef.current = labels;
+          setCalibrationLabels(labels);
+          return;
+        }
+        case 'analysis-model': {
+          cancelAnalysis();
+          selectedModelRef.current = snapshot.model;
+          setSelectedModel(snapshot.model);
+          const labels = cloneCalibrationLabels(snapshot.labels);
+          calibrationLabelsRef.current = labels;
+          setCalibrationLabels(labels);
+          setStageFeedback('none');
+          if (source) dispatch({ type: 'reset', sessionId: source.id });
+        }
       }
-      player.pause();
-      player.seek(snapshot.timeSeconds);
     },
-    [applyCalibrationSettings, player],
+    [
+      applyCalibrationSettings,
+      applyOverlaySettings,
+      applyRange,
+      applyRangeLoop,
+      cancelAnalysis,
+      player,
+      source,
+    ],
   );
 
   const changeCalibrationSettings = useCallback(
     (
       next: CalibrationSettingsSnapshot,
       changeKey: string,
+      label: string,
+      coalesce = false,
     ) => {
-      calibrationHistoryRef.current.record(
+      if (
+        JSON.stringify(next) ===
+        JSON.stringify(calibrationSettingsRef.current)
+      ) {
+        return;
+      }
+      recordEdit(
         {
-          kind: 'settings',
+          kind: 'pose-quality',
           settings: cloneCalibrationSettings(calibrationSettingsRef.current),
         },
-        changeKey,
-        performance.now(),
+        { key: `pose-quality-${changeKey}`, label, coalesce },
       );
       applyCalibrationSettings(next);
-      setCalibrationHistoryRevision((revision) => revision + 1);
     },
-    [applyCalibrationSettings],
+    [applyCalibrationSettings, recordEdit],
   );
 
-  const undoCalibrationSetting = useCallback(() => {
-    const previous = calibrationHistoryRef.current.undo(currentHistorySnapshotFor);
+  const undoEdit = useCallback(() => {
+    const previous = editHistoryRef.current.undo(currentHistorySnapshotFor);
     if (!previous) return;
     applyHistorySnapshot(previous);
-    setCalibrationHistoryRevision((revision) => revision + 1);
+    setEditHistoryRevision((revision) => revision + 1);
   }, [applyHistorySnapshot, currentHistorySnapshotFor]);
 
-  const redoCalibrationSetting = useCallback(() => {
-    const next = calibrationHistoryRef.current.redo(currentHistorySnapshotFor);
+  const redoEdit = useCallback(() => {
+    const next = editHistoryRef.current.redo(currentHistorySnapshotFor);
     if (!next) return;
     applyHistorySnapshot(next);
-    setCalibrationHistoryRevision((revision) => revision + 1);
+    setEditHistoryRevision((revision) => revision + 1);
   }, [applyHistorySnapshot, currentHistorySnapshotFor]);
-
-  const recordCalibrationSeek = useCallback(
-    (timeSeconds: number, changeKey: string) => {
-      const currentTimeSeconds = player.getSnapshot().currentTimeSeconds;
-      if (Math.abs(currentTimeSeconds - timeSeconds) < 0.000_001) return;
-      calibrationHistoryRef.current.record(
-        {
-          kind: 'playhead',
-          timeSeconds: currentTimeSeconds,
-        },
-        changeKey,
-        performance.now(),
-      );
-      setCalibrationHistoryRevision((revision) => revision + 1);
-      player.pause();
-      player.seek(timeSeconds);
-    },
-    [player],
-  );
 
   const seekToCalibrationFrame = useCallback(
     (frameIndex: number) => {
       const sample = qualityEvaluation.samples[frameIndex];
       if (!sample) return;
-      calibrationSeekSequenceRef.current += 1;
-      recordCalibrationSeek(
-        microsecondsToSeconds(sample.timestampMicroseconds),
-        `exact-frame-seek-${calibrationSeekSequenceRef.current}`,
-      );
+      player.pause();
+      player.seek(microsecondsToSeconds(sample.timestampMicroseconds));
     },
-    [qualityEvaluation.samples, recordCalibrationSeek],
+    [player, qualityEvaluation.samples],
   );
 
   const seekToReviewFrame = useCallback(
@@ -694,35 +939,19 @@ export function App() {
           : nextFrameStepTarget;
       if (!target) return;
       const timeSeconds = microsecondsToSeconds(target.timestampMicroseconds);
-      if (calibrationWorkspaceOpen) {
-        calibrationSeekSequenceRef.current += 1;
-        recordCalibrationSeek(
-          timeSeconds,
-          `review-${target.kind}-frame-seek-${calibrationSeekSequenceRef.current}`,
-        );
-        return;
-      }
       player.pause();
       player.seek(timeSeconds);
     },
     [
-      calibrationWorkspaceOpen,
       nextFrameStepTarget,
       player,
       previousFrameStepTarget,
-      recordCalibrationSeek,
     ],
   );
 
   const seekFromTransport = useCallback(
-    (timeSeconds: number) => {
-      if (!calibrationWorkspaceOpen) {
-        player.seek(timeSeconds);
-        return;
-      }
-      recordCalibrationSeek(timeSeconds, 'transport-seek');
-    },
-    [calibrationWorkspaceOpen, player, recordCalibrationSeek],
+    (timeSeconds: number) => player.seek(timeSeconds),
+    [player],
   );
 
   const seekToCheckpoint = useCallback(
@@ -732,21 +961,13 @@ export function App() {
       const timeSeconds = microsecondsToSeconds(
         checkpoint.timestampMicroseconds,
       );
-      if (calibrationWorkspaceOpen) {
-        calibrationSeekSequenceRef.current += 1;
-        recordCalibrationSeek(
-          timeSeconds,
-          `checkpoint-seek-${calibrationSeekSequenceRef.current}`,
-        );
-        return;
-      }
       const preserveActivePlayback =
         player.getSnapshot().playing &&
         shouldPreserveCheckpointPlayback();
       if (!preserveActivePlayback) player.pause();
       player.seek(timeSeconds);
     },
-    [calibrationWorkspaceOpen, checkpoints, player, recordCalibrationSeek],
+    [checkpoints, player],
   );
 
   const addCheckpoint = useCallback(() => {
@@ -759,46 +980,101 @@ export function App() {
       ),
     );
     const id = checkpointSequenceRef.current + 1;
-    setCheckpoints((current) => {
-      if (
-        current.some(
-          (checkpoint) =>
-            Math.abs(
-              checkpoint.timestampMicroseconds - timestampMicroseconds,
-            ) <= 25_000,
-        )
-      ) {
-        return current;
-      }
-      checkpointSequenceRef.current = id;
-      return [
-        ...current,
+    const current = checkpointsRef.current;
+    if (
+      current.some(
+        (checkpoint) =>
+          Math.abs(
+            checkpoint.timestampMicroseconds - timestampMicroseconds,
+          ) <= 25_000,
+      )
+    ) {
+      return;
+    }
+    recordEdit(
+      {
+        kind: 'checkpoints',
+        state: cloneCheckpointEditSnapshot(
+          current,
+          overlaySettingsRef.current,
+          checkpointSequenceRef.current,
+        ),
+      },
+      { key: `checkpoint-add-${id}`, label: 'Add checkpoint' },
+    );
+    checkpointSequenceRef.current = id;
+    const next = [
+      ...current,
+      {
+        id,
+        name: `Checkpoint ${id}`,
+        timestampMicroseconds,
+      },
+    ].sort(
+      (left, right) =>
+        left.timestampMicroseconds - right.timestampMicroseconds,
+    );
+    checkpointsRef.current = next;
+    setCheckpoints(next);
+  }, [player, recordEdit, source]);
+
+  const renameCheckpoint = useCallback(
+    (id: number, name: string) => {
+      const current = checkpointsRef.current;
+      const checkpoint = current.find((candidate) => candidate.id === id);
+      if (!checkpoint || checkpoint.name === name) return;
+      recordEdit(
         {
-          id,
-          name: `Checkpoint ${id}`,
-          timestampMicroseconds,
+          kind: 'checkpoints',
+          state: cloneCheckpointEditSnapshot(
+            current,
+            overlaySettingsRef.current,
+            checkpointSequenceRef.current,
+          ),
         },
-      ].sort(
-        (left, right) =>
-          left.timestampMicroseconds - right.timestampMicroseconds,
+        {
+          key: `checkpoint-${id}-name`,
+          label: 'Checkpoint name',
+          coalesce: true,
+        },
       );
-    });
-  }, [player, source]);
+      const next = current.map((candidate) =>
+        candidate.id === id ? { ...candidate, name } : candidate,
+      );
+      checkpointsRef.current = next;
+      setCheckpoints(next);
+    },
+    [recordEdit],
+  );
 
-  const renameCheckpoint = useCallback((id: number, name: string) => {
-    setCheckpoints((current) =>
-      current.map((checkpoint) =>
-        checkpoint.id === id ? { ...checkpoint, name } : checkpoint,
-      ),
-    );
-  }, []);
-
-  const removeCheckpoint = useCallback((id: number) => {
-    setCheckpoints((current) =>
-      current.filter((checkpoint) => checkpoint.id !== id),
-    );
-    setOverlaySettings((current) => withoutTrailCheckpoint(current, id));
-  }, []);
+  const removeCheckpoint = useCallback(
+    (id: number) => {
+      const current = checkpointsRef.current;
+      if (!current.some((checkpoint) => checkpoint.id === id)) return;
+      recordEdit(
+        {
+          kind: 'checkpoints',
+          state: cloneCheckpointEditSnapshot(
+            current,
+            overlaySettingsRef.current,
+            checkpointSequenceRef.current,
+          ),
+        },
+        { key: `checkpoint-${id}-remove`, label: 'Remove checkpoint' },
+      );
+      const nextCheckpoints = current.filter(
+        (checkpoint) => checkpoint.id !== id,
+      );
+      const nextOverlaySettings = withoutTrailCheckpoint(
+        overlaySettingsRef.current,
+        id,
+      );
+      checkpointsRef.current = nextCheckpoints;
+      setCheckpoints(nextCheckpoints);
+      applyOverlaySettings(nextOverlaySettings);
+    },
+    [applyOverlaySettings, recordEdit],
+  );
 
   const goToAdjacentCheckpoint = useCallback(
     (direction: 'previous' | 'next') => {
@@ -812,27 +1088,26 @@ export function App() {
   );
 
   const changePlaybackRate = useCallback(
-    (rate: number) => player.setPlaybackRate(rate),
-    [player],
+    (rate: number) => {
+      const current = player.getSnapshot().playbackRate;
+      if (current === rate) return;
+      recordEdit(
+        { kind: 'playback-rate', rate: current },
+        { key: 'playback-rate', label: 'Playback speed' },
+      );
+      player.setPlaybackRate(rate);
+    },
+    [player, recordEdit],
   );
 
   const toggleRangeLoop = useCallback(() => {
-    const nextEnabled = !rangeLoopEnabled;
-    setRangeLoopEnabled(nextEnabled);
-    if (!nextEnabled || !range) {
-      player.setLoopRange(null);
-      return;
-    }
-    const loopRange = {
-      start: microsecondsToSeconds(range.startMicroseconds),
-      end: microsecondsToSeconds(range.endMicroseconds),
-    };
-    player.setLoopRange(loopRange);
-    const currentTime = player.getSnapshot().currentTimeSeconds;
-    if (currentTime < loopRange.start || currentTime >= loopRange.end) {
-      player.seek(loopRange.start);
-    }
-  }, [player, range, rangeLoopEnabled]);
+    const current = rangeLoopEnabledRef.current;
+    recordEdit(
+      { kind: 'range-loop', enabled: current },
+      { key: 'range-loop', label: 'Range loop' },
+    );
+    applyRangeLoop(!current);
+  }, [applyRangeLoop, recordEdit]);
 
   useEffect(() => {
     if (!rangeLoopEnabled || !range) {
@@ -857,6 +1132,7 @@ export function App() {
             calibrationSettingsRef.current.centeredSmoothingRadiusMicroseconds,
         },
         'preset',
+        'Pose quality preset',
       );
     },
     [changeCalibrationSettings],
@@ -876,6 +1152,7 @@ export function App() {
             calibrationSettingsRef.current.centeredSmoothingRadiusMicroseconds,
         },
         'policy-target',
+        'Pose policy target',
       );
     },
     [changeCalibrationSettings, qualityPresetId],
@@ -890,11 +1167,16 @@ export function App() {
         ),
       },
       'reset-policy',
+      'Reset pose quality preset',
     );
   }, [changeCalibrationSettings, policyTarget, qualityPresetId]);
 
   const updateQualityPolicy = useCallback(
-    (policy: typeof qualityPolicy, changeKey: string) => {
+    (
+      policy: typeof qualityPolicy,
+      changeKey: string,
+      coalesce = false,
+    ) => {
       changeCalibrationSettings(
         {
           ...calibrationSettingsRef.current,
@@ -904,6 +1186,8 @@ export function App() {
           },
         },
         changeKey,
+        qualityEditLabel(changeKey),
+        coalesce,
       );
     },
     [changeCalibrationSettings, policyTarget, qualityPresetId],
@@ -923,33 +1207,41 @@ export function App() {
           previewMode: nextPreviewMode,
         },
         'preview-mode',
+        'Pose overlay preview',
       );
     },
     [changeCalibrationSettings],
   );
 
   const changeCenteredSmoothingRadius = useCallback(
-    (radiusMicroseconds: number) => {
+    (radiusMicroseconds: number, coalesce = false) => {
       changeCalibrationSettings(
         {
           ...calibrationSettingsRef.current,
           centeredSmoothingRadiusMicroseconds: radiusMicroseconds,
         },
         'centered-smoothing-radius',
+        'Centered smoothing radius',
+        coalesce,
       );
     },
     [changeCalibrationSettings],
   );
 
   useEffect(() => {
-    if (!calibrationWorkspaceOpen) return;
+    if (!source) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
       const target = event.target;
+      const textEditingTarget =
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLInputElement &&
+          !['range', 'checkbox', 'radio', 'button', 'color'].includes(
+            target.type,
+          ));
       if (
         target instanceof HTMLElement &&
-        (target.isContentEditable ||
-          target.dataset.calibrationHistoryIgnore === 'true')
+        (target.isContentEditable || textEditingTarget)
       ) {
         return;
       }
@@ -960,16 +1252,12 @@ export function App() {
         (key === 'y' && event.ctrlKey && !event.metaKey);
       if (!wantsUndo && !wantsRedo) return;
       event.preventDefault();
-      if (wantsUndo) undoCalibrationSetting();
-      else redoCalibrationSetting();
+      if (wantsUndo) undoEdit();
+      else redoEdit();
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [
-    calibrationWorkspaceOpen,
-    redoCalibrationSetting,
-    undoCalibrationSetting,
-  ]);
+  }, [redoEdit, source, undoEdit]);
 
   useEffect(() => {
     if (!source) return;
@@ -1052,16 +1340,25 @@ export function App() {
 
   const changeAnalysisModel = useCallback(
     (model: PoseModelId) => {
-      if (model === selectedModel) return;
+      const currentModel = selectedModelRef.current;
+      if (model === currentModel) return;
+      recordEdit(
+        {
+          kind: 'analysis-model',
+          model: currentModel,
+          labels: cloneCalibrationLabels(calibrationLabelsRef.current),
+        },
+        { key: 'analysis-model', label: 'Inference model' },
+      );
       cancelAnalysis();
+      selectedModelRef.current = model;
       setSelectedModel(model);
+      calibrationLabelsRef.current = [];
       setCalibrationLabels([]);
-      calibrationHistoryRef.current.clear();
-      setCalibrationHistoryRevision((revision) => revision + 1);
       setStageFeedback('none');
       if (source) dispatch({ type: 'reset', sessionId: source.id });
     },
-    [cancelAnalysis, selectedModel, source],
+    [cancelAnalysis, recordEdit, source],
   );
 
   const labelCurrentJoint = useCallback(
@@ -1071,7 +1368,25 @@ export function App() {
       timestampMicroseconds: number,
     ) => {
       if (!source) return;
-      setCalibrationLabels((current) => [
+      const current = calibrationLabelsRef.current;
+      const existing = current.find(
+        (entry) =>
+          entry.sessionId === source.id &&
+          entry.timestampMicroseconds === timestampMicroseconds &&
+          entry.landmarkIndex === landmarkIndex,
+      );
+      if (existing?.label === label) return;
+      recordEdit(
+        {
+          kind: 'calibration-labels',
+          labels: cloneCalibrationLabels(current),
+        },
+        {
+          key: `calibration-label-${timestampMicroseconds}-${landmarkIndex}`,
+          label: 'Calibration label',
+        },
+      );
+      const next = [
         ...current.filter(
           (entry) =>
             !(
@@ -1086,10 +1401,26 @@ export function App() {
           landmarkIndex,
           label,
         },
-      ]);
+      ];
+      calibrationLabelsRef.current = next;
+      setCalibrationLabels(next);
     },
-    [source],
+    [recordEdit, source],
   );
+
+  const clearCalibrationLabels = useCallback(() => {
+    const current = calibrationLabelsRef.current;
+    if (current.length === 0) return;
+    recordEdit(
+      {
+        kind: 'calibration-labels',
+        labels: cloneCalibrationLabels(current),
+      },
+      { key: 'calibration-labels-clear', label: 'Clear calibration labels' },
+    );
+    calibrationLabelsRef.current = [];
+    setCalibrationLabels([]);
+  }, [recordEdit]);
 
   const exportCalibration = useCallback(() => {
     if (!source) return;
@@ -1197,6 +1528,8 @@ export function App() {
     source && source.metadata.displayHeight > source.metadata.displayWidth,
   );
   const modelLabel = POSE_MODELS[analysis.model ?? selectedModel].label;
+  const undoEditLabel = editHistoryRef.current.undoLabel;
+  const redoEditLabel = editHistoryRef.current.redoLabel;
 
   const analysisStatus = (() => {
     if (!source?.metadata.browserCanDecode) return 'Pose analysis unavailable for this codec';
@@ -1289,6 +1622,56 @@ export function App() {
           <span className="source-filename" title={source.metadata.fileName}>
             {source.metadata.fileName}
           </span>
+        )}
+
+        {source && (
+          <div
+            className="edit-history-controls"
+            role="group"
+            aria-label="Edit history"
+            data-testid="global-history-controls"
+            data-undo-label={undoEditLabel ?? ''}
+            data-redo-label={redoEditLabel ?? ''}
+          >
+            <button
+              type="button"
+              aria-label="Undo last change"
+              aria-description={
+                undoEditLabel
+                  ? `Last change: ${undoEditLabel}`
+                  : 'Nothing to undo'
+              }
+              title={
+                undoEditLabel
+                  ? `Undo ${undoEditLabel} (Cmd/Ctrl+Z)`
+                  : 'Nothing to undo'
+              }
+              disabled={!editHistoryRef.current.canUndo}
+              onClick={undoEdit}
+            >
+              <UndoIcon />
+              <span>Undo</span>
+            </button>
+            <button
+              type="button"
+              aria-label="Redo last change"
+              aria-description={
+                redoEditLabel
+                  ? `Next change: ${redoEditLabel}`
+                  : 'Nothing to redo'
+              }
+              title={
+                redoEditLabel
+                  ? `Redo ${redoEditLabel} (Cmd/Ctrl+Shift+Z)`
+                  : 'Nothing to redo'
+              }
+              disabled={!editHistoryRef.current.canRedo}
+              onClick={redoEdit}
+            >
+              <RedoIcon />
+              <span>Redo</span>
+            </button>
+          </div>
         )}
       </header>
 
@@ -1641,8 +2024,13 @@ export function App() {
                     checked={overlaySettings.masterVisible}
                     onChange={(event) => {
                       const visible = event.currentTarget.checked;
-                      setOverlaySettings((current) =>
-                        withOverlayMasterVisibility(current, visible),
+                      changeOverlaySettings(
+                        (current) =>
+                          withOverlayMasterVisibility(current, visible),
+                        {
+                          key: 'overlay-master',
+                          label: 'Overlay visibility',
+                        },
                       );
                     }}
                   />
@@ -1662,7 +2050,7 @@ export function App() {
                 }
                 open={overlaySettingsOpen}
                 onOpenChange={setOverlaySettingsOpen}
-                onSettingsChange={(updater) => setOverlaySettings(updater)}
+                onSettingsChange={changeOverlaySettings}
               />
 
               <CheckpointControls
@@ -1691,8 +2079,6 @@ export function App() {
                 selectedModel={selectedModel}
                 labelMetrics={calibrationLabelMetrics}
                 labelCount={calibrationLabels.length}
-                canUndo={calibrationHistoryRef.current.canUndo}
-                canRedo={calibrationHistoryRef.current.canRedo}
                 onPresetChange={changeQualityPreset}
                 onPolicyTargetChange={changePolicyTarget}
                 onPolicyChange={updateQualityPolicy}
@@ -1702,11 +2088,9 @@ export function App() {
                 }
                 onModelChange={changeAnalysisModel}
                 onLabel={labelCurrentJoint}
-                onClearLabels={() => setCalibrationLabels([])}
+                onClearLabels={clearCalibrationLabels}
                 onResetPolicy={resetQualityPolicy}
                 onExport={exportCalibration}
-                onUndo={undoCalibrationSetting}
-                onRedo={redoCalibrationSetting}
                 onWorkspaceToggle={setCalibrationWorkspaceOpen}
               />
 

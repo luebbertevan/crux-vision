@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   addTrailCheckpointRange,
   calculateTrailStrokeWidths,
+  cloneOverlaySettings,
   createDefaultOverlaySettings,
   resetTrailSourceSettings,
   TRAIL_DURATION_MICROSECONDS,
@@ -20,6 +21,26 @@ import {
 } from './overlaySettings';
 
 describe('overlay settings contract', () => {
+  it('clones nested settings for isolated edit-history snapshots', () => {
+    const settings = addTrailCheckpointRange(
+      createDefaultOverlaySettings(),
+      'hip-midpoint',
+      1,
+      2,
+    );
+    const cloned = cloneOverlaySettings(settings);
+
+    cloned.layers.skeleton = false;
+    cloned.trailAppearance['hip-midpoint'].widthScale = 2;
+    cloned.trailCheckpointRanges['hip-midpoint'][0]!.visible = false;
+
+    expect(settings.layers.skeleton).toBe(true);
+    expect(settings.trailAppearance['hip-midpoint'].widthScale).toBe(1.25);
+    expect(
+      settings.trailCheckpointRanges['hip-midpoint'][0]!.visible,
+    ).toBe(true);
+  });
+
   it('gives every supported source a stable ID, typed definition, and visible default color', () => {
     expect(TRAIL_SOURCE_DEFINITIONS.map(({ id }) => id)).toEqual(
       TRAIL_SOURCE_IDS,

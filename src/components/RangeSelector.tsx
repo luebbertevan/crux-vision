@@ -5,6 +5,7 @@ import {
   normalizeRange,
   setRangeFromPlayhead,
 } from '../analysis/range';
+import type { EditHistoryChange } from '../state/editHistory';
 import type { AnalysisRange } from '../types';
 
 type RangeSelectorProps = {
@@ -14,7 +15,7 @@ type RangeSelectorProps = {
   progress: number;
   disabled?: boolean;
   children?: ReactNode;
-  onChange: (range: AnalysisRange) => void;
+  onChange: (range: AnalysisRange, change: EditHistoryChange) => void;
 };
 
 export const formatTime = (seconds: number) => {
@@ -54,6 +55,11 @@ export function RangeSelector({
         durationMicroseconds,
         edge,
       ),
+      {
+        key: `analysis-${edge}`,
+        label: `Analysis ${edge}`,
+        coalesce: true,
+      },
     );
   };
 
@@ -117,6 +123,10 @@ export function RangeSelector({
                 playheadMicroseconds,
                 durationMicroseconds,
               ),
+              {
+                key: 'analysis-start',
+                label: 'Analysis start',
+              },
             )
           }
         >
@@ -134,6 +144,10 @@ export function RangeSelector({
                 playheadMicroseconds,
                 durationMicroseconds,
               ),
+              {
+                key: 'analysis-end',
+                label: 'Analysis end',
+              },
             )
           }
         >

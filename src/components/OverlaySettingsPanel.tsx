@@ -23,6 +23,7 @@ import {
   type TrailSourceGroup,
   type TrailSourceId,
 } from '../overlay/overlaySettings';
+import type { EditHistoryChange } from '../state/editHistory';
 import { formatTime } from './RangeSelector';
 
 type OverlaySettingsPanelProps = {
@@ -33,6 +34,7 @@ type OverlaySettingsPanelProps = {
   onOpenChange: (open: boolean) => void;
   onSettingsChange: (
     updater: (current: OverlaySettings) => OverlaySettings,
+    change: EditHistoryChange,
   ) => void;
 };
 
@@ -104,7 +106,7 @@ export function OverlaySettingsPanel({
             {visibleSourceCount} of {selectedSources.length} trails visible
           </small>
         </span>
-        <i aria-hidden="true" />
+        <i className="disclosure-arrow" aria-hidden="true" />
       </summary>
 
       <div className="overlay-settings-body">
@@ -115,8 +117,10 @@ export function OverlaySettingsPanel({
             className="is-skeleton"
             checked={settings.layers.skeleton}
             onChange={(visible) =>
-              onSettingsChange((current) =>
-                withOverlayLayerVisibility(current, 'skeleton', visible),
+              onSettingsChange(
+                (current) =>
+                  withOverlayLayerVisibility(current, 'skeleton', visible),
+                { key: 'overlay-skeleton', label: 'Skeleton visibility' },
               )
             }
           />
@@ -125,8 +129,10 @@ export function OverlaySettingsPanel({
             className="is-trails"
             checked={settings.layers.trails}
             onChange={(visible) =>
-              onSettingsChange((current) =>
-                withOverlayLayerVisibility(current, 'trails', visible),
+              onSettingsChange(
+                (current) =>
+                  withOverlayLayerVisibility(current, 'trails', visible),
+                { key: 'overlay-trails', label: 'Trail layer visibility' },
               )
             }
           />
@@ -153,13 +159,18 @@ export function OverlaySettingsPanel({
                       aria-label={`Show ${definition.label} trail`}
                       onChange={(event) => {
                         const visible = event.currentTarget.checked;
-                        onSettingsChange((current) =>
-                          withTrailVisibility(
-                            current,
-                            definition.id,
-                            visible,
-                          ),
-                        )
+                        onSettingsChange(
+                          (current) =>
+                            withTrailVisibility(
+                              current,
+                              definition.id,
+                              visible,
+                            ),
+                          {
+                            key: `trail-${definition.id}-visibility`,
+                            label: `${definition.label} visibility`,
+                          },
+                        );
                       }}
                     />
                     <span className="overlay-checkbox" aria-hidden="true" />
@@ -182,12 +193,17 @@ export function OverlaySettingsPanel({
                     className="trail-source-remove"
                     aria-label={`Remove ${definition.label} trail`}
                     onClick={() =>
-                      onSettingsChange((current) =>
-                        withTrailSourceSelection(
-                          current,
-                          definition.id,
-                          false,
-                        ),
+                      onSettingsChange(
+                        (current) =>
+                          withTrailSourceSelection(
+                            current,
+                            definition.id,
+                            false,
+                          ),
+                        {
+                          key: `trail-${definition.id}-source`,
+                          label: `Remove ${definition.label}`,
+                        },
                       )
                     }
                   >
@@ -208,8 +224,16 @@ export function OverlaySettingsPanel({
               onChange={(event) => {
                 const sourceId = event.currentTarget.value as TrailSourceId;
                 if (!sourceId) return;
-                onSettingsChange((current) =>
-                  withTrailSourceSelection(current, sourceId, true),
+                const definition = TRAIL_SOURCE_DEFINITIONS.find(
+                  ({ id }) => id === sourceId,
+                );
+                onSettingsChange(
+                  (current) =>
+                    withTrailSourceSelection(current, sourceId, true),
+                  {
+                    key: `trail-${sourceId}-source`,
+                    label: `Add ${definition?.label ?? 'trail source'}`,
+                  },
                 );
                 setEditorSourceId(sourceId);
               }}
@@ -246,7 +270,7 @@ export function OverlaySettingsPanel({
                 <b>Advanced trail settings</b>
                 <small>Color, timing, fade, and width</small>
               </span>
-              <i aria-hidden="true" />
+              <i className="disclosure-arrow" aria-hidden="true" />
             </summary>
             <div className="trail-editor">
               {selectedSources.length === 0 ? (
@@ -288,8 +312,12 @@ export function OverlaySettingsPanel({
                     type="button"
                     className="trail-reset-all"
                     onClick={() =>
-                      onSettingsChange((current) =>
-                        resetAllTrailSettings(current),
+                      onSettingsChange(
+                        (current) => resetAllTrailSettings(current),
+                        {
+                          key: 'trail-reset-all',
+                          label: 'Reset all trails',
+                        },
                       )
                     }
                   >
@@ -381,8 +409,15 @@ function TrailEditor({
     if (!customColorActive) return;
     const commitOutside = (event: PointerEvent) => {
       if (customColorRootRef.current?.contains(event.target as Node)) return;
-      onSettingsChange((current) =>
-        withTrailAppearance(current, sourceId, { color: customColorDraft }),
+      onSettingsChange(
+        (current) =>
+          withTrailAppearance(current, sourceId, {
+            color: customColorDraft,
+          }),
+        {
+          key: `trail-${sourceId}-color`,
+          label: `${definition.label} color`,
+        },
       );
       setCustomColorActive(false);
       customColorInputRef.current?.blur();
@@ -392,12 +427,18 @@ function TrailEditor({
   }, [
     customColorActive,
     customColorDraft,
+    definition.label,
     onSettingsChange,
     sourceId,
   ]);
   const applyCustomColor = () => {
-    onSettingsChange((current) =>
-      withTrailAppearance(current, sourceId, { color: customColorDraft }),
+    onSettingsChange(
+      (current) =>
+        withTrailAppearance(current, sourceId, { color: customColorDraft }),
+      {
+        key: `trail-${sourceId}-color`,
+        label: `${definition.label} color`,
+      },
     );
     setCustomColorActive(false);
     customColorInputRef.current?.blur();
@@ -416,18 +457,28 @@ function TrailEditor({
       Math.max(0.25, parsedSeconds),
     );
     setDurationDraft(formatDurationSeconds(durationSeconds));
-    onSettingsChange((current) =>
-      withTrailAppearance(current, sourceId, {
-        durationMicroseconds: durationSeconds * 1_000_000,
-      }),
-    )
+    onSettingsChange(
+      (current) =>
+        withTrailAppearance(current, sourceId, {
+          durationMicroseconds: durationSeconds * 1_000_000,
+        }),
+      {
+        key: `trail-${sourceId}-duration`,
+        label: `${definition.label} duration`,
+      },
+    );
   };
   const addRange = () => {
     if (checkpoints.length < 2) return;
     const start = checkpoints.at(-2)!;
     const end = checkpoints.at(-1)!;
-    onSettingsChange((current) =>
-      addTrailCheckpointRange(current, sourceId, start.id, end.id),
+    onSettingsChange(
+      (current) =>
+        addTrailCheckpointRange(current, sourceId, start.id, end.id),
+      {
+        key: `trail-${sourceId}-range-add`,
+        label: `Add ${definition.label} range`,
+      },
     );
   };
 
@@ -468,10 +519,15 @@ function TrailEditor({
                 } as CSSProperties
               }
               onClick={() =>
-                onSettingsChange((current) =>
-                  withTrailAppearance(current, sourceId, {
-                    color: option.color,
-                  }),
+                onSettingsChange(
+                  (current) =>
+                    withTrailAppearance(current, sourceId, {
+                      color: option.color,
+                    }),
+                  {
+                    key: `trail-${sourceId}-color`,
+                    label: `${definition.label} color`,
+                  },
                 )
               }
             />
@@ -521,11 +577,17 @@ function TrailEditor({
           aria-label={`${definition.label} trail width`}
           onChange={(event) => {
             const widthScale = event.currentTarget.valueAsNumber;
-            onSettingsChange((current) =>
-              withTrailAppearance(current, sourceId, {
-                widthScale,
-              }),
-            )
+            onSettingsChange(
+              (current) =>
+                withTrailAppearance(current, sourceId, {
+                  widthScale,
+                }),
+              {
+                key: `trail-${sourceId}-width`,
+                label: `${definition.label} width`,
+                coalesce: true,
+              },
+            );
           }}
         />
       </label>
@@ -544,11 +606,17 @@ function TrailEditor({
           aria-label={`${definition.label} trail tail opacity`}
           onChange={(event) => {
             const minimumAlpha = event.currentTarget.valueAsNumber;
-            onSettingsChange((current) =>
-              withTrailAppearance(current, sourceId, {
-                minimumAlpha,
-              }),
-            )
+            onSettingsChange(
+              (current) =>
+                withTrailAppearance(current, sourceId, {
+                  minimumAlpha,
+                }),
+              {
+                key: `trail-${sourceId}-opacity`,
+                label: `${definition.label} tail opacity`,
+                coalesce: true,
+              },
+            );
           }}
         />
       </label>
@@ -564,13 +632,18 @@ function TrailEditor({
           aria-label={`Use checkpoint ranges for ${definition.label} trail`}
           onChange={(event) => {
             const checked = event.currentTarget.checked;
-            onSettingsChange((current) =>
-              withTrailTimingMode(
-                current,
-                sourceId,
-                checked ? 'checkpoint-ranges' : 'rolling',
-              ),
-            )
+            onSettingsChange(
+              (current) =>
+                withTrailTimingMode(
+                  current,
+                  sourceId,
+                  checked ? 'checkpoint-ranges' : 'rolling',
+                ),
+              {
+                key: `trail-${sourceId}-timing`,
+                label: `${definition.label} timing mode`,
+              },
+            );
           }}
         />
         <span className="overlay-checkbox" aria-hidden="true" />
@@ -599,18 +672,23 @@ function TrailEditor({
                 <input
                   type="checkbox"
                   checked={range.visible}
-                  aria-label={`Show ${definition.label} trail range ${index + 1}`}
-                  onChange={(event) => {
-                    const visible = event.currentTarget.checked;
-                    onSettingsChange((current) =>
-                      updateTrailCheckpointRange(
-                        current,
-                        sourceId,
-                        range.id,
-                        { visible },
-                      ),
-                    )
-                  }}
+                    aria-label={`Show ${definition.label} trail range ${index + 1}`}
+                    onChange={(event) => {
+                      const visible = event.currentTarget.checked;
+                      onSettingsChange(
+                        (current) =>
+                          updateTrailCheckpointRange(
+                            current,
+                            sourceId,
+                            range.id,
+                            { visible },
+                          ),
+                        {
+                          key: `trail-${sourceId}-range-${range.id}-visibility`,
+                          label: `${definition.label} range ${index + 1} visibility`,
+                        },
+                      );
+                    }}
                 />
                 <span className="overlay-checkbox" aria-hidden="true" />
                 Range {index + 1}
@@ -625,14 +703,19 @@ function TrailEditor({
                       const startCheckpointId = Number(
                         event.currentTarget.value,
                       );
-                      onSettingsChange((current) =>
-                        updateTrailCheckpointRange(
-                          current,
-                          sourceId,
-                          range.id,
-                          { startCheckpointId },
-                        ),
-                      )
+                      onSettingsChange(
+                        (current) =>
+                          updateTrailCheckpointRange(
+                            current,
+                            sourceId,
+                            range.id,
+                            { startCheckpointId },
+                          ),
+                        {
+                          key: `trail-${sourceId}-range-${range.id}-start`,
+                          label: `${definition.label} range ${index + 1} start`,
+                        },
+                      );
                     }}
                   >
                     {checkpoints.map((checkpoint) => (
@@ -652,14 +735,19 @@ function TrailEditor({
                       const endCheckpointId = Number(
                         event.currentTarget.value,
                       );
-                      onSettingsChange((current) =>
-                        updateTrailCheckpointRange(
-                          current,
-                          sourceId,
-                          range.id,
-                          { endCheckpointId },
-                        ),
-                      )
+                      onSettingsChange(
+                        (current) =>
+                          updateTrailCheckpointRange(
+                            current,
+                            sourceId,
+                            range.id,
+                            { endCheckpointId },
+                          ),
+                        {
+                          key: `trail-${sourceId}-range-${range.id}-end`,
+                          label: `${definition.label} range ${index + 1} end`,
+                        },
+                      );
                     }}
                   >
                     {checkpoints.map((checkpoint) => (
@@ -676,12 +764,17 @@ function TrailEditor({
                 className="trail-range-remove"
                 aria-label={`Remove ${definition.label} trail range ${index + 1}`}
                 onClick={() =>
-                  onSettingsChange((current) =>
-                    removeTrailCheckpointRange(
-                      current,
-                      sourceId,
-                      range.id,
-                    ),
+                  onSettingsChange(
+                    (current) =>
+                      removeTrailCheckpointRange(
+                        current,
+                        sourceId,
+                        range.id,
+                      ),
+                    {
+                      key: `trail-${sourceId}-range-${range.id}-remove`,
+                      label: `Remove ${definition.label} range ${index + 1}`,
+                    },
                   )
                 }
               >
@@ -725,8 +818,12 @@ function TrailEditor({
         type="button"
         className="trail-reset-one"
         onClick={() =>
-          onSettingsChange((current) =>
-            resetTrailSourceSettings(current, sourceId),
+          onSettingsChange(
+            (current) => resetTrailSourceSettings(current, sourceId),
+            {
+              key: `trail-${sourceId}-reset`,
+              label: `Reset ${definition.label}`,
+            },
           )
         }
       >

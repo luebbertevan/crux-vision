@@ -83,8 +83,9 @@ human re-smoke still found one visible frame of lag, so the gate now includes
 exact analyzed-presentation-frame navigation plus a gap-bounded Centered
 offline result with one undoable radius control. Human review selected centered
 at `66.667 ms` as the recorded-video display default; calibration must continue
-checking pre-motion anticipation. Calibration policy edits and manual seeks
-support standard undo/redo shortcuts, advanced setting families are
+checking pre-motion anticipation. Calibration policy edits participate in the
+same global undo/redo history as clip, checkpoint, overlay, and trail settings;
+manual seeks remain navigation rather than edits. Advanced setting families are
 independently collapsible, One Euro smoothed preview is unavailable when its
 filter is disabled, and developer-only controls expose full safe diagnostic
 ranges without changing product defaults. Quality decisions and calibration
@@ -248,6 +249,13 @@ Balanced/Strict/Permissive pose-quality choice, and selected trails. Settings
 are grouped into Pose quality, Trails, Playback, and View. Group and joint
 thresholds, raw/rejected overlays, smoothing, and coverage diagnostics live
 under Pose quality → Advanced.
+
+One bounded history stack serves the whole source session. Settings and durable
+review edits are undoable by default; transient navigation, commands, system
+state, and non-restorable source replacement are excluded. Continuous controls
+coalesce by control after 750 ms idle. Every future setting must declare and
+test its history behavior according to the
+[`settings and edit-history contract`](./settings-history-contract.md).
 
 Analysis density is also an advanced setting rather than a normal review
 control. The ordinary default is 30 requested samples/second. Later measured

@@ -101,3 +101,21 @@ export function CheckpointIcon({ size = 18, className }: IconProps) {
     </svg>
   );
 }
+
+export function UndoIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...baseProps(size, className)}>
+      <path d="m9 7-4 4 4 4" />
+      <path d="M5 11h8.5a5.5 5.5 0 0 1 5.5 5.5" />
+    </svg>
+  );
+}
+
+export function RedoIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...baseProps(size, className)}>
+      <path d="m15 7 4 4-4 4" />
+      <path d="M19 11h-8.5A5.5 5.5 0 0 0 5 16.5" />
+    </svg>
+  );
+}
