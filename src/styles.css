@@ -666,7 +666,13 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 }
 .precision-speed-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+}
+.precision-frame-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
   align-items: center;
   gap: 7px;
 }

@@ -266,6 +266,7 @@ test('keeps precision controls clear and touchable across review layouts', async
 
     const controls = page.getByTestId('precision-review-controls');
     await expect(controls).toBeVisible();
+    await expect(controls.getByText('Frame', { exact: true })).toBeVisible();
     const checkpointControls = page.getByTestId('checkpoint-controls');
     await expect(checkpointControls).toBeVisible();
     await page.locator('video').evaluate((element) => {
