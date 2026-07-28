@@ -145,7 +145,9 @@ Their responsive scale increases from 137.5% at laptop widths to 165% at
 a viewport-based minimum top offset, so added content grows downward instead
 of pushing either card above the branding. The
 filename sits above the right card, right-aligned to it at approximately the
-brand subtitle's type size. At compact desktop
+brand subtitle's type size. Review filenames use the larger legibility treatment
+across layouts, while source-review branding scales visually by 1.5× on wide
+screens without participating in control-card positioning. At compact desktop
 widths the stage aligns to the right of its review column so the wider brand
 does not reduce portrait video height. A 42 px translucent transport overlays
 the bottom of the stage, allowing the video to begin at the 8 px shell gutter.

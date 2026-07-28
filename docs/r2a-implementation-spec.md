@@ -87,8 +87,11 @@ pending-analysis, and application-error messages must remain distinct.
   their respective viewport edges, and scale from 137.5% at laptop widths to
   165% at 1600 px, 187% at full HD, and 206.25% on ultrawide displays. A
   viewport-based minimum top offset keeps added content growing downward
-  instead of moving either card above the branding. The filename sits above the right card,
-  right-aligned to it at approximately the brand subtitle's type size. At compact
+  instead of moving either card above the branding. Review filenames use a
+  doubled legibility treatment across layouts. At wide widths, the source-review
+  brand scales visually by 1.5× without changing either card's starting
+  position. The portrait filename remains above and right-aligned to the right
+  card. At compact
   desktop widths, the stage aligns to the
   right of its review column so the wider brand does not reduce portrait video
   height. This frees the top edge without giving sparse utilities the weight of

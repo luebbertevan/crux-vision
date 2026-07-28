@@ -143,6 +143,10 @@ test('desktop portrait and landscape stages use the available review surface', a
   await expect(page.locator('.stage-source-filename')).toBeHidden();
   await expect(page.locator('.portrait-review-filename')).toHaveText('portrait-test.MOV');
   await expect(page.locator('.portrait-review-filename')).toBeVisible();
+  await expect(page.locator('.portrait-review-filename')).toHaveCSS(
+    'font-size',
+    '26.24px',
+  );
   expect(1440 - portrait.portraitFilename.right).toBeLessThanOrEqual(12);
   await expect(page.locator('.portrait-review-filename')).toHaveCSS('text-align', 'right');
   await expect(page.locator('.topbar-actions')).toHaveCount(0);
@@ -251,6 +255,7 @@ test('desktop portrait and landscape stages use the available review surface', a
   await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
   await expect(page.locator('.file-button-label-full')).toBeVisible();
   await expect(page.locator('.range-section .analysis-actions .file-button-compact')).toBeVisible();
+  await expect(page.locator('.source-filename')).toHaveCSS('font-size', '24.32px');
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('desktop-landscape-imported.png'),
@@ -276,6 +281,10 @@ test('desktop portrait and landscape stages use the available review surface', a
   );
   await expect(page.locator('.portrait-review-filename')).toBeHidden();
   await expect(page.locator('.stage-source-filename')).toBeVisible();
+  await expect(page.locator('.stage-source-filename')).toHaveCSS(
+    'font-size',
+    '17.92px',
+  );
   expect(compactDesktopPortrait.transport.right).toBeLessThanOrEqual(
     compactDesktopPortrait.stage.right - 7,
   );
@@ -327,6 +336,12 @@ test('portrait review cards scale and remain centered in medium-to-large gutters
     expect(review.poseCard.width).toBeCloseTo(viewport.cardWidth, 0);
     expect(review.rangeCard.right).toBeLessThan(review.stage.x);
     expect(review.poseCard.x).toBeGreaterThan(review.stage.right);
+    await expect(page.locator('.brand')).toHaveCSS(
+      'transform',
+      viewport.width >= 1600
+        ? 'matrix(1.5, 0, 0, 1.5, 0, 0)'
+        : 'none',
+    );
     if (viewport.label === 'medium') {
       const initialTop = review.rangeCard.y;
       const addCheckpoint = page.getByTestId('checkpoint-controls').getByRole(

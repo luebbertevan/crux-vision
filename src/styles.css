@@ -142,7 +142,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   margin-inline: 24px;
   overflow: hidden;
   color: #9da198;
-  font-size: .76rem;
+  font-size: 1.52rem;
   font-weight: 700;
   text-align: center;
   text-overflow: ellipsis;
@@ -1944,7 +1944,7 @@ details[open] > summary > .disclosure-arrow {
     display: block;
     overflow: hidden;
     color: var(--dim);
-    font-size: .82rem;
+    font-size: 1.64rem;
     font-weight: 700;
     letter-spacing: .08em;
     text-align: right;
@@ -1955,6 +1955,10 @@ details[open] > summary > .disclosure-arrow {
 }
 
 @media (min-width: 1600px) and (min-aspect-ratio: 8 / 5) {
+  .has-portrait-source .brand {
+    transform: scale(1.5);
+    transform-origin: left bottom;
+  }
   .review-workspace.is-portrait .range-panel-slot,
   .review-workspace.is-portrait .pose-panel-slot {
     width: 502px;
@@ -2050,7 +2054,7 @@ details[open] > summary > .disclosure-arrow {
     border-radius: 999px;
     color: rgba(238,236,228,.68);
     background: rgba(7,10,7,.38);
-    font-size: .56rem;
+    font-size: 1.12rem;
     font-weight: 750;
     letter-spacing: .02em;
     text-overflow: ellipsis;
@@ -2082,6 +2086,12 @@ details[open] > summary > .disclosure-arrow {
   }
   .has-portrait-source .playback-timeline { height: 26px; }
   .has-portrait-source .stage-feedback { bottom: 62px; }
+}
+
+@media (min-width: 1600px) and (min-aspect-ratio: 8 / 5) {
+  .has-portrait-source .topbar {
+    top: 32px;
+  }
 }
 
 @media (min-width: 981px) and (max-width: 1199px) {
