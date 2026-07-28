@@ -81,9 +81,10 @@ pending-analysis, and application-error messages must remain distinct.
   desktop and mobile layouts keep their established sizing. At wide portrait
   widths, Clip & analysis moves into the open space beneath a 125%-scale brand
   lockup at the left of the player; On-device pose occupies the matching right
-  gutter. Both cards share a top edge and increase by a further 10% to 137.5%
-  of their original scale while remaining centered between the player and
-  their respective viewport edges. The filename sits above the right card,
+  gutter. Both cards share a top edge, remain centered between the player and
+  their respective viewport edges, and scale from 137.5% at laptop widths to
+  150% on large displays and 162.5% on ultrawide displays. The paired row is
+  vertically centered when height permits. The filename sits above the right card,
   right-aligned to it at approximately the brand subtitle's type size. At compact
   desktop widths, the stage aligns to the
   right of its review column so the wider brand does not reduce portrait video

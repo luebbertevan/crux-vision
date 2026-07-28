@@ -251,6 +251,59 @@ test('desktop portrait and landscape stages use the available review surface', a
   });
 });
 
+test('portrait review cards scale and remain centered in medium-to-large gutters', async ({
+  page,
+}, testInfo) => {
+  const viewports = [
+    { label: 'medium', width: 1440, height: 900, cardWidth: 418 },
+    { label: 'large', width: 1680, height: 1050, cardWidth: 418 },
+    { label: 'full-hd', width: 1920, height: 1080, cardWidth: 456 },
+    { label: 'wide', width: 2560, height: 1440, cardWidth: 494 },
+  ];
+
+  for (const viewport of viewports) {
+    await page.setViewportSize({
+      width: viewport.width,
+      height: viewport.height,
+    });
+    await page.goto('/');
+    await importVideo(page, portraitFixture);
+
+    const review = await getReviewBounds(page);
+    const leftGutterCenter = review.stage.x / 2;
+    const rightGutterCenter =
+      review.stage.right + (viewport.width - review.stage.right) / 2;
+
+    expect(
+      Math.abs(review.rangeCard.x + review.rangeCard.width / 2 - leftGutterCenter),
+    ).toBeLessThanOrEqual(2);
+    expect(
+      Math.abs(review.poseCard.x + review.poseCard.width / 2 - rightGutterCenter),
+    ).toBeLessThanOrEqual(2);
+    expect(Math.abs(review.rangeCard.y - review.poseCard.y)).toBeLessThanOrEqual(1);
+    if (viewport.label === 'medium') {
+      expect(review.rangeCard.y - review.stage.y).toBeCloseTo(50, 0);
+    } else {
+      expect(
+        Math.abs(
+          review.rangeCard.y -
+            review.stage.y -
+            (review.stage.bottom - review.rangeCard.bottom),
+        ),
+      ).toBeLessThanOrEqual(3);
+    }
+    expect(review.rangeCard.width).toBeCloseTo(viewport.cardWidth, 0);
+    expect(review.poseCard.width).toBeCloseTo(viewport.cardWidth, 0);
+    expect(review.rangeCard.right).toBeLessThan(review.stage.x);
+    expect(review.poseCard.x).toBeGreaterThan(review.stage.right);
+    await expectNoHorizontalOverflow(page);
+    await page.screenshot({
+      path: testInfo.outputPath(`portrait-gutters-${viewport.label}.png`),
+      fullPage: true,
+    });
+  }
+});
+
 test('iPhone portrait uses full width with reachable transport and resilient chrome', async ({
   page,
 }, testInfo) => {

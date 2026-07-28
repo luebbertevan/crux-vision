@@ -1871,7 +1871,11 @@ details[open] > summary > .disclosure-arrow {
   }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1200px) and (min-aspect-ratio: 8 / 5) {
+  .has-portrait-source.app-shell {
+    width: 100%;
+    padding-inline: 0;
+  }
   .has-portrait-source.app-shell .topbar {
     width: 330px;
     flex-direction: row;
@@ -1892,26 +1896,34 @@ details[open] > summary > .disclosure-arrow {
     inset: 0;
     width: 100%;
     max-height: none;
+    grid-template-columns:
+      calc((100% - var(--stage-width, 100%)) / 2)
+      var(--stage-width, 100%)
+      calc((100% - var(--stage-width, 100%)) / 2);
+    grid-template-rows: max-content;
+    align-content: center;
+    align-items: start;
+    gap: 0;
     overflow: visible;
     pointer-events: none;
     zoom: 1;
   }
   .review-workspace.is-portrait .range-panel-slot,
   .review-workspace.is-portrait .pose-panel-slot {
-    position: absolute;
-    top: 65px;
+    position: static;
+    grid-row: 1;
     width: 418px;
     display: block;
+    justify-self: center;
     pointer-events: auto;
   }
   .review-workspace.is-portrait .range-panel-slot {
-    left: calc((100% - var(--stage-width, 100%)) / 4);
-    transform: translateX(-50%);
+    grid-column: 1;
+    transform: none;
   }
   .review-workspace.is-portrait .pose-panel-slot {
-    top: 65px;
-    right: calc((100% - var(--stage-width, 100%)) / 4);
-    transform: translateX(50%);
+    grid-column: 3;
+    transform: none;
   }
   .review-workspace.is-portrait .range-section,
   .review-workspace.is-portrait .analysis-section {
@@ -1941,6 +1953,35 @@ details[open] > summary > .disclosure-arrow {
     white-space: nowrap;
   }
   .review-workspace.is-portrait .stage-source-filename { display: none; }
+}
+
+@media (min-width: 1200px) and (max-width: 1599px) and (min-aspect-ratio: 8 / 5) {
+  .review-workspace.is-portrait .control-rail {
+    align-content: start;
+    padding-top: 50px;
+  }
+}
+
+@media (min-width: 1800px) and (min-aspect-ratio: 8 / 5) {
+  .review-workspace.is-portrait .range-panel-slot,
+  .review-workspace.is-portrait .pose-panel-slot {
+    width: 456px;
+  }
+  .review-workspace.is-portrait .range-section,
+  .review-workspace.is-portrait .analysis-section {
+    zoom: 1.5;
+  }
+}
+
+@media (min-width: 2300px) and (min-aspect-ratio: 8 / 5) {
+  .review-workspace.is-portrait .range-panel-slot,
+  .review-workspace.is-portrait .pose-panel-slot {
+    width: 494px;
+  }
+  .review-workspace.is-portrait .range-section,
+  .review-workspace.is-portrait .analysis-section {
+    zoom: 1.625;
+  }
 }
 
 @media (min-width: 981px) {
