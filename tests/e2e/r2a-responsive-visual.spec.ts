@@ -103,6 +103,7 @@ const expectNoHorizontalOverflow = async (page: import('@playwright/test').Page)
 
 test('desktop empty shell visual acceptance', async ({ page }, testInfo) => {
   for (const viewport of [
+    { width: 1280, height: 800, label: 'laptop' },
     { width: 1440, height: 900, label: 'desktop' },
     { width: 2560, height: 1440, label: 'wide' },
   ]) {
