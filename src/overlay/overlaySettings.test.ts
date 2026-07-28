@@ -212,7 +212,7 @@ describe('overlay settings contract', () => {
     expect(settings.trailCheckpointRanges['hip-midpoint']).toEqual([]);
   });
 
-  it('activates checkpoint trails only during their range and never includes future time', () => {
+  it('intersects checkpoint ranges with the ordinary rolling trail window', () => {
     const range = {
       id: 1,
       visible: true,
@@ -225,16 +225,22 @@ describe('overlay settings contract', () => {
     ];
 
     expect(
-      activeTrailCheckpointWindow(range, checkpoints, 2_999_999),
+      activeTrailCheckpointWindow(range, checkpoints, 2_999_999, 2_000_000),
     ).toBeNull();
     expect(
-      activeTrailCheckpointWindow(range, checkpoints, 4_000_000),
+      activeTrailCheckpointWindow(range, checkpoints, 4_000_000, 2_000_000),
     ).toEqual({
       startMicroseconds: 3_000_000,
       endMicroseconds: 4_000_000,
     });
     expect(
-      activeTrailCheckpointWindow(range, checkpoints, 5_000_001),
+      activeTrailCheckpointWindow(range, checkpoints, 5_500_000, 2_000_000),
+    ).toEqual({
+      startMicroseconds: 3_500_000,
+      endMicroseconds: 5_000_000,
+    });
+    expect(
+      activeTrailCheckpointWindow(range, checkpoints, 7_000_001, 2_000_000),
     ).toBeNull();
   });
 

@@ -146,4 +146,22 @@ describe('trail segmentation', () => {
       ),
     ).toEqual([[0, 40_000], [120_000], [300_000]]);
   });
+
+  it('ages checkpoint samples against the ordinary rolling window', () => {
+    const segments = buildTrailSegmentsForWindowWithResolver(
+      [sample(1_000_000), sample(2_000_000)],
+      { startMicroseconds: 1_000_000, endMicroseconds: 2_000_000 },
+      {
+        source: { kind: 'landmark', landmarkIndex: 15 },
+        maximumGapMicroseconds: 1_000_000,
+      },
+      (pose) => pose.landmarks[15],
+      { startMicroseconds: 0, endMicroseconds: 4_000_000 },
+    );
+
+    expect(segments.flat().map(({ ageRatio }) => ageRatio)).toEqual([
+      0.25,
+      0.5,
+    ]);
+  });
 });

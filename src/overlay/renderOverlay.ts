@@ -109,6 +109,7 @@ export function renderOverlay(
           checkpointRange,
           checkpoints,
           presentationTimestampMicroseconds,
+          appearance.durationMicroseconds,
         );
         if (!window) continue;
         trailWindows.push({
@@ -120,6 +121,12 @@ export function renderOverlay(
               maximumGapMicroseconds: TRAIL_MAXIMUM_GAP_MICROSECONDS,
             },
             resolvePoint,
+            {
+              startMicroseconds:
+                presentationTimestampMicroseconds -
+                appearance.durationMicroseconds,
+              endMicroseconds: presentationTimestampMicroseconds,
+            },
           ),
           showEndpoints: true,
         });

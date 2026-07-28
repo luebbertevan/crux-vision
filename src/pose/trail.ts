@@ -31,10 +31,11 @@ export function buildTrailSegmentsForWindowWithResolver<
     sample: T,
     source: PosePointSource,
   ) => { x: number; y: number } | null,
+  ageWindow: TrailWindow = window,
 ): TrailSegment[] {
   const windowLength = Math.max(
     1,
-    window.endMicroseconds - window.startMicroseconds,
+    ageWindow.endMicroseconds - ageWindow.startMicroseconds,
   );
   const segments: TrailSegment[] = [];
   let current: TrailSegment | null = null;
@@ -75,7 +76,7 @@ export function buildTrailSegmentsForWindowWithResolver<
         0,
         Math.min(
           1,
-          (sample.timestampMicroseconds - window.startMicroseconds) /
+          (sample.timestampMicroseconds - ageWindow.startMicroseconds) /
             windowLength,
         ),
       ),

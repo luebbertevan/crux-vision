@@ -526,18 +526,22 @@ export function activeTrailCheckpointWindow(
   range: TrailCheckpointRange,
   checkpoints: readonly TrailCheckpoint[],
   presentationTimestampMicroseconds: number,
+  durationMicroseconds: number,
 ): { startMicroseconds: number; endMicroseconds: number } | null {
   const window = trailCheckpointWindow(range, checkpoints);
-  if (
-    !window ||
-    presentationTimestampMicroseconds < window.startMicroseconds ||
-    presentationTimestampMicroseconds > window.endMicroseconds
-  ) {
-    return null;
-  }
+  if (!window) return null;
+  const startMicroseconds = Math.max(
+    window.startMicroseconds,
+    presentationTimestampMicroseconds - durationMicroseconds,
+  );
+  const endMicroseconds = Math.min(
+    window.endMicroseconds,
+    presentationTimestampMicroseconds,
+  );
+  if (endMicroseconds < startMicroseconds) return null;
   return {
-    startMicroseconds: window.startMicroseconds,
-    endMicroseconds: presentationTimestampMicroseconds,
+    startMicroseconds,
+    endMicroseconds,
   };
 }
 

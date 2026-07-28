@@ -43,12 +43,13 @@ chronologically. Deleting a checkpoint removes every trail range that
 references it rather than leaving a broken selector.
 Checkpoint deletion and dependent range cleanup are one atomic undo step.
 
-Checkpoint trails appear only while the playhead is inside their saved
-interval. They grow from the start checkpoint to the current playhead without
-revealing future motion, then disappear after the end checkpoint. A ring marks
-the first accepted point and a solid marker identifies the current accepted
-endpoint. If an exact timestamp lacks an accepted joint, the marker remains
-honest by landing on the first or last accepted sample inside the active range.
+Checkpoint ranges gate which cached samples may contribute to a trail. The
+trail grows from the start checkpoint without revealing future motion. After
+the end checkpoint, the completed portion remains visible and ages out using
+the same duration and fade rules as an ordinary rolling trail. A ring marks the
+first currently visible accepted point and a solid marker identifies the last.
+If an exact timestamp lacks an accepted joint, the marker remains honest by
+landing on the first or last accepted sample inside the active intersection.
 
 The checkpoint-window trail builder shares the rolling builder's continuity
 rules. Rejected or missing joints, repeated/backward timestamps, and gaps
