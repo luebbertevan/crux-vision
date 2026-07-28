@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
   type CSSProperties,
 } from 'react';
@@ -345,6 +346,39 @@ function TrailEditor({
   const usesCheckpoints =
     settings.trailTimingMode[sourceId] === 'checkpoint-ranges';
   const ranges = settings.trailCheckpointRanges[sourceId];
+  const [customColorDraft, setCustomColorDraft] = useState(appearance.color);
+  const [customColorActive, setCustomColorActive] = useState(false);
+  const customColorRootRef = useRef<HTMLDivElement>(null);
+  const customColorInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    setCustomColorDraft(appearance.color);
+    setCustomColorActive(false);
+  }, [appearance.color, sourceId]);
+  useEffect(() => {
+    if (!customColorActive) return;
+    const commitOutside = (event: PointerEvent) => {
+      if (customColorRootRef.current?.contains(event.target as Node)) return;
+      onSettingsChange((current) =>
+        withTrailAppearance(current, sourceId, { color: customColorDraft }),
+      );
+      setCustomColorActive(false);
+      customColorInputRef.current?.blur();
+    };
+    document.addEventListener('pointerdown', commitOutside);
+    return () => document.removeEventListener('pointerdown', commitOutside);
+  }, [
+    customColorActive,
+    customColorDraft,
+    onSettingsChange,
+    sourceId,
+  ]);
+  const applyCustomColor = () => {
+    onSettingsChange((current) =>
+      withTrailAppearance(current, sourceId, { color: customColorDraft }),
+    );
+    setCustomColorActive(false);
+    customColorInputRef.current?.blur();
+  };
   const addRange = () => {
     if (checkpoints.length < 2) return;
     const start = checkpoints.at(-2)!;
@@ -400,23 +434,41 @@ function TrailEditor({
             />
           ))}
         </div>
-        <label className="trail-custom-color">
+        <div className="trail-custom-color" ref={customColorRootRef}>
           <span>Custom</span>
           <input
+            ref={customColorInputRef}
             type="color"
             aria-label={`Custom color for ${definition.label} trail`}
-            value={appearance.color}
+            value={customColorDraft}
+            onFocus={() => setCustomColorActive(true)}
+            onClick={() => setCustomColorActive(true)}
             onChange={(event) => {
               const color = event.currentTarget.value as `#${string}`;
-              onSettingsChange((current) =>
-                withTrailAppearance(current, sourceId, {
-                  color,
-                }),
-              )
+              setCustomColorDraft(color);
+              setCustomColorActive(true);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                applyCustomColor();
+              }
+              if (event.key === 'Escape') {
+                setCustomColorDraft(appearance.color);
+                setCustomColorActive(false);
+                event.currentTarget.blur();
+              }
             }}
           />
-          <output>{appearance.color.toUpperCase()}</output>
-        </label>
+          <output>{customColorDraft.toUpperCase()}</output>
+          <button
+            type="button"
+            className="trail-custom-color-apply"
+            onClick={applyCustomColor}
+          >
+            Apply
+          </button>
+        </div>
       </fieldset>
 
       <label className="trail-control">
@@ -603,53 +655,31 @@ function TrailEditor({
           ))}
         </div>
       ) : (
-        <div className="trail-duration-control">
-          <label className="trail-control">
-            <span>
-              Rolling duration
-              <output>
-                {(appearance.durationMicroseconds / 1_000_000).toFixed(2)} s
-              </output>
-            </span>
-            <input
-              type="range"
-              min="0.25"
-              max="10"
-              step="0.25"
-              value={appearance.durationMicroseconds / 1_000_000}
-              aria-label={`${definition.label} trail duration`}
-              onChange={(event) => {
-                const durationMicroseconds =
-                  event.currentTarget.valueAsNumber * 1_000_000;
-                onSettingsChange((current) =>
-                  withTrailAppearance(current, sourceId, {
-                    durationMicroseconds,
-                  }),
-                )
-              }}
-            />
-          </label>
-          <div className="trail-duration-presets" aria-label="Duration presets">
-            {[1, 2, 4].map((seconds) => (
-              <button
-                type="button"
-                key={seconds}
-                aria-pressed={
-                  appearance.durationMicroseconds === seconds * 1_000_000
-                }
-                onClick={() =>
-                  onSettingsChange((current) =>
-                    withTrailAppearance(current, sourceId, {
-                      durationMicroseconds: seconds * 1_000_000,
-                    }),
-                  )
-                }
-              >
-                {seconds} s
-              </button>
-            ))}
-          </div>
-        </div>
+        <label className="trail-control trail-duration-control">
+          <span>
+            Rolling duration
+            <output>
+              {(appearance.durationMicroseconds / 1_000_000).toFixed(2)} s
+            </output>
+          </span>
+          <input
+            type="range"
+            min="0.25"
+            max="10"
+            step="0.25"
+            value={appearance.durationMicroseconds / 1_000_000}
+            aria-label={`${definition.label} trail duration`}
+            onChange={(event) => {
+              const durationMicroseconds =
+                event.currentTarget.valueAsNumber * 1_000_000;
+              onSettingsChange((current) =>
+                withTrailAppearance(current, sourceId, {
+                  durationMicroseconds,
+                }),
+              )
+            }}
+          />
+        </label>
       )}
 
       <button

@@ -16,11 +16,11 @@ A nested **Advanced trail settings** disclosure keeps infrequent controls out
 of ordinary review. One compact selector chooses the active trail to edit. Its
 editor provides:
 
-- eight high-visibility graphite/chalk palette colors and a native custom color
-  picker;
+- eight compact high-visibility graphite/chalk palette colors and a native
+  custom color picker with explicit Apply and outside-click commit behavior;
 - responsive width from 60–250% of the original responsive stroke rule;
 - tail opacity from 5–98%;
-- a rolling duration from 0.25–10 seconds with 1, 2, and 4 second shortcuts;
+- a rolling-duration slider from 0.25–10 seconds;
 - reset for the selected source and reset-all to the R2C defaults.
 
 The contrast halo remains renderer-owned and independent of the selected color.

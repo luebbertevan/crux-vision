@@ -154,7 +154,26 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
       name: 'Set Left ankle trail color to Magenta',
     })
     .click();
+  const customColor = page.getByLabel('Custom color for Left ankle trail');
+  await customColor.focus();
+  await customColor.fill('#123456');
+  await page
+    .getByRole('button', { name: 'Apply', exact: true })
+    .click();
+  await expect(
+    page.getByTestId('trail-editor-left-ankle').locator('.trail-editor-live-swatch'),
+  ).toHaveAttribute('style', /#123456/);
+  await customColor.focus();
+  await customColor.fill('#654321');
+  await page
+    .getByTestId('trail-editor-left-ankle')
+    .locator('.trail-editor-heading')
+    .click();
+  await expect(
+    page.getByTestId('trail-editor-left-ankle').locator('.trail-editor-live-swatch'),
+  ).toHaveAttribute('style', /#654321/);
   await page.getByLabel('Left ankle trail width').fill('1.8');
+  await expect(page.getByLabel('Duration presets')).toHaveCount(0);
   await page
     .getByLabel('Use checkpoint ranges for Left ankle trail')
     .check();
@@ -295,6 +314,18 @@ test('keeps the disclosure touchable without changing or obscuring the stage', a
         ),
       )
       .toBe(true);
+
+    if (layout.viewport.width === 393) {
+      const advanced = page.getByTestId('trail-advanced-settings');
+      await advanced.locator('summary').click();
+      const palette = await page.locator('.trail-color-palette').boundingBox();
+      const colorField = await page.locator('.trail-color-field').boundingBox();
+      expect(palette).not.toBeNull();
+      expect(colorField).not.toBeNull();
+      expect(palette!.x + palette!.width).toBeLessThanOrEqual(
+        colorField!.x + colorField!.width,
+      );
+    }
 
     if (layout.viewport.width <= 852) {
       const targetHeights = await settings

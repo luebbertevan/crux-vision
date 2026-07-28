@@ -1147,12 +1147,13 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 }
 .trail-color-palette {
   display: grid;
-  grid-template-columns: repeat(8, minmax(24px, 1fr));
-  gap: 5px;
+  grid-template-columns: repeat(8, 26px);
+  justify-content: start;
+  gap: 3px;
 }
 .trail-color-palette button {
-  min-width: 0;
-  height: 30px;
+  width: 26px;
+  height: 28px;
   border: 2px solid #111411;
   border-radius: 7px;
   background: var(--trail-source-color);
@@ -1174,7 +1175,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 .trail-custom-color {
   min-height: 38px;
   display: grid;
-  grid-template-columns: auto 36px 1fr;
+  grid-template-columns: auto 36px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   color: #858b81;
@@ -1193,6 +1194,21 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   color: #b3b8ae;
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: .54rem;
+}
+.trail-custom-color-apply {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #526146;
+  border-radius: 7px;
+  color: #dfffc2;
+  background: #22291d;
+  font-size: .53rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.trail-custom-color-apply:hover {
+  border-color: #8eb765;
+  background: #2a3422;
 }
 .trail-control {
   display: grid;
@@ -1247,8 +1263,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 .trail-range-add,
 .trail-reset-one,
 .trail-reset-all,
-.trail-range-remove,
-.trail-duration-presets button {
+.trail-range-remove {
   min-height: 36px;
   border: 1px solid #3a4136;
   border-radius: 7px;
@@ -1258,9 +1273,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   font-weight: 780;
   cursor: pointer;
 }
-.trail-range-add:hover,
-.trail-duration-presets button:hover,
-.trail-duration-presets button[aria-pressed="true"] {
+.trail-range-add:hover {
   border-color: #71895c;
   color: #e8f7d8;
   background: #22291d;
@@ -1313,11 +1326,6 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   border-color: #62504b;
   color: #f0a08b;
   background: #211817;
-}
-.trail-duration-presets {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
 }
 
 .checkpoint-panel {
@@ -2067,14 +2075,14 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .trail-editor-source select,
   .trail-color-palette button,
   .trail-custom-color,
+  .trail-custom-color-apply,
   .trail-mode-toggle,
   .trail-range-add,
   .trail-range-visibility,
   .trail-range-endpoints select,
   .trail-range-remove,
   .trail-reset-one,
-  .trail-reset-all,
-  .trail-duration-presets button { min-height: 44px; }
+  .trail-reset-all { min-height: 44px; }
   .checkpoint-add,
   .checkpoint-navigation button,
   .checkpoint-time,
@@ -2143,14 +2151,14 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .trail-editor-source select,
   .trail-color-palette button,
   .trail-custom-color,
+  .trail-custom-color-apply,
   .trail-mode-toggle,
   .trail-range-add,
   .trail-range-visibility,
   .trail-range-endpoints select,
   .trail-range-remove,
   .trail-reset-one,
-  .trail-reset-all,
-  .trail-duration-presets button { min-height: 44px; }
+  .trail-reset-all { min-height: 44px; }
   .shortcut-hint { display: none; }
   .checkpoint-add,
   .checkpoint-navigation button,
