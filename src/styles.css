@@ -154,8 +154,30 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   flex: 0 0 auto;
   gap: 6px;
 }
+.settings-history-bar {
+  position: sticky;
+  z-index: 5;
+  top: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(21, 24, 21, .97);
+  box-shadow: 0 8px 24px rgba(5, 8, 5, .18);
+}
+.settings-history-label {
+  color: #777c73;
+  font-size: .59rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
 .edit-history-controls button {
-  min-width: 76px;
+  min-width: 70px;
   min-height: 36px;
   display: inline-flex;
   align-items: center;
@@ -1814,16 +1836,6 @@ details[open] > summary > .disclosure-arrow {
     width: auto;
     flex: 1;
   }
-  .has-portrait-source .topbar > .edit-history-controls { width: auto; }
-  .has-portrait-source .topbar > .edit-history-controls button {
-    min-width: 38px;
-    width: 38px;
-    padding: 0;
-  }
-  .has-portrait-source .topbar > .edit-history-controls button span {
-    display: none;
-  }
-
   .review-workspace.is-portrait {
     position: relative;
     display: block;
@@ -1838,6 +1850,15 @@ details[open] > summary > .disclosure-arrow {
     pointer-events: none;
     zoom: 1;
   }
+  .review-workspace.is-portrait .settings-history-bar {
+    position: absolute;
+    top: 65px;
+    right: calc((100% - var(--stage-width, 100%)) / 4);
+    width: 418px;
+    min-height: 46px;
+    pointer-events: auto;
+    transform: translateX(50%);
+  }
   .review-workspace.is-portrait .range-panel-slot,
   .review-workspace.is-portrait .pose-panel-slot {
     position: absolute;
@@ -1851,6 +1872,7 @@ details[open] > summary > .disclosure-arrow {
     transform: translateX(-50%);
   }
   .review-workspace.is-portrait .pose-panel-slot {
+    top: 125px;
     right: calc((100% - var(--stage-width, 100%)) / 4);
     transform: translateX(50%);
   }
@@ -1862,7 +1884,7 @@ details[open] > summary > .disclosure-arrow {
     zoom: 1.375;
   }
   .review-workspace.is-portrait .analysis-section {
-    max-height: calc(72.73dvh - 29px);
+    max-height: calc(72.73dvh - 89px);
     overflow-y: auto;
   }
   .review-workspace.is-portrait .portrait-review-filename {
@@ -1937,8 +1959,6 @@ details[open] > summary > .disclosure-arrow {
     letter-spacing: .12em;
     white-space: nowrap;
   }
-  .has-portrait-source .edit-history-controls { width: 100%; }
-  .has-portrait-source .edit-history-controls button { flex: 1; }
   .has-portrait-source .topbar > .source-filename { display: none; }
   .has-portrait-source .stage-source-filename {
     max-width: min(220px, 58%);
@@ -2035,6 +2055,11 @@ details[open] > summary > .disclosure-arrow {
     padding: 0;
   }
   .edit-history-controls button span { display: none; }
+  .settings-history-bar {
+    top: max(8px, env(safe-area-inset-top));
+    min-height: 56px;
+    padding: 5px 6px 5px 12px;
+  }
   .file-button-compact { min-height: 44px; padding: 0 12px; }
   .file-button-compact span { font-size: .7rem; }
 
@@ -2175,6 +2200,7 @@ details[open] > summary > .disclosure-arrow {
   }
   .has-source .topbar { min-height: 50px; margin-bottom: 9px; }
   .source-filename { display: none; }
+  .settings-history-bar { top: max(8px, env(safe-area-inset-top)); }
   .edit-history-controls button { min-height: 44px; }
   .review-workspace { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(270px, .8fr); align-items: start; }
   .transport {

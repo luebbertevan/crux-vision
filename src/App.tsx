@@ -1624,55 +1624,6 @@ export function App() {
           </span>
         )}
 
-        {source && (
-          <div
-            className="edit-history-controls"
-            role="group"
-            aria-label="Edit history"
-            data-testid="global-history-controls"
-            data-undo-label={undoEditLabel ?? ''}
-            data-redo-label={redoEditLabel ?? ''}
-          >
-            <button
-              type="button"
-              aria-label="Undo last change"
-              aria-description={
-                undoEditLabel
-                  ? `Last change: ${undoEditLabel}`
-                  : 'Nothing to undo'
-              }
-              title={
-                undoEditLabel
-                  ? `Undo ${undoEditLabel} (Cmd/Ctrl+Z)`
-                  : 'Nothing to undo'
-              }
-              disabled={!editHistoryRef.current.canUndo}
-              onClick={undoEdit}
-            >
-              <UndoIcon />
-              <span>Undo</span>
-            </button>
-            <button
-              type="button"
-              aria-label="Redo last change"
-              aria-description={
-                redoEditLabel
-                  ? `Next change: ${redoEditLabel}`
-                  : 'Nothing to redo'
-              }
-              title={
-                redoEditLabel
-                  ? `Redo ${redoEditLabel} (Cmd/Ctrl+Shift+Z)`
-                  : 'Nothing to redo'
-              }
-              disabled={!editHistoryRef.current.canRedo}
-              onClick={redoEdit}
-            >
-              <RedoIcon />
-              <span>Redo</span>
-            </button>
-          </div>
-        )}
       </header>
 
       {sourceError && (
@@ -1877,6 +1828,60 @@ export function App() {
           </div>
 
           <aside className="control-rail">
+            <div
+              className="settings-history-bar"
+              data-testid="settings-history-bar"
+            >
+              <span className="settings-history-label">Edit history</span>
+              <div
+                className="edit-history-controls"
+                role="group"
+                aria-label="Edit history"
+                data-testid="global-history-controls"
+                data-undo-label={undoEditLabel ?? ''}
+                data-redo-label={redoEditLabel ?? ''}
+              >
+                <button
+                  type="button"
+                  aria-label="Undo last change"
+                  aria-description={
+                    undoEditLabel
+                      ? `Last change: ${undoEditLabel}`
+                      : 'Nothing to undo'
+                  }
+                  title={
+                    undoEditLabel
+                      ? `Undo ${undoEditLabel} (Cmd/Ctrl+Z)`
+                      : 'Nothing to undo'
+                  }
+                  disabled={!editHistoryRef.current.canUndo}
+                  onClick={undoEdit}
+                >
+                  <UndoIcon />
+                  <span>Undo</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Redo last change"
+                  aria-description={
+                    redoEditLabel
+                      ? `Next change: ${redoEditLabel}`
+                      : 'Nothing to redo'
+                  }
+                  title={
+                    redoEditLabel
+                      ? `Redo ${redoEditLabel} (Cmd/Ctrl+Shift+Z)`
+                      : 'Nothing to redo'
+                  }
+                  disabled={!editHistoryRef.current.canRedo}
+                  onClick={redoEdit}
+                >
+                  <RedoIcon />
+                  <span>Redo</span>
+                </button>
+              </div>
+            </div>
+
             <div className="range-panel-slot">
               {range && (
                 <RangeSelector
