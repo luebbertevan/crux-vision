@@ -85,8 +85,9 @@ pending-analysis, and application-error messages must remain distinct.
   lockup at the left of the player; On-device pose occupies the matching right
   gutter. Both cards share a top edge, remain centered between the player and
   their respective viewport edges, and scale from 137.5% at laptop widths to
-  150% at 1600 px, 170% at full HD, and 187.5% on ultrawide displays. The paired row is
-  vertically centered when height permits. The filename sits above the right card,
+  165% at 1600 px, 187% at full HD, and 206.25% on ultrawide displays. A
+  viewport-based minimum top offset keeps added content growing downward
+  instead of moving either card above the branding. The filename sits above the right card,
   right-aligned to it at approximately the brand subtitle's type size. At compact
   desktop widths, the stage aligns to the
   right of its review column so the wider brand does not reduce portrait video

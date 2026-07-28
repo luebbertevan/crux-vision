@@ -140,9 +140,10 @@ established sizing. For wide portrait review, Clip & analysis uses the open
 space beneath an enlarged brand lockup at the left of the player, while
 On-device pose occupies the matching right gutter. Both cards share a top edge
 and remain centered between the player and their respective viewport edges.
-Their responsive scale increases from 137.5% at laptop widths to 150% at
-1600 px, 170% at full HD, and 187.5% on ultrawide displays; the paired row is vertically
-centered when the available height permits. The
+Their responsive scale increases from 137.5% at laptop widths to 165% at
+1600 px, 187% at full HD, and 206.25% on ultrawide displays. The paired row has
+a viewport-based minimum top offset, so added content grows downward instead
+of pushing either card above the branding. The
 filename sits above the right card, right-aligned to it at approximately the
 brand subtitle's type size. At compact desktop
 widths the stage aligns to the right of its review column so the wider brand

@@ -193,10 +193,35 @@ test('desktop portrait and landscape stages use the available review surface', a
     page.locator('.range-section .analysis-actions .file-button-compact').boundingBox(),
   ]);
   const rangeSectionBounds = await page.locator('.range-section').boundingBox();
+  const [startValue, startButton, endButton, endValue] = await Promise.all([
+    page.locator('.range-readout-edge:not(.is-end) > span').boundingBox(),
+    page.getByRole('button', { name: 'Set start' }).boundingBox(),
+    page.getByRole('button', { name: 'Set end' }).boundingBox(),
+    page.locator('.range-readout-edge.is-end > span').boundingBox(),
+  ]);
   expect(analyzeBounds).not.toBeNull();
   expect(replaceBounds).not.toBeNull();
   expect(rangeSectionBounds).not.toBeNull();
+  expect(startValue).not.toBeNull();
+  expect(startButton).not.toBeNull();
+  expect(endButton).not.toBeNull();
+  expect(endValue).not.toBeNull();
   expect(rangeSectionBounds!.width).toBeGreaterThanOrEqual(414);
+  expect(startButton!.height).toBeLessThanOrEqual(startValue!.height + 1.5);
+  expect(endButton!.height).toBeLessThanOrEqual(endValue!.height + 1.5);
+  expect(
+    Math.abs(
+      startButton!.x -
+        (startValue!.x + startValue!.width) -
+        (endValue!.x - (endButton!.x + endButton!.width)),
+    ),
+  ).toBeLessThanOrEqual(1);
+  expect(
+    Math.abs(startButton!.y + startButton!.height - (startValue!.y + startValue!.height)),
+  ).toBeLessThanOrEqual(1);
+  expect(
+    Math.abs(endButton!.y + endButton!.height - (endValue!.y + endValue!.height)),
+  ).toBeLessThanOrEqual(1);
   expect(analyzeBounds!.height).toBeGreaterThanOrEqual(44);
   expect(analyzeBounds!.height).toBeLessThanOrEqual(56);
   expect(Math.abs(replaceBounds!.width - analyzeBounds!.width)).toBeLessThanOrEqual(0.5);
@@ -269,9 +294,9 @@ test('portrait review cards scale and remain centered in medium-to-large gutters
 }, testInfo) => {
   const viewports = [
     { label: 'medium', width: 1440, height: 900, cardWidth: 418, topOffset: 58 },
-    { label: 'large', width: 1680, height: 1050, cardWidth: 456 },
-    { label: 'full-hd', width: 1920, height: 1080, cardWidth: 517, topOffset: 65 },
-    { label: 'wide', width: 2560, height: 1440, cardWidth: 570 },
+    { label: 'large', width: 1680, height: 1050, cardWidth: 502, topOffset: 63 },
+    { label: 'full-hd', width: 1920, height: 1080, cardWidth: 568.5, topOffset: 65 },
+    { label: 'wide', width: 2560, height: 1440, cardWidth: 627, topOffset: 86 },
   ];
 
   for (const viewport of viewports) {
@@ -294,24 +319,38 @@ test('portrait review cards scale and remain centered in medium-to-large gutters
       Math.abs(review.poseCard.x + review.poseCard.width / 2 - rightGutterCenter),
     ).toBeLessThanOrEqual(2);
     expect(Math.abs(review.rangeCard.y - review.poseCard.y)).toBeLessThanOrEqual(1);
-    if (viewport.topOffset !== undefined) {
-      expect(review.rangeCard.y - review.stage.y).toBeCloseTo(
-        viewport.topOffset,
-        0,
-      );
-    } else {
-      expect(
-        Math.abs(
-          review.rangeCard.y -
-            review.stage.y -
-            (review.stage.bottom - review.rangeCard.bottom),
-        ),
-      ).toBeLessThanOrEqual(3);
-    }
+    expect(review.rangeCard.y - review.stage.y).toBeCloseTo(
+      viewport.topOffset,
+      0,
+    );
     expect(review.rangeCard.width).toBeCloseTo(viewport.cardWidth, 0);
     expect(review.poseCard.width).toBeCloseTo(viewport.cardWidth, 0);
     expect(review.rangeCard.right).toBeLessThan(review.stage.x);
     expect(review.poseCard.x).toBeGreaterThan(review.stage.right);
+    if (viewport.label === 'medium') {
+      const initialTop = review.rangeCard.y;
+      const addCheckpoint = page.getByTestId('checkpoint-controls').getByRole(
+        'button',
+        { name: 'Add', exact: true },
+      );
+      for (const currentTime of [0.5, 1, 1.5]) {
+        await page.locator('video').evaluate(async (element, time) => {
+          const media = element as HTMLVideoElement;
+          media.currentTime = time;
+          await new Promise<void>((resolve) =>
+            media.addEventListener('seeked', () => resolve(), { once: true }),
+          );
+        }, currentTime);
+        await addCheckpoint.click();
+      }
+      await expect(page.getByTestId('checkpoint-controls')).toHaveAttribute(
+        'data-checkpoint-count',
+        '3',
+      );
+      const expanded = await getReviewBounds(page);
+      expect(expanded.rangeCard.y).toBeCloseTo(initialTop, 0);
+      expect(expanded.rangeCard.height).toBeGreaterThan(review.rangeCard.height);
+    }
     await expectNoHorizontalOverflow(page);
     await page.screenshot({
       path: testInfo.outputPath(`portrait-gutters-${viewport.label}.png`),
