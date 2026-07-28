@@ -1246,12 +1246,13 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
 }
 .trail-duration-input {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 124px auto;
   align-items: center;
+  justify-content: start;
   gap: 8px;
 }
 .trail-duration-input input {
-  width: 100%;
+  width: 124px;
   min-height: 38px;
   padding: 0 9px;
   border: 1px solid #454b42;

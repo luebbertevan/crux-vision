@@ -357,6 +357,13 @@ function TrailEditor({
     0.25,
     analysisRangeDurationMicroseconds / 1_000_000,
   );
+  const committedRollingDurationSeconds =
+    appearance.durationMicroseconds / 1_000_000;
+  const formatDurationSeconds = (seconds: number) =>
+    String(Math.round(seconds * 100) / 100);
+  const [durationDraft, setDurationDraft] = useState(
+    formatDurationSeconds(committedRollingDurationSeconds),
+  );
   const [customColorDraft, setCustomColorDraft] = useState(appearance.color);
   const [customColorActive, setCustomColorActive] = useState(false);
   const customColorRootRef = useRef<HTMLDivElement>(null);
@@ -365,6 +372,11 @@ function TrailEditor({
     setCustomColorDraft(appearance.color);
     setCustomColorActive(false);
   }, [appearance.color, sourceId]);
+  useEffect(() => {
+    setDurationDraft(
+      formatDurationSeconds(committedRollingDurationSeconds),
+    );
+  }, [committedRollingDurationSeconds, sourceId]);
   useEffect(() => {
     if (!customColorActive) return;
     const commitOutside = (event: PointerEvent) => {
@@ -389,6 +401,26 @@ function TrailEditor({
     );
     setCustomColorActive(false);
     customColorInputRef.current?.blur();
+  };
+  const commitDurationDraft = () => {
+    const trimmedDraft = durationDraft.trim();
+    const parsedSeconds = Number(trimmedDraft);
+    if (trimmedDraft === '' || !Number.isFinite(parsedSeconds)) {
+      setDurationDraft(
+        formatDurationSeconds(committedRollingDurationSeconds),
+      );
+      return;
+    }
+    const durationSeconds = Math.min(
+      maximumRollingDurationSeconds,
+      Math.max(0.25, parsedSeconds),
+    );
+    setDurationDraft(formatDurationSeconds(durationSeconds));
+    onSettingsChange((current) =>
+      withTrailAppearance(current, sourceId, {
+        durationMicroseconds: durationSeconds * 1_000_000,
+      }),
+    )
   };
   const addRange = () => {
     if (checkpoints.length < 2) return;
@@ -663,7 +695,7 @@ function TrailEditor({
           <span>
             Rolling duration
             <small>
-              Up to {maximumRollingDurationSeconds.toFixed(2)} s
+              Analysis range max {maximumRollingDurationSeconds.toFixed(2)} s
             </small>
           </span>
           <span className="trail-duration-input">
@@ -673,17 +705,15 @@ function TrailEditor({
               min="0.25"
               max={maximumRollingDurationSeconds}
               step="0.05"
-              value={appearance.durationMicroseconds / 1_000_000}
+              value={durationDraft}
               aria-label={`${definition.label} trail duration in seconds`}
-              onChange={(event) => {
-                if (!Number.isFinite(event.currentTarget.valueAsNumber)) return;
-                const durationMicroseconds =
-                  event.currentTarget.valueAsNumber * 1_000_000;
-                onSettingsChange((current) =>
-                  withTrailAppearance(current, sourceId, {
-                    durationMicroseconds,
-                  }),
-                )
+              onChange={(event) => setDurationDraft(event.currentTarget.value)}
+              onBlur={commitDurationDraft}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  event.currentTarget.blur();
+                }
               }}
             />
             <span aria-hidden="true">seconds</span>

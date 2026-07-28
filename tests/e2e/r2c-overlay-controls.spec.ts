@@ -185,7 +185,12 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
   await expect(trailDuration).toHaveAttribute('type', 'number');
   await expect(trailDuration).toHaveAttribute('step', '0.05');
   await expect(trailDuration).toHaveAttribute('max', '2');
+  await trailDuration.fill('');
+  await expect(trailDuration).toHaveValue('');
+  await trailDuration.blur();
+  await expect(trailDuration).toHaveValue('2');
   await trailDuration.fill('1.35');
+  await trailDuration.blur();
   await expect(trailDuration).toHaveValue('1.35');
   await expect(page.getByLabel('Duration presets')).toHaveCount(0);
   await page
