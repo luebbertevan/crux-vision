@@ -1655,6 +1655,11 @@ export function App() {
                 key={source.id}
                 settings={overlaySettings}
                 checkpoints={checkpoints}
+                analysisRangeDurationMicroseconds={
+                  range
+                    ? range.endMicroseconds - range.startMicroseconds
+                    : source.metadata.durationMicroseconds
+                }
                 open={overlaySettingsOpen}
                 onOpenChange={setOverlaySettingsOpen}
                 onSettingsChange={(updater) => setOverlaySettings(updater)}

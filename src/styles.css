@@ -1239,6 +1239,32 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   display: grid;
   gap: 8px;
 }
+.trail-duration-control > span:first-child small {
+  color: #747a70;
+  font-size: .49rem;
+  font-weight: 650;
+}
+.trail-duration-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+.trail-duration-input input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 9px;
+  border: 1px solid #454b42;
+  border-radius: 7px;
+  color: #dfffc2;
+  background: #111411;
+  font: 700 .62rem/1 "SFMono-Regular", Consolas, monospace;
+}
+.trail-duration-input > span {
+  color: #858b81;
+  font-size: .52rem;
+  font-weight: 750;
+}
 .trail-checkpoint-editor > p {
   margin: 0;
   color: #858b81;
@@ -2060,6 +2086,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .trail-editor-source select,
   .trail-color-palette button,
   .trail-custom-color,
+  .trail-duration-input input,
   .trail-mode-toggle,
   .trail-range-add,
   .trail-range-visibility,
@@ -2135,6 +2162,7 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   .trail-editor-source select,
   .trail-color-palette button,
   .trail-custom-color,
+  .trail-duration-input input,
   .trail-mode-toggle,
   .trail-range-add,
   .trail-range-visibility,

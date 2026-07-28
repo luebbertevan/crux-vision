@@ -28,6 +28,7 @@ import { formatTime } from './RangeSelector';
 type OverlaySettingsPanelProps = {
   settings: OverlaySettings;
   checkpoints: readonly TrailCheckpoint[];
+  analysisRangeDurationMicroseconds: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSettingsChange: (
@@ -57,6 +58,7 @@ const sourceGroups: readonly TrailSourceGroup[] = [
 export function OverlaySettingsPanel({
   settings,
   checkpoints,
+  analysisRangeDurationMicroseconds,
   open,
   onOpenChange,
   onSettingsChange,
@@ -276,6 +278,9 @@ export function OverlaySettingsPanel({
                       sourceId={editorDefinition.id}
                       settings={settings}
                       checkpoints={checkpoints}
+                      analysisRangeDurationMicroseconds={
+                        analysisRangeDurationMicroseconds
+                      }
                       onSettingsChange={onSettingsChange}
                     />
                   )}
@@ -334,11 +339,13 @@ function TrailEditor({
   sourceId,
   settings,
   checkpoints,
+  analysisRangeDurationMicroseconds,
   onSettingsChange,
 }: {
   sourceId: TrailSourceId;
   settings: OverlaySettings;
   checkpoints: readonly TrailCheckpoint[];
+  analysisRangeDurationMicroseconds: number;
   onSettingsChange: OverlaySettingsPanelProps['onSettingsChange'];
 }) {
   const definition = TRAIL_SOURCE_DEFINITIONS.find(({ id }) => id === sourceId)!;
@@ -346,6 +353,10 @@ function TrailEditor({
   const usesCheckpoints =
     settings.trailTimingMode[sourceId] === 'checkpoint-ranges';
   const ranges = settings.trailCheckpointRanges[sourceId];
+  const maximumRollingDurationSeconds = Math.max(
+    0.25,
+    analysisRangeDurationMicroseconds / 1_000_000,
+  );
   const [customColorDraft, setCustomColorDraft] = useState(appearance.color);
   const [customColorActive, setCustomColorActive] = useState(false);
   const customColorRootRef = useRef<HTMLDivElement>(null);
@@ -472,7 +483,7 @@ function TrailEditor({
         <input
           type="range"
           min="0.6"
-          max="2.5"
+          max="5"
           step="0.05"
           value={appearance.widthScale}
           aria-label={`${definition.label} trail width`}
@@ -651,27 +662,32 @@ function TrailEditor({
         <label className="trail-control trail-duration-control">
           <span>
             Rolling duration
-            <output>
-              {(appearance.durationMicroseconds / 1_000_000).toFixed(2)} s
-            </output>
+            <small>
+              Up to {maximumRollingDurationSeconds.toFixed(2)} s
+            </small>
           </span>
-          <input
-            type="range"
-            min="0.25"
-            max="10"
-            step="0.25"
-            value={appearance.durationMicroseconds / 1_000_000}
-            aria-label={`${definition.label} trail duration`}
-            onChange={(event) => {
-              const durationMicroseconds =
-                event.currentTarget.valueAsNumber * 1_000_000;
-              onSettingsChange((current) =>
-                withTrailAppearance(current, sourceId, {
-                  durationMicroseconds,
-                }),
-              )
-            }}
-          />
+          <span className="trail-duration-input">
+            <input
+              type="number"
+              inputMode="decimal"
+              min="0.25"
+              max={maximumRollingDurationSeconds}
+              step="0.05"
+              value={appearance.durationMicroseconds / 1_000_000}
+              aria-label={`${definition.label} trail duration in seconds`}
+              onChange={(event) => {
+                if (!Number.isFinite(event.currentTarget.valueAsNumber)) return;
+                const durationMicroseconds =
+                  event.currentTarget.valueAsNumber * 1_000_000;
+                onSettingsChange((current) =>
+                  withTrailAppearance(current, sourceId, {
+                    durationMicroseconds,
+                  }),
+                )
+              }}
+            />
+            <span aria-hidden="true">seconds</span>
+          </span>
         </label>
       )}
 

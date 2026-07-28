@@ -127,6 +127,22 @@ describe('overlay settings contract', () => {
     );
   });
 
+  it('allows analysis-range trail durations and caps width at 500%', () => {
+    const changed = withTrailAppearance(
+      createDefaultOverlaySettings(),
+      'left-ankle',
+      {
+        durationMicroseconds: 45_000_000,
+        widthScale: 8,
+      },
+    );
+
+    expect(changed.trailAppearance['left-ankle']).toMatchObject({
+      durationMicroseconds: 45_000_000,
+      widthScale: 5,
+    });
+  });
+
   it('supports multiple visible checkpoint ranges and removes broken references', () => {
     let settings = withTrailTimingMode(
       createDefaultOverlaySettings(),

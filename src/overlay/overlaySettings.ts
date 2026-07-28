@@ -340,10 +340,7 @@ export function withTrailAppearance(
         colorChannels: hexColorChannels(color),
         durationMicroseconds: Math.max(
           250_000,
-          Math.min(
-            10_000_000,
-            update.durationMicroseconds ?? current.durationMicroseconds,
-          ),
+          update.durationMicroseconds ?? current.durationMicroseconds,
         ),
         minimumAlpha: Math.max(
           0.05,
@@ -354,7 +351,7 @@ export function withTrailAppearance(
         ),
         widthScale: Math.max(
           0.6,
-          Math.min(2.5, update.widthScale ?? current.widthScale),
+          Math.min(5, update.widthScale ?? current.widthScale),
         ),
       },
     },

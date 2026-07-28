@@ -18,9 +18,10 @@ editor provides:
 
 - eight compact high-visibility graphite/chalk palette colors and a native
   custom color picker with outside-click commit behavior;
-- responsive width from 60–250% of the original responsive stroke rule;
+- responsive width from 60–500% of the original responsive stroke rule;
 - tail opacity from 5–98%;
-- a rolling-duration slider from 0.25–10 seconds;
+- a precise rolling-duration field in 0.05-second steps, from 0.25 seconds up
+  to the current analysis-range duration;
 - reset for the selected source and reset-all to the R2C defaults.
 
 The contrast halo remains renderer-owned and independent of the selected color.

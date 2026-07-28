@@ -176,7 +176,17 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
   await expect(
     page.getByTestId('trail-editor-left-ankle').locator('.trail-editor-live-swatch'),
   ).toHaveAttribute('style', /#654321/);
-  await page.getByLabel('Left ankle trail width').fill('1.8');
+  const trailWidth = page.getByLabel('Left ankle trail width');
+  await expect(trailWidth).toHaveAttribute('max', '5');
+  await trailWidth.fill('5');
+  const trailDuration = page.getByLabel(
+    'Left ankle trail duration in seconds',
+  );
+  await expect(trailDuration).toHaveAttribute('type', 'number');
+  await expect(trailDuration).toHaveAttribute('step', '0.05');
+  await expect(trailDuration).toHaveAttribute('max', '2');
+  await trailDuration.fill('1.35');
+  await expect(trailDuration).toHaveValue('1.35');
   await expect(page.getByLabel('Duration presets')).toHaveCount(0);
   await page
     .getByLabel('Use checkpoint ranges for Left ankle trail')
