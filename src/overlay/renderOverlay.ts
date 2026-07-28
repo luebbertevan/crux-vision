@@ -12,6 +12,7 @@ import {
 import {
   buildTrailSegmentsForWindowWithResolver,
   buildTrailSegmentsWithResolver,
+  type TrailPoint,
   type TrailSegment,
 } from '../pose/trail';
 import type { PoseLandmark } from '../types';
@@ -21,6 +22,7 @@ import {
   activeTrailCheckpointWindow,
   calculateTrailPointRadii,
   calculateTrailStrokeWidths,
+  trailCheckpointWindow,
   TRAIL_MAXIMUM_GAP_MICROSECONDS,
   TRAIL_SOURCE_DEFINITIONS,
   type OverlaySettings,
@@ -86,7 +88,10 @@ export function renderOverlay(
       )?.point ?? null;
     const trailWindows: Array<{
       segments: TrailSegment[];
-      showEndpoints: boolean;
+      endpoints: Array<{
+        kind: 'start' | 'end';
+        point: TrailPoint;
+      }>;
     }> = [];
     if (settings.trailTimingMode[trail.id] === 'rolling') {
       trailWindows.push({
@@ -100,7 +105,7 @@ export function renderOverlay(
           },
           resolvePoint,
         ),
-        showEndpoints: false,
+        endpoints: [],
       });
     } else {
       for (const checkpointRange of settings.trailCheckpointRanges[trail.id]) {
@@ -112,6 +117,51 @@ export function renderOverlay(
           appearance.durationMicroseconds,
         );
         if (!window) continue;
+        const ageWindow = {
+          startMicroseconds:
+            presentationTimestampMicroseconds -
+            appearance.durationMicroseconds,
+          endMicroseconds: presentationTimestampMicroseconds,
+        };
+        const checkpointWindow = trailCheckpointWindow(
+          checkpointRange,
+          checkpoints,
+        );
+        if (!checkpointWindow) continue;
+        const checkpointSegments =
+          buildTrailSegmentsForWindowWithResolver(
+            samples,
+            checkpointWindow,
+            {
+              source: trail.source,
+              maximumGapMicroseconds: TRAIL_MAXIMUM_GAP_MICROSECONDS,
+            },
+            resolvePoint,
+            ageWindow,
+          );
+        const nonemptyCheckpointSegments = checkpointSegments.filter(
+          (segment) => segment.length > 0,
+        );
+        const startPoint = nonemptyCheckpointSegments[0]?.[0];
+        const endPoint = nonemptyCheckpointSegments.at(-1)?.at(-1);
+        const endpoints: Array<{
+          kind: 'start' | 'end';
+          point: TrailPoint;
+        }> = [];
+        if (
+          startPoint &&
+          startPoint.timestampMicroseconds >= ageWindow.startMicroseconds &&
+          startPoint.timestampMicroseconds <= ageWindow.endMicroseconds
+        ) {
+          endpoints.push({ kind: 'start', point: startPoint });
+        }
+        if (
+          endPoint &&
+          endPoint.timestampMicroseconds >= ageWindow.startMicroseconds &&
+          endPoint.timestampMicroseconds <= ageWindow.endMicroseconds
+        ) {
+          endpoints.push({ kind: 'end', point: endPoint });
+        }
         trailWindows.push({
           segments: buildTrailSegmentsForWindowWithResolver(
             samples,
@@ -121,14 +171,9 @@ export function renderOverlay(
               maximumGapMicroseconds: TRAIL_MAXIMUM_GAP_MICROSECONDS,
             },
             resolvePoint,
-            {
-              startMicroseconds:
-                presentationTimestampMicroseconds -
-                appearance.durationMicroseconds,
-              endMicroseconds: presentationTimestampMicroseconds,
-            },
+            ageWindow,
           ),
-          showEndpoints: true,
+          endpoints,
         });
       }
     }
@@ -152,11 +197,11 @@ export function renderOverlay(
         pointRadii,
         strokeWidths,
       );
-      if (trailWindow.showEndpoints) {
+      if (trailWindow.endpoints.length > 0) {
         drawTrailEndpoints(
           context,
           transform,
-          trailWindow.segments,
+          trailWindow.endpoints,
           appearance,
           pointRadii.haloRadius,
         );
@@ -315,32 +360,40 @@ function drawTrailSegments(
 function drawTrailEndpoints(
   context: CanvasRenderingContext2D,
   transform: DisplayTransform,
-  segments: readonly TrailSegment[],
+  endpoints: readonly {
+    kind: 'start' | 'end';
+    point: TrailPoint;
+  }[],
   appearance: TrailAppearanceConfig,
   radius: number,
 ) {
-  const nonemptySegments = segments.filter((segment) => segment.length > 0);
-  const first = nonemptySegments[0]?.[0];
-  const finalSegment = nonemptySegments.at(-1);
-  const last = finalSegment?.at(-1);
-  if (!first || !last) return;
-
-  const start = mapNormalizedPoint(transform, first);
-  const end = mapNormalizedPoint(transform, last);
   const markerRadius = radius + 2;
-  for (const point of [start, end]) {
+  for (const endpoint of endpoints) {
+    const point = mapNormalizedPoint(transform, endpoint.point);
+    const alpha =
+      appearance.minimumAlpha +
+      endpoint.point.ageRatio *
+        (appearance.maximumAlpha - appearance.minimumAlpha);
     context.beginPath();
     context.arc(point.x, point.y, markerRadius, 0, Math.PI * 2);
-    context.fillStyle = `rgba(${appearance.haloColorChannels}, 0.9)`;
+    context.fillStyle = `rgba(${appearance.haloColorChannels}, ${alpha * appearance.haloAlphaScale})`;
     context.fill();
     context.beginPath();
     context.arc(point.x, point.y, markerRadius - 2, 0, Math.PI * 2);
-    context.fillStyle = `rgba(${appearance.colorChannels}, 1)`;
+    context.fillStyle = `rgba(${appearance.colorChannels}, ${alpha})`;
     context.fill();
-  }
 
-  context.beginPath();
-  context.arc(start.x, start.y, Math.max(2, markerRadius * 0.4), 0, Math.PI * 2);
-  context.fillStyle = `rgba(${appearance.haloColorChannels}, 0.9)`;
-  context.fill();
+    if (endpoint.kind === 'start') {
+      context.beginPath();
+      context.arc(
+        point.x,
+        point.y,
+        Math.max(2, markerRadius * 0.4),
+        0,
+        Math.PI * 2,
+      );
+      context.fillStyle = `rgba(${appearance.haloColorChannels}, ${alpha * appearance.haloAlphaScale})`;
+      context.fill();
+    }
+  }
 }

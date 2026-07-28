@@ -46,10 +46,11 @@ Checkpoint deletion and dependent range cleanup are one atomic undo step.
 Checkpoint ranges gate which cached samples may contribute to a trail. The
 trail grows from the start checkpoint without revealing future motion. After
 the end checkpoint, the completed portion remains visible and ages out using
-the same duration and fade rules as an ordinary rolling trail. A ring marks the
-first currently visible accepted point and a solid marker identifies the last.
-If an exact timestamp lacks an accepted joint, the marker remains honest by
-landing on the first or last accepted sample inside the active intersection.
+the same duration and fade rules as an ordinary rolling trail. Endpoint nodes
+remain anchored to the first and last accepted samples in the checkpoint
+interval; they fade in place with the same opacity curve instead of chasing the
+shrinking trail tail. If an exact timestamp lacks an accepted joint, the marker
+remains honest by landing on the nearest accepted endpoint sample.
 
 The checkpoint-window trail builder shares the rolling builder's continuity
 rules. Rejected or missing joints, repeated/backward timestamps, and gaps

@@ -244,6 +244,29 @@ describe('overlay renderer settings', () => {
       'checkpoint-ranges',
     );
     settings = addTrailCheckpointRange(settings, 'hip-midpoint', 1, 2);
+    const midpointSamples = [
+      qualitySample(0),
+      qualitySample(15_000),
+      qualitySample(30_000),
+    ];
+    const duringRange = recordingContext();
+    renderOverlay(
+      duringRange.context,
+      720,
+      480,
+      transform,
+      midpointSamples,
+      midpointSamples[1],
+      15_000,
+      'centered',
+      settings,
+      [
+        { id: 1, name: 'Start', timestampMicroseconds: 0 },
+        { id: 2, name: 'End', timestampMicroseconds: 30_000 },
+      ],
+    );
+    expect(duringRange.fills).toHaveLength(3);
+
     const recording = recordingContext();
     const result = renderOverlay(
       recording.context,
@@ -281,6 +304,31 @@ describe('overlay renderer settings', () => {
       ],
     );
     expect(justAfterRange.trailSegmentCount).toBe(1);
+
+    const agedRange = recordingContext();
+    renderOverlay(
+      agedRange.context,
+      720,
+      480,
+      transform,
+      samples,
+      samples[1],
+      2_000_001,
+      'centered',
+      settings,
+      [
+        { id: 1, name: 'Start', timestampMicroseconds: 0 },
+        { id: 2, name: 'End', timestampMicroseconds: 30_000 },
+      ],
+    );
+    expect(agedRange.fills).toHaveLength(4);
+    const endpointAlpha = Number(
+      agedRange.fills.at(-1)?.fillStyle.match(/,\s*([\d.]+)\)$/)?.[1],
+    );
+    expect(endpointAlpha).toBeGreaterThan(
+      settings.trailAppearance['hip-midpoint'].minimumAlpha,
+    );
+    expect(endpointAlpha).toBeLessThan(0.5);
 
     const expiredRange = renderOverlay(
       recordingContext().context,
