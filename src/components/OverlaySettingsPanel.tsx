@@ -457,6 +457,12 @@ function TrailEditor({
       Math.max(0.25, parsedSeconds),
     );
     setDurationDraft(formatDurationSeconds(durationSeconds));
+    if (
+      Math.round(durationSeconds * 1_000_000) ===
+      appearance.durationMicroseconds
+    ) {
+      return;
+    }
     onSettingsChange(
       (current) =>
         withTrailAppearance(current, sourceId, {
@@ -465,6 +471,28 @@ function TrailEditor({
       {
         key: `trail-${sourceId}-duration`,
         label: `${definition.label} duration`,
+        coalesce: true,
+      },
+    );
+  };
+  const updateDurationDraft = (draft: string) => {
+    setDurationDraft(draft);
+    if (draft.trim() === '') return;
+    const parsedSeconds = Number(draft);
+    if (!Number.isFinite(parsedSeconds)) return;
+    const durationSeconds = Math.min(
+      maximumRollingDurationSeconds,
+      Math.max(0.25, parsedSeconds),
+    );
+    onSettingsChange(
+      (current) =>
+        withTrailAppearance(current, sourceId, {
+          durationMicroseconds: durationSeconds * 1_000_000,
+        }),
+      {
+        key: `trail-${sourceId}-duration`,
+        label: `${definition.label} duration`,
+        coalesce: true,
       },
     );
   };
@@ -800,7 +828,9 @@ function TrailEditor({
               step="0.05"
               value={durationDraft}
               aria-label={`${definition.label} trail duration in seconds`}
-              onChange={(event) => setDurationDraft(event.currentTarget.value)}
+              onChange={(event) =>
+                updateDurationDraft(event.currentTarget.value)
+              }
               onBlur={commitDurationDraft}
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {

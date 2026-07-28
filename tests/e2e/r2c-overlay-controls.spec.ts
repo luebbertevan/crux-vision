@@ -190,8 +190,16 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
   await trailDuration.blur();
   await expect(trailDuration).toHaveValue('2');
   await trailDuration.fill('1.35');
-  await trailDuration.blur();
   await expect(trailDuration).toHaveValue('1.35');
+  const durationRevision = Number(
+    await canvas.getAttribute('data-draw-revision'),
+  );
+  await trailDuration.press('ArrowUp');
+  await expect(trailDuration).toHaveValue('1.4');
+  await expect
+    .poll(async () => Number(await canvas.getAttribute('data-draw-revision')))
+    .toBeGreaterThan(durationRevision);
+  await trailDuration.blur();
   await expect(page.getByLabel('Duration presets')).toHaveCount(0);
   await page
     .getByLabel('Use checkpoint ranges for Left ankle trail')
