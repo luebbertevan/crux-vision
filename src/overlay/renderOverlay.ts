@@ -18,9 +18,9 @@ import type { PoseLandmark } from '../types';
 import type { DisplayTransform } from './displayTransform';
 import { mapNormalizedPoint } from './displayTransform';
 import {
+  activeTrailCheckpointWindow,
   calculateTrailPointRadii,
   calculateTrailStrokeWidths,
-  trailCheckpointWindow,
   TRAIL_MAXIMUM_GAP_MICROSECONDS,
   TRAIL_SOURCE_DEFINITIONS,
   type OverlaySettings,
@@ -105,7 +105,11 @@ export function renderOverlay(
     } else {
       for (const checkpointRange of settings.trailCheckpointRanges[trail.id]) {
         if (!checkpointRange.visible) continue;
-        const window = trailCheckpointWindow(checkpointRange, checkpoints);
+        const window = activeTrailCheckpointWindow(
+          checkpointRange,
+          checkpoints,
+          presentationTimestampMicroseconds,
+        );
         if (!window) continue;
         trailWindows.push({
           segments: buildTrailSegmentsForWindowWithResolver(

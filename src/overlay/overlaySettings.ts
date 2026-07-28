@@ -522,6 +522,25 @@ export function trailCheckpointWindow(
   };
 }
 
+export function activeTrailCheckpointWindow(
+  range: TrailCheckpointRange,
+  checkpoints: readonly TrailCheckpoint[],
+  presentationTimestampMicroseconds: number,
+): { startMicroseconds: number; endMicroseconds: number } | null {
+  const window = trailCheckpointWindow(range, checkpoints);
+  if (
+    !window ||
+    presentationTimestampMicroseconds < window.startMicroseconds ||
+    presentationTimestampMicroseconds > window.endMicroseconds
+  ) {
+    return null;
+  }
+  return {
+    startMicroseconds: window.startMicroseconds,
+    endMicroseconds: presentationTimestampMicroseconds,
+  };
+}
+
 export function calculateTrailStrokeWidths(
   canvasWidth: number,
   widthScale: number = DEFAULT_TRAIL_APPEARANCE.widthScale,

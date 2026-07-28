@@ -761,7 +761,7 @@ function TrailEditor({
               </div>
               <button
                 type="button"
-                className="trail-range-remove"
+                className="trail-range-remove trail-source-remove"
                 aria-label={`Remove ${definition.label} trail range ${index + 1}`}
                 onClick={() =>
                   onSettingsChange(
@@ -778,7 +778,7 @@ function TrailEditor({
                   )
                 }
               >
-                Remove range
+                <span aria-hidden="true">×</span>
               </button>
             </div>
           ))}

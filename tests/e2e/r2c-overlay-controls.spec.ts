@@ -208,6 +208,11 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
     .click();
   await expect(page.locator('.trail-range-row')).toHaveCount(2);
   await expect(
+    page.getByRole('button', {
+      name: 'Remove Left ankle trail range 1',
+    }),
+  ).toHaveText('×');
+  await expect(
     page.getByLabel('Left ankle trail range 1 start').locator('option:checked'),
   ).toContainText('Launch');
   await expect(

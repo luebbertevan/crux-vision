@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  activeTrailCheckpointWindow,
   addTrailCheckpointRange,
   calculateTrailStrokeWidths,
   cloneOverlaySettings,
@@ -209,6 +210,32 @@ describe('overlay settings contract', () => {
     settings = resetTrailSourceSettings(settings, 'hip-midpoint');
     expect(settings.trailTimingMode['hip-midpoint']).toBe('rolling');
     expect(settings.trailCheckpointRanges['hip-midpoint']).toEqual([]);
+  });
+
+  it('activates checkpoint trails only during their range and never includes future time', () => {
+    const range = {
+      id: 1,
+      visible: true,
+      startCheckpointId: 1,
+      endCheckpointId: 2,
+    };
+    const checkpoints = [
+      { id: 1, name: 'Start', timestampMicroseconds: 3_000_000 },
+      { id: 2, name: 'End', timestampMicroseconds: 5_000_000 },
+    ];
+
+    expect(
+      activeTrailCheckpointWindow(range, checkpoints, 2_999_999),
+    ).toBeNull();
+    expect(
+      activeTrailCheckpointWindow(range, checkpoints, 4_000_000),
+    ).toEqual({
+      startMicroseconds: 3_000_000,
+      endMicroseconds: 4_000_000,
+    });
+    expect(
+      activeTrailCheckpointWindow(range, checkpoints, 5_000_001),
+    ).toBeNull();
   });
 
   it('uses a two-second trail and a responsive stroke 25% above the prior default', () => {

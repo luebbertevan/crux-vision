@@ -1325,8 +1325,7 @@ details[open] > summary > .disclosure-arrow {
 }
 .trail-range-add,
 .trail-reset-one,
-.trail-reset-all,
-.trail-range-remove {
+.trail-reset-all {
   min-height: 36px;
   border: 1px solid #3a4136;
   border-radius: 7px;
@@ -1342,6 +1341,7 @@ details[open] > summary > .disclosure-arrow {
   background: #22291d;
 }
 .trail-range-row {
+  position: relative;
   display: grid;
   gap: 8px;
   padding: 9px;
@@ -1360,6 +1360,7 @@ details[open] > summary > .disclosure-arrow {
   font-weight: 800;
   cursor: pointer;
 }
+.trail-range-visibility { padding-right: 43px; }
 .trail-range-endpoints {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1377,18 +1378,21 @@ details[open] > summary > .disclosure-arrow {
   min-height: 36px;
   font-size: .52rem;
 }
-.trail-range-remove,
 .trail-reset-one,
 .trail-reset-all {
   color: #8d9388;
   background: transparent;
 }
-.trail-range-remove:hover,
 .trail-reset-one:hover,
 .trail-reset-all:hover {
   border-color: #62504b;
   color: #f0a08b;
   background: #211817;
+}
+.trail-range-remove {
+  position: absolute;
+  top: 9px;
+  right: 9px;
 }
 
 .checkpoint-panel {

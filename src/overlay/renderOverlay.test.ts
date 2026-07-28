@@ -264,6 +264,23 @@ describe('overlay renderer settings', () => {
     expect(result.trailSegmentCount).toBe(1);
     expect(recording.strokes).toHaveLength(2);
     expect(recording.fills).toHaveLength(5);
+
+    const afterRange = renderOverlay(
+      recordingContext().context,
+      720,
+      480,
+      transform,
+      samples,
+      samples[1],
+      30_001,
+      'centered',
+      settings,
+      [
+        { id: 1, name: 'Start', timestampMicroseconds: 0 },
+        { id: 2, name: 'End', timestampMicroseconds: 30_000 },
+      ],
+    );
+    expect(afterRange.trailSegmentCount).toBe(0);
   });
 
   it('lets the master hide all drawing without mutating sub-selections', () => {
