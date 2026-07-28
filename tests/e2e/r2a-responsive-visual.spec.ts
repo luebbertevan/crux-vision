@@ -102,12 +102,30 @@ const expectNoHorizontalOverflow = async (page: import('@playwright/test').Page)
 };
 
 test('desktop empty shell visual acceptance', async ({ page }, testInfo) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: /See your climbing/i })).toBeVisible();
-  await expect(page.getByText('Nothing leaves this device.')).toBeVisible();
-  await expectNoHorizontalOverflow(page);
-  await page.screenshot({ path: testInfo.outputPath('desktop-empty.png'), fullPage: true });
+  for (const viewport of [
+    { width: 1440, height: 900, label: 'desktop' },
+    { width: 2560, height: 1440, label: 'wide' },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await expect(
+      page.getByRole('heading', { name: /See your climbing/i }),
+    ).toBeVisible();
+    await expect(page.getByText('Nothing leaves this device.')).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+
+    if (viewport.label === 'wide') {
+      expect((await page.locator('.app-shell').boundingBox())?.width).toBeGreaterThanOrEqual(2_390);
+      expect((await page.locator('.brand-mark').boundingBox())?.width).toBeGreaterThanOrEqual(104);
+      expect((await page.locator('.empty-frame').boundingBox())?.width).toBeGreaterThanOrEqual(600);
+      await expect(page.locator('.brand strong')).toHaveCSS('font-size', '51.2px');
+    }
+
+    await page.screenshot({
+      path: testInfo.outputPath(`${viewport.label}-empty.png`),
+      fullPage: true,
+    });
+  }
 });
 
 test('desktop portrait and landscape stages use the available review surface', async ({
