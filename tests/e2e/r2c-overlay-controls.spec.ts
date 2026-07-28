@@ -155,10 +155,14 @@ test('redraws cached overlays without analysis and preserves sub-selections behi
     })
     .click();
   const customColor = page.getByLabel('Custom color for Left ankle trail');
+  await expect(
+    page.getByRole('button', { name: 'Apply', exact: true }),
+  ).toHaveCount(0);
   await customColor.focus();
   await customColor.fill('#123456');
   await page
-    .getByRole('button', { name: 'Apply', exact: true })
+    .getByTestId('trail-editor-left-ankle')
+    .locator('.trail-editor-heading')
     .click();
   await expect(
     page.getByTestId('trail-editor-left-ankle').locator('.trail-editor-live-swatch'),

@@ -17,7 +17,7 @@ of ordinary review. One compact selector chooses the active trail to edit. Its
 editor provides:
 
 - eight compact high-visibility graphite/chalk palette colors and a native
-  custom color picker with explicit Apply and outside-click commit behavior;
+  custom color picker with outside-click commit behavior;
 - responsive width from 60–250% of the original responsive stroke rule;
 - tail opacity from 5–98%;
 - a rolling-duration slider from 0.25–10 seconds;

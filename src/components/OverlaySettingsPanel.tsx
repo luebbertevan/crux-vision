@@ -461,13 +461,6 @@ function TrailEditor({
             }}
           />
           <output>{customColorDraft.toUpperCase()}</output>
-          <button
-            type="button"
-            className="trail-custom-color-apply"
-            onClick={applyCustomColor}
-          >
-            Apply
-          </button>
         </div>
       </fieldset>
 
