@@ -612,6 +612,13 @@ test('keeps the advanced calibration workspace usable at iPhone width', async ({
   await page.setViewportSize({ width: 393, height: 852 });
   await page.goto('/');
   await importVideo(page, portraitFixture);
+  await page.getByRole('button', { name: 'Show Playback tools' }).click();
+  const compactPrecisionBounds = await page
+    .getByTestId('precision-review-controls')
+    .boundingBox();
+  const compactFrameBounds = await page
+    .getByRole('group', { name: 'Frame navigation' })
+    .boundingBox();
   await page.getByRole('button', { name: 'Show Analyze tools' }).click();
   await page.getByText('Pose quality calibration').click();
 
@@ -625,6 +632,15 @@ test('keeps the advanced calibration workspace usable at iPhone width', async ({
   const exactFrameHeight = (
     await page.getByLabel('Exact analyzed frame').boundingBox()
   )?.height;
+  const exactFrameLabelHeight = (
+    await page.getByLabel('Exact analyzed frame').locator('..').boundingBox()
+  )?.height;
+  const expandedPrecisionBounds = await page
+    .getByTestId('precision-review-controls')
+    .boundingBox();
+  const expandedFrameBounds = await page
+    .getByRole('group', { name: 'Frame navigation' })
+    .boundingBox();
   await page.getByRole('button', { name: 'Show Analyze tools' }).click();
   await page.getByRole('button', { name: 'Export calibration JSON' })
     .scrollIntoViewIfNeeded();
@@ -638,7 +654,17 @@ test('keeps the advanced calibration workspace usable at iPhone width', async ({
     ),
   ).toBe(true);
 
-  expect(exactFrameHeight).toBeGreaterThanOrEqual(44);
+  expect(compactPrecisionBounds).not.toBeNull();
+  expect(compactFrameBounds).not.toBeNull();
+  expect(expandedPrecisionBounds).not.toBeNull();
+  expect(expandedFrameBounds).not.toBeNull();
+  expect(exactFrameHeight).toBeLessThanOrEqual(30);
+  expect(exactFrameLabelHeight).toBeGreaterThanOrEqual(44);
+  expect(expandedPrecisionBounds!.height).toBeCloseTo(
+    compactPrecisionBounds!.height,
+    0,
+  );
+  expect(expandedFrameBounds!.height).toBeCloseTo(compactFrameBounds!.height, 0);
   for (const locator of [
     page.getByTestId('calibration-model'),
     page.getByTestId('pose-preview-mode'),
