@@ -57,13 +57,18 @@ during normal scrolling.
 At `852×393`, a portrait source and persistent transport remain in the left
 review column while the mode bar and selected tools use the existing scrollable
 right rail. A landscape source instead fills the visual viewport width, keeps
-the transport inset over the video, and places the mode bar and selected tools
-below the stage. This deliberately mirrors the full-width portrait-phone
-player without adding crop, zoom, or pan.
+the transport inset over the video, starts the stage at the top screen edge
+with the compact brand over it, and places the mode bar and selected tools below
+the stage. This deliberately mirrors the full-width portrait-phone player
+without adding crop, zoom, or pan.
 
 Active ordinary controls are at least `44×44 px` in both orientations. R2D.1
 also corrects inherited small landscape range/action targets and replaces the
 eight tiny advanced trail-color swatches with two rows of touch-sized choices.
+The persistent transport is a tighter rounded pill everywhere. Play/pause keeps
+button semantics and an accessible name, but its visual treatment is a bare
+icon rather than a filled standard button; the mobile hit area remains
+`44×44 px`.
 
 ## State and architecture boundaries
 
@@ -92,6 +97,8 @@ Automated coverage verifies:
   source fixtures without horizontal overflow;
 - every source and viewport combination keeps the transport inside the stage,
   and landscape media fills a short landscape phone with tools below;
+- desktop transport stays at most `38 px` high and phone transport at most
+  `48 px`, with icon-only play/pause styling and mobile target sizing preserved;
 - active ordinary phone targets meet the `44×44 px` minimum;
 - the desktop mode bar stays hidden and the existing panels remain visible;
 - advanced calibration remains reachable at the bottom of Analyze while

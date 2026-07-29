@@ -229,6 +229,15 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
       expect(
         transportBounds!.y + transportBounds!.height,
       ).toBeLessThanOrEqual(stageBounds!.y + stageBounds!.height - 4);
+      expect(transportBounds!.height).toBeLessThanOrEqual(48);
+      await expect(
+        page.getByRole('button', { name: /Play video|Pause video/ }),
+      ).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      expect(
+        Number.parseFloat(await transport.evaluate(
+          (element) => getComputedStyle(element).borderRadius,
+        )),
+      ).toBeGreaterThanOrEqual(20);
 
       if (layout.label === 'landscape-phone-landscape-video') {
         const railBounds = await page.locator('.control-rail').boundingBox();
@@ -236,6 +245,7 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
         expect(stageBounds!.width).toBeGreaterThanOrEqual(851);
         expect(stageBounds!.height).toBeGreaterThanOrEqual(478);
         expect(stageBounds!.x).toBeLessThanOrEqual(0.5);
+        expect(stageBounds!.y).toBeLessThanOrEqual(0.5);
         expect(transportBounds!.x).toBeGreaterThanOrEqual(7.5);
         expect(
           transportBounds!.x + transportBounds!.width,

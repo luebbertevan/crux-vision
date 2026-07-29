@@ -156,12 +156,14 @@ compact horizontal top bar. At the reference viewports, the
 portrait stage is approximately 496×882 px at 1440×900 and remains
 393×698.5 px at 393×852; desktop landscape is approximately 1072×603 px. The
 852×393 layout keeps portrait media beside its control rail. A landscape
-source instead uses the full phone width, with its selected tools following
-below the stage so the tilted-phone player is as immersive as the portrait
-phone layout. The side brand lockup remains desktop-only. Phone review uses
-the translucent, inset over-video transport for both source and phone
-orientations while retaining 44 px touch targets and its existing compact
-header.
+source instead starts at the top edge and uses the full phone width, with the
+compact brand over the video and selected tools following below the stage. This
+makes the tilted-phone player as immersive as the portrait-phone layout. The
+side brand lockup remains desktop-only. Phone review uses the translucent,
+inset over-video transport for both source and phone orientations while
+retaining 44 px touch targets. Across desktop and phone layouts, play/pause is
+an icon-only control inside a slimmer pill transport instead of a filled
+standard button.
 Video and canvas still share identical bounds and `object-fit: contain`.
 
 ### R2 phone gate — Minimal physical-device smoke test
@@ -549,8 +551,11 @@ Build and validate:
   landscape video fixtures, including safe areas, touch behavior, responsive
   overflow, and unchanged video/canvas registration;
 - let a landscape source fill the width of a short landscape phone and place
-  its selected tools below the stage, while retaining the compact side-by-side
-  layout for portrait sources;
+  its compact header over the player and selected tools below the stage, while
+  retaining the compact side-by-side layout for portrait sources;
+- reduce transport obstruction with a rounded pill, tighter spacing, and an
+  icon-only play/pause control while preserving its accessible name and the
+  mobile `44×44 px` hit target;
 - leave desktop panel layout and behavior unchanged apart from making the
   landscape transport use the same over-video placement.
 

@@ -167,10 +167,13 @@ The mode bar appears below the stage on narrow portrait phones and at the top
 of the existing control rail on short landscape phones. It uses explicit text,
 selected states, accessible names, and `44×44 px` minimum active targets.
 When a short landscape phone displays a landscape source, the stage uses the
-full phone width and the selected tools follow below it; portrait sources keep
-the compact side-by-side stage and rail. Desktop continues to show all panels
-with no mode bar, and both desktop source orientations use the same inset
-transport placement.
+full phone width from the top edge, the compact brand overlays the player, and
+the selected tools follow below it; portrait sources keep the compact
+side-by-side stage and rail. Desktop continues to show all panels with no mode
+bar, and both desktop source orientations use the same inset transport
+placement. The shared transport is a slim rounded pill with transparent,
+icon-only play/pause presentation. Its mobile button keeps a `44×44 px` hit
+target even though the visible icon no longer appears inside a filled button.
 
 This is intentionally an MVP navigation layer, not a bottom-sheet system or
 interface rewrite. The transport remains inset within the stage rather than

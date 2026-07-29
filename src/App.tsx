@@ -1765,7 +1765,11 @@ export function App() {
                 aria-label={playerSnapshot.playing ? 'Pause video' : 'Play video'}
                 onClick={() => void player.togglePlayback().catch(() => undefined)}
               >
-                {playerSnapshot.playing ? <PauseIcon /> : <PlayIcon />}
+                {playerSnapshot.playing ? (
+                  <PauseIcon size={22} />
+                ) : (
+                  <PlayIcon size={22} />
+                )}
               </button>
               <span className="transport-time">
                 {formatTime(playerSnapshot.currentTimeSeconds)}

@@ -260,6 +260,10 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(
     (await page.getByRole('button', { name: /Play video|Pause video/ }).boundingBox())?.height,
   ).toBeLessThanOrEqual(36);
+  expect(portrait.transport.height).toBeLessThanOrEqual(38);
+  await expect(
+    page.getByRole('button', { name: /Play video|Pause video/ }),
+  ).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('desktop-portrait-imported.png'),
@@ -459,6 +463,7 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   expect(portrait.transport.right).toBeLessThanOrEqual(385.5);
   expect(portrait.transport.y).toBeGreaterThanOrEqual(portrait.stage.bottom - 70);
   expect(portrait.transport.bottom).toBeLessThanOrEqual(portrait.stage.bottom - 4);
+  expect(portrait.transport.height).toBeLessThanOrEqual(48);
   expectAligned(portrait.video, portrait.canvas);
   await expectPlaybackInputCentered(page);
   await expectNoHorizontalOverflow(page);
@@ -574,11 +579,15 @@ test('landscape phone keeps portrait and landscape review controls usable', asyn
   expect(bounds.stage.width).toBeGreaterThanOrEqual(851);
   expect(bounds.stage.height).toBeGreaterThanOrEqual(478);
   expect(bounds.stage.x).toBeLessThanOrEqual(0.5);
+  expect(bounds.stage.y).toBeLessThanOrEqual(0.5);
   expect(bounds.stage.right).toBeGreaterThanOrEqual(851.5);
+  expect(bounds.topbar.y).toBeGreaterThanOrEqual(7.5);
+  expect(bounds.topbar.bottom).toBeLessThanOrEqual(bounds.stage.bottom);
   expect(bounds.transport.x).toBeGreaterThanOrEqual(7.5);
   expect(bounds.transport.right).toBeLessThanOrEqual(844.5);
   expect(bounds.transport.y).toBeGreaterThanOrEqual(bounds.stage.bottom - 72);
   expect(bounds.transport.bottom).toBeLessThanOrEqual(bounds.stage.bottom - 4);
+  expect(bounds.transport.height).toBeLessThanOrEqual(48);
   expect(bounds.rail.y).toBeGreaterThanOrEqual(bounds.stage.bottom + 10);
   expectAligned(bounds.video, bounds.canvas);
   await expectNoHorizontalOverflow(page);
