@@ -116,7 +116,7 @@ Automated coverage verifies:
 - the short-landscape portrait transport hides both time readouts and devotes
   the recovered space to its seek track;
 - mobile Set start / Set end controls use the shared inline desktop treatment
-  while retaining 44 px touch targets;
+  with the same 24 px painted control inside transparent 44 px touch targets;
 - mobile review hides the separate top bar, displays the mark and name inside
   the stage without a glass backing or subtitle, and does not render the REVIEW
   label;

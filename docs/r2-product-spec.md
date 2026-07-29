@@ -189,8 +189,9 @@ control sits at the far right. New sources start muted for predictable mobile
 autoplay; the user can unmute for the remainder of that source session. The
 visible pill remains 36 px thick at every viewport size. Mobile play and mute
 hit areas extend transparently to `44×44 px` without making the transport look
-taller. Mobile Set start and Set end controls retain the desktop inline visual
-treatment beside their time values, with 44 px touch-target height.
+taller. Mobile Set start and Set end controls retain the same 24 px visible
+desktop treatment beside their time values while transparent space expands
+their touch targets to 44 px.
 
 This is intentionally an MVP navigation layer, not a bottom-sheet system or
 interface rewrite. The transport remains inset within the stage rather than

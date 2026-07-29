@@ -542,8 +542,9 @@ Build and validate:
   one inset over-video transport rather than duplicated controls or a
   viewport-fixed dock;
 - retain the desktop inline Set start / Set end treatment on mobile while
-  preserving 44 px touch targets, rather than stretching the buttons into
-  separate full-width rows;
+  preserving invisible 44 px touch targets around the same 24 px visible
+  buttons, rather than stretching their painted surfaces into large mobile
+  controls or separate full-width rows;
 - place range, analysis, history, pose quality, and calibration in Analyze;
   playback speed, range looping, presentation-frame navigation, and
   checkpoints in Playback; and overlay and trail controls in Overlay;

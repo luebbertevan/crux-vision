@@ -137,6 +137,19 @@ test('keeps transport and workspace state intact while changing mobile tools', a
     Math.abs(startButtonBounds!.width - endButtonBounds!.width),
   ).toBeLessThan(8);
   expect(startButtonBounds!.y).toBeCloseTo(endButtonBounds!.y, 0);
+  for (const button of [
+    page.getByRole('button', { name: 'Set start' }),
+    page.getByRole('button', { name: 'Set end' }),
+  ]) {
+    expect(
+      Number.parseFloat(
+        await button.evaluate(
+          (element) => getComputedStyle(element, '::before').height,
+        ),
+      ),
+    ).toBeCloseTo(24, 0);
+    await expect(button).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  }
 
   await showTools(page, 'Playback');
   await page.locator('video').evaluate(async (element) => {
