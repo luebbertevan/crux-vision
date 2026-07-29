@@ -170,7 +170,7 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(
     Math.abs(portrait.portraitFilename.x - portrait.poseCard.x),
   ).toBeLessThanOrEqual(1);
-  await expect(page.locator('.portrait-review-filename')).toHaveCSS('text-align', 'left');
+  await expect(page.locator('.portrait-review-filename')).toHaveCSS('text-align', 'right');
   await expect(page.locator('.topbar-actions')).toHaveCount(0);
   await expect(page.getByText('Local only')).toHaveCount(0);
   await expect(
