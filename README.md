@@ -35,9 +35,13 @@ npm run dev
 ```
 
 Open the printed local URL and choose a video. The app uses a local `blob:` URL;
-the file is not uploaded. MediaPipe's pinned WASM runtime and Lite model are
-downloaded when analysis starts, then inference runs in a module worker. Lite
-remains the calibrated default; Full is available only as an advanced challenger.
+the file is not uploaded. MediaPipe's pinned WASM runtime and selected model are
+downloaded when analysis starts, then inference runs in a module worker. Full is
+the product default; Lite remains available as a faster alternative.
+
+MediaPipe does not send input video or pose data to Google, but its Tasks APIs
+send performance and utilization metrics. The public beta discloses this before
+analysis begins.
 
 ## Verify
 

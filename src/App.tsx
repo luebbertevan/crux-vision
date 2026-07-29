@@ -1630,7 +1630,7 @@ export function App() {
           </span>
           <span>
             <strong>Crux Vision</strong>
-            <small>Movement review</small>
+            <small>Movement review · Public beta</small>
           </span>
         </a>
 
@@ -1658,7 +1658,8 @@ export function App() {
             <h1>See your climbing<br />in motion.</h1>
             <p>
               Open a video, isolate the crux, and follow your movement with a live
-              skeleton and body-center trails. Nothing leaves this device.
+              skeleton and body-center trails. Your video and pose data are processed
+              locally and are not uploaded by Crux Vision.
             </p>
             <FileButton
               label={opening ? 'Opening video…' : 'Open a climbing video'}
@@ -1985,7 +1986,21 @@ export function App() {
                       onFile={(file) => void openFile(file)}
                     />
                   </div>
-                  <p className="privacy-note"><ShieldIcon /> Video and pose stay on this device.</p>
+                  <p className="privacy-note">
+                    <ShieldIcon />
+                    <span>
+                      Video and pose data stay on this device. MediaPipe sends
+                      performance and utilization metrics to Google. By starting
+                      analysis, you acknowledge this processing.{' '}
+                      <a
+                        href="https://developers.google.com/edge/mediapipe/solutions/tasks#mediapipe_tasks_privacy_notice"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Privacy details
+                      </a>
+                    </span>
+                  </p>
                 </section>
                 <PrecisionReviewControls
                   playbackRate={playerSnapshot.playbackRate}

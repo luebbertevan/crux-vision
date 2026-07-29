@@ -1971,7 +1971,10 @@ details[open] > summary > .disclosure-arrow {
   width: 100%;
   border-radius: 9px;
 }
-.privacy-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 8px 0 0; color: #676c64; font-size: .56rem; }
+.privacy-note { display: flex; align-items: flex-start; justify-content: center; gap: 6px; margin: 8px 0 0; color: #777d73; font-size: .56rem; line-height: 1.45; }
+.privacy-note svg { flex: 0 0 auto; margin-top: 1px; }
+.privacy-note a { color: #a8c78a; text-underline-offset: 2px; }
+.privacy-note a:hover { color: #d3ff9e; }
 
 @media (min-width: 1100px) {
   .review-workspace {

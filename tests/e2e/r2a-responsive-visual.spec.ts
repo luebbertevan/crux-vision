@@ -125,7 +125,9 @@ test('desktop empty shell visual acceptance', async ({ page }, testInfo) => {
     await expect(
       page.getByRole('heading', { name: /See your climbing/i }),
     ).toBeVisible();
-    await expect(page.getByText('Nothing leaves this device.')).toBeVisible();
+    await expect(
+      page.getByText(/video and pose data are processed locally/i),
+    ).toBeVisible();
     await expectMovementReviewBranding(page);
     await expectNoHorizontalOverflow(page);
 
