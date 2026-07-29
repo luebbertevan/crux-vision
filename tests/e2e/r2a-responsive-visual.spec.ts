@@ -329,9 +329,8 @@ test('desktop portrait and landscape stages use the available review surface', a
   const compactDesktopPortrait = await getReviewBounds(page);
   expect(compactDesktopPortrait.stage.height).toBeGreaterThanOrEqual(745);
   expect(compactDesktopPortrait.stage.y).toBeLessThanOrEqual(10);
-  expect(compactDesktopPortrait.topbar.right).toBeLessThan(
-    compactDesktopPortrait.stage.x,
-  );
+  await expect(page.locator('.topbar')).toBeHidden();
+  await expect(page.locator('.stage-brand')).toBeVisible();
   expect(compactDesktopPortrait.stage.right).toBeLessThan(
     compactDesktopPortrait.rail.x,
   );
@@ -339,11 +338,8 @@ test('desktop portrait and landscape stages use the available review surface', a
     compactDesktopPortrait.stage.bottom - 55,
   );
   await expect(page.locator('.portrait-review-filename')).toBeHidden();
-  await expect(page.locator('.stage-source-filename')).toBeVisible();
-  await expect(page.locator('.stage-source-filename')).toHaveCSS(
-    'font-size',
-    '17.92px',
-  );
+  await expect(page.locator('.source-filename')).toBeHidden();
+  await expect(page.locator('.stage-source-filename')).toBeHidden();
   expect(compactDesktopPortrait.transport.right).toBeLessThanOrEqual(
     compactDesktopPortrait.stage.right - 7,
   );
@@ -353,6 +349,50 @@ test('desktop portrait and landscape stages use the available review surface', a
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('compact-desktop-portrait-imported.png'),
+    fullPage: true,
+  });
+});
+
+test('medium review widths keep branding on the player and omit filenames', async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 1220, height: 770 });
+  await page.goto('/');
+  await importVideo(page, {
+    name: 'portrait-session-with-a-deliberately-long-climbing-video-filename.MOV',
+    mimeType: 'video/quicktime',
+    buffer: await readFile(portraitFixture),
+  });
+
+  let review = await getReviewBounds(page);
+  await expect(page.locator('.topbar')).toBeHidden();
+  await expect(page.locator('.stage-brand')).toBeVisible();
+  await expect(page.locator('.source-filename')).toBeHidden();
+  await expect(page.locator('.stage-source-filename')).toBeHidden();
+  await expect(page.locator('.portrait-review-filename')).toBeHidden();
+  expect(review.stageBrand.x).toBeGreaterThanOrEqual(review.stage.x + 9.5);
+  expect(review.stageBrand.x).toBeLessThanOrEqual(review.stage.x + 11.5);
+  expect(review.stageBrand.y).toBeGreaterThanOrEqual(review.stage.y + 9.5);
+  expect(review.stageBrand.y).toBeLessThanOrEqual(review.stage.y + 11.5);
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({
+    path: testInfo.outputPath('medium-portrait-in-player-brand.png'),
+    fullPage: true,
+  });
+
+  await page.setViewportSize({ width: 980, height: 770 });
+  await importVideo(page, landscapeFixture);
+  review = await getReviewBounds(page);
+  await expect(page.locator('.topbar')).toBeHidden();
+  await expect(page.locator('.stage-brand')).toBeVisible();
+  await expect(page.locator('.source-filename')).toBeHidden();
+  expect(review.stageBrand.x).toBeGreaterThanOrEqual(review.stage.x + 9.5);
+  expect(review.stageBrand.x).toBeLessThanOrEqual(review.stage.x + 11.5);
+  expect(review.stageBrand.y).toBeGreaterThanOrEqual(review.stage.y + 9.5);
+  expect(review.stageBrand.y).toBeLessThanOrEqual(review.stage.y + 11.5);
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({
+    path: testInfo.outputPath('medium-landscape-in-player-brand.png'),
     fullPage: true,
   });
 });
