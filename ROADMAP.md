@@ -149,18 +149,19 @@ brand subtitle's type size. Review filenames use the larger legibility treatment
 across layouts, while source-review branding scales visually by 1.5× on wide
 screens without participating in control-card positioning. At compact desktop
 widths the stage aligns to the right of its review column so the wider brand
-does not reduce portrait video height. A 42 px translucent transport overlays
-the bottom of the stage, allowing the video to begin at the 8 px shell gutter.
-Desktop landscape retains the compact horizontal top bar
-and the 46 px transport below the stage. At the reference viewports, the
+does not reduce portrait video height. A translucent transport overlays the
+bottom of every desktop stage, allowing the video to begin at the 8 px shell
+gutter without reserving a second transport row. Desktop landscape retains the
+compact horizontal top bar. At the reference viewports, the
 portrait stage is approximately 496×882 px at 1440×900 and remains
 393×698.5 px at 393×852; desktop landscape is approximately 1072×603 px. The
-852×393 layout keeps both portrait and landscape media plus 44 px basic
-transport targets inside the viewport without horizontal overflow. The
-side brand lockup remains desktop-only; portrait phone review now shares the
-translucent, inset over-video transport while retaining 44 px touch targets and
-its existing compact header. Landscape phone transport remains below the stage
-to avoid obscuring a short video surface.
+852×393 layout keeps portrait media beside its control rail. A landscape
+source instead uses the full phone width, with its selected tools following
+below the stage so the tilted-phone player is as immersive as the portrait
+phone layout. The side brand lockup remains desktop-only. Phone review uses
+the translucent, inset over-video transport for both source and phone
+orientations while retaining 44 px touch targets and its existing compact
+header.
 Video and canvas still share identical bounds and `object-fit: contain`.
 
 ### R2 phone gate — Minimal physical-device smoke test
@@ -525,8 +526,9 @@ Build and validate:
 - expose **Analyze**, **Playback**, and **Overlay** through one compact mobile
   mode bar immediately after the stage in portrait and at the top of the
   existing control rail in landscape;
-- keep the existing video and transport mounted and unchanged across all three
-  modes rather than duplicating controls or introducing a viewport-fixed dock;
+- keep the existing video and transport mounted across all three modes, with
+  one inset over-video transport rather than duplicated controls or a
+  viewport-fixed dock;
 - place range, analysis, history, pose quality, and calibration in Analyze;
   playback speed, range looping, presentation-frame navigation, and
   checkpoints in Playback; and overlay and trail controls in Overlay;
@@ -546,7 +548,11 @@ Build and validate:
 - validate portrait and landscape phone viewports against both portrait and
   landscape video fixtures, including safe areas, touch behavior, responsive
   overflow, and unchanged video/canvas registration;
-- leave desktop panel layout and behavior unchanged.
+- let a landscape source fill the width of a short landscape phone and place
+  its selected tools below the stage, while retaining the compact side-by-side
+  layout for portrait sources;
+- leave desktop panel layout and behavior unchanged apart from making the
+  landscape transport use the same over-video placement.
 
 **Exit:** At `393×852`, `393×740`, and `852×393`, the stage and transport remain
 usable, the three modes expose only their assigned controls, active targets are
@@ -555,10 +561,10 @@ state. Both source orientations remain aligned without horizontal overflow.
 The privately deployed build is ready for the physical iPhone review.
 
 R2D.1 is implemented as a mobile-only visibility and navigation layer over the
-existing stateful components. The transport remains stage-adjacent rather than
-fixed to the viewport; a fixed dock, draggable sheet, hamburger menu, or other
-navigation layer requires gym evidence. Dedicated video zoom/pan and pose-quality
-recalibration remain out of scope. See
+existing stateful components. The transport remains inset within the stage
+rather than fixed to the viewport; a fixed dock, draggable sheet, hamburger
+menu, or other navigation layer requires gym evidence. Dedicated video zoom/pan
+and pose-quality recalibration remain out of scope. See
 [`docs/r2d1-implementation-spec.md`](./docs/r2d1-implementation-spec.md).
 
 #### R2D.2 — Sustained physical-device validation

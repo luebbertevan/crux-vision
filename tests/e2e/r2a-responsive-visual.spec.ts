@@ -276,7 +276,12 @@ test('desktop portrait and landscape stages use the available review surface', a
   expect(landscape.stage.right).toBeLessThan(landscape.rail.x);
   expect(landscape.transport.bottom).toBeLessThan(900);
   expect(landscape.topbar.width).toBeGreaterThan(1_000);
-  expect(landscape.transport.y).toBeGreaterThanOrEqual(landscape.stage.bottom);
+  expect(landscape.transport.y).toBeGreaterThanOrEqual(
+    landscape.stage.bottom - 55,
+  );
+  expect(landscape.transport.bottom).toBeLessThanOrEqual(
+    landscape.stage.bottom - 4,
+  );
   expectAligned(landscape.video, landscape.canvas);
   await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
   await expect(page.locator('.file-button-label-full')).toBeVisible();
@@ -547,7 +552,8 @@ test('landscape phone keeps portrait and landscape review controls usable', asyn
   await page.goto('/');
   await importVideo(page, portraitFixture);
   let bounds = await getReviewBounds(page);
-  expect(bounds.transport.bottom).toBeLessThanOrEqual(393);
+  expect(bounds.transport.y).toBeGreaterThanOrEqual(bounds.stage.bottom - 72);
+  expect(bounds.transport.bottom).toBeLessThanOrEqual(bounds.stage.bottom - 4);
   expect(bounds.stage.right).toBeLessThan(bounds.rail.x);
   expectAligned(bounds.video, bounds.canvas);
   await expectNoHorizontalOverflow(page);
@@ -563,11 +569,17 @@ test('landscape phone keeps portrait and landscape review controls usable', asyn
   await importVideo(page, landscapeFixture);
   await expect
     .poll(async () => (await getReviewBounds(page)).stage.width)
-    .toBeGreaterThanOrEqual(360);
+    .toBeGreaterThanOrEqual(851);
   bounds = await getReviewBounds(page);
-  expect(bounds.stage.width).toBeGreaterThanOrEqual(360);
-  expect(bounds.transport.bottom).toBeLessThanOrEqual(393);
-  expect(bounds.stage.right).toBeLessThan(bounds.rail.x);
+  expect(bounds.stage.width).toBeGreaterThanOrEqual(851);
+  expect(bounds.stage.height).toBeGreaterThanOrEqual(478);
+  expect(bounds.stage.x).toBeLessThanOrEqual(0.5);
+  expect(bounds.stage.right).toBeGreaterThanOrEqual(851.5);
+  expect(bounds.transport.x).toBeGreaterThanOrEqual(7.5);
+  expect(bounds.transport.right).toBeLessThanOrEqual(844.5);
+  expect(bounds.transport.y).toBeGreaterThanOrEqual(bounds.stage.bottom - 72);
+  expect(bounds.transport.bottom).toBeLessThanOrEqual(bounds.stage.bottom - 4);
+  expect(bounds.rail.y).toBeGreaterThanOrEqual(bounds.stage.bottom + 10);
   expectAligned(bounds.video, bounds.canvas);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({

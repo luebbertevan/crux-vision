@@ -219,6 +219,31 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
       await expect(nav).toBeVisible();
       await expect(stage).toBeVisible();
       await expect(transport).toBeVisible();
+      const stageBounds = await stage.boundingBox();
+      const transportBounds = await transport.boundingBox();
+      expect(stageBounds).not.toBeNull();
+      expect(transportBounds).not.toBeNull();
+      expect(transportBounds!.y).toBeGreaterThanOrEqual(
+        stageBounds!.y + stageBounds!.height - 72,
+      );
+      expect(
+        transportBounds!.y + transportBounds!.height,
+      ).toBeLessThanOrEqual(stageBounds!.y + stageBounds!.height - 4);
+
+      if (layout.label === 'landscape-phone-landscape-video') {
+        const railBounds = await page.locator('.control-rail').boundingBox();
+        expect(railBounds).not.toBeNull();
+        expect(stageBounds!.width).toBeGreaterThanOrEqual(851);
+        expect(stageBounds!.height).toBeGreaterThanOrEqual(478);
+        expect(stageBounds!.x).toBeLessThanOrEqual(0.5);
+        expect(transportBounds!.x).toBeGreaterThanOrEqual(7.5);
+        expect(
+          transportBounds!.x + transportBounds!.width,
+        ).toBeLessThanOrEqual(844.5);
+        expect(railBounds!.y).toBeGreaterThanOrEqual(
+          stageBounds!.y + stageBounds!.height + 10,
+        );
+      }
       await expectNoHorizontalOverflow(page);
       await page.waitForTimeout(100);
       await page.screenshot({

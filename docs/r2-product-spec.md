@@ -156,19 +156,24 @@ analysis action and progress, edit history, and the existing pose-quality and
 calibration surfaces. Playback owns speed, loop, frame navigation, and
 checkpoints. Overlay owns overlay visibility and trail selection/appearance.
 
-The single stage and transport stay mounted across modes. Tool components also
-stay mounted and are hidden only by the mobile layout, so playback, range,
-checkpoints, history, trail choices, pose-quality settings, and open
-disclosures survive mode and orientation changes. Replacing the source returns
-the mode to Analyze while retaining the established source-session reset.
+The single stage and inset over-video transport stay mounted across modes.
+Tool components also stay mounted and are hidden only by the mobile layout, so
+playback, range, checkpoints, history, trail choices, pose-quality settings,
+and open disclosures survive mode and orientation changes. Replacing the
+source returns the mode to Analyze while retaining the established
+source-session reset.
 
 The mode bar appears below the stage on narrow portrait phones and at the top
 of the existing control rail on short landscape phones. It uses explicit text,
 selected states, accessible names, and `44×44 px` minimum active targets.
-Desktop continues to show all panels with no mode bar.
+When a short landscape phone displays a landscape source, the stage uses the
+full phone width and the selected tools follow below it; portrait sources keep
+the compact side-by-side stage and rail. Desktop continues to show all panels
+with no mode bar, and both desktop source orientations use the same inset
+transport placement.
 
 This is intentionally an MVP navigation layer, not a bottom-sheet system or
-interface rewrite. The transport remains adjacent to the stage rather than
+interface rewrite. The transport remains inset within the stage rather than
 fixed to the viewport. A draggable sheet, fixed dock, hamburger/global menu, or
 additional chrome should be added only if physical-phone and gym testing show
 that the current one-tap mode changes are insufficient. Dedicated zoom/pan,

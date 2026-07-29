@@ -8,12 +8,13 @@ iPhone review pending
 
 Crux Vision now exposes one compact mobile navigation model without redesigning
 the working player. Analyze, Playback, and Overlay divide the existing controls
-into task-focused surfaces while the source video, live overlay, and transport
-remain the same mounted instances.
+into task-focused surfaces while the source video, live overlay, and inset
+over-video transport remain the same mounted instances.
 
-Desktop retains the complete two-panel workspace. R2D.1 changes only phone
-information architecture, phone touch sizing, and the minimum styling required
-to make those modes legible.
+Desktop retains the complete two-panel workspace. Its landscape transport now
+uses the same over-video placement as portrait. R2D.1 otherwise changes only
+phone information architecture, phone touch sizing, and the minimum styling
+required to make those modes legible.
 
 ## Interaction contract
 
@@ -53,9 +54,12 @@ full width and the portrait transport remains inset over the stage. The mode bar
 follows the stage and becomes sticky only after it reaches the safe-area top
 during normal scrolling.
 
-At `852×393`, the stage and persistent transport remain in the left review
-column while the mode bar and selected tools use the existing scrollable right
-rail.
+At `852×393`, a portrait source and persistent transport remain in the left
+review column while the mode bar and selected tools use the existing scrollable
+right rail. A landscape source instead fills the visual viewport width, keeps
+the transport inset over the video, and places the mode bar and selected tools
+below the stage. This deliberately mirrors the full-width portrait-phone
+player without adding crop, zoom, or pan.
 
 Active ordinary controls are at least `44×44 px` in both orientations. R2D.1
 also corrects inherited small landscape range/action targets and replaces the
@@ -86,6 +90,8 @@ Automated coverage verifies:
   mode survive mode and orientation changes;
 - portrait and landscape phone viewports work with both portrait and landscape
   source fixtures without horizontal overflow;
+- every source and viewport combination keeps the transport inside the stage,
+  and landscape media fills a short landscape phone with tools below;
 - active ordinary phone targets meet the `44×44 px` minimum;
 - the desktop mode bar stays hidden and the existing panels remain visible;
 - advanced calibration remains reachable at the bottom of Analyze while
