@@ -126,8 +126,15 @@ test('desktop empty shell visual acceptance', async ({ page }, testInfo) => {
       page.getByRole('heading', { name: /See your climbing/i }),
     ).toBeVisible();
     await expect(
-      page.getByText(/video and pose data are processed locally/i),
+      page.getByText(
+        'Open a video, isolate the crux, and follow your movement with a live overlay.',
+      ),
     ).toBeVisible();
+    const privacyDisclosure = page.getByText('Privacy', { exact: true });
+    await expect(privacyDisclosure).toBeVisible();
+    await expect(page.getByText(/MediaPipe sends performance/i)).toBeHidden();
+    await privacyDisclosure.click();
+    await expect(page.getByText(/MediaPipe sends performance/i)).toBeVisible();
     await expectMovementReviewBranding(page);
     await expectNoHorizontalOverflow(page);
 
