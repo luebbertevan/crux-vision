@@ -351,6 +351,31 @@ button:disabled, input:disabled { opacity: 0.42; cursor: not-allowed; }
   color: #656a62;
   font-size: clamp(.72rem, .56vw, .86rem);
 }
+.privacy-disclosure {
+  width: min(100%, 620px);
+  margin-top: 14px;
+  color: #777d73;
+  font-size: clamp(.7rem, .56vw, .82rem);
+  line-height: 1.5;
+}
+.privacy-disclosure summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #858b81;
+  cursor: pointer;
+  list-style: none;
+  text-underline-offset: 3px;
+}
+.privacy-disclosure summary::-webkit-details-marker { display: none; }
+.privacy-disclosure summary:hover { color: #b1b7ac; text-decoration: underline; }
+.privacy-disclosure summary svg { flex: 0 0 auto; }
+.privacy-disclosure-copy {
+  max-width: 580px;
+  margin-top: 8px;
+}
+.privacy-disclosure a { color: #a8c78a; text-underline-offset: 2px; }
+.privacy-disclosure a:hover { color: #d3ff9e; }
 
 .empty-visual {
   position: relative;
@@ -1971,11 +1996,6 @@ details[open] > summary > .disclosure-arrow {
   width: 100%;
   border-radius: 9px;
 }
-.privacy-note { display: flex; align-items: flex-start; justify-content: center; gap: 6px; margin: 8px 0 0; color: #777d73; font-size: .56rem; line-height: 1.45; }
-.privacy-note svg { flex: 0 0 auto; margin-top: 1px; }
-.privacy-note a { color: #a8c78a; text-underline-offset: 2px; }
-.privacy-note a:hover { color: #d3ff9e; }
-
 @media (min-width: 1100px) {
   .review-workspace {
     grid-template-columns: minmax(0, 1fr) 380px;
@@ -2491,6 +2511,9 @@ details[open] > summary > .disclosure-arrow {
   .empty-copy p { margin: 22px auto 25px; font-size: .96rem; line-height: 1.55; }
   .empty-copy .file-button { width: min(100%, 330px); }
   .file-note { max-width: 290px; margin-inline: auto; line-height: 1.45; }
+  .privacy-disclosure { width: min(100%, 330px); margin: 12px auto 0; text-align: left; }
+  .privacy-disclosure summary { justify-content: center; width: 100%; }
+  .privacy-disclosure-copy { text-align: center; }
   .empty-visual { display: none; }
 
   .review-workspace { display: flex; flex-direction: column; gap: 14px; }

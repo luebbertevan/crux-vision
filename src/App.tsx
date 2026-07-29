@@ -1657,15 +1657,31 @@ export function App() {
             <span className="eyebrow"><SparkIcon /> Find the move that matters</span>
             <h1>See your climbing<br />in motion.</h1>
             <p>
-              Open a video, isolate the crux, and follow your movement with a live
-              skeleton and body-center trails. Your video and pose data are processed
-              locally and are not uploaded by Crux Vision.
+              Open a video, isolate the crux, and follow your movement with a live overlay.
             </p>
             <FileButton
               label={opening ? 'Opening video…' : 'Open a climbing video'}
               onFile={(file) => void openFile(file)}
             />
             <span className="file-note">MOV, MP4, and common iPhone video · up to 60s per analysis</span>
+            <details className="privacy-disclosure">
+              <summary>
+                <ShieldIcon />
+                Privacy
+              </summary>
+              <div className="privacy-disclosure-copy">
+                Video and pose data stay on this device. MediaPipe sends
+                performance and utilization metrics to Google. By starting
+                analysis, you acknowledge this processing.{' '}
+                <a
+                  href="https://developers.google.com/edge/mediapipe/solutions/tasks#mediapipe_tasks_privacy_notice"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Privacy details
+                </a>
+              </div>
+            </details>
           </div>
           <div className="empty-visual" aria-hidden="true">
             <div className="route-line route-line-left" />
@@ -1986,21 +2002,6 @@ export function App() {
                       onFile={(file) => void openFile(file)}
                     />
                   </div>
-                  <p className="privacy-note">
-                    <ShieldIcon />
-                    <span>
-                      Video and pose data stay on this device. MediaPipe sends
-                      performance and utilization metrics to Google. By starting
-                      analysis, you acknowledge this processing.{' '}
-                      <a
-                        href="https://developers.google.com/edge/mediapipe/solutions/tasks#mediapipe_tasks_privacy_notice"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Privacy details
-                      </a>
-                    </span>
-                  </p>
                 </section>
                 <PrecisionReviewControls
                   playbackRate={playerSnapshot.playbackRate}
