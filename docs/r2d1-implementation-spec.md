@@ -68,7 +68,9 @@ eight tiny advanced trail-color swatches with two rows of touch-sized choices.
 The persistent transport is a tighter rounded pill everywhere. Play/pause keeps
 button semantics and an accessible name, but its visual treatment is a bare
 icon rather than a filled standard button; the mobile hit area remains
-`44×44 px`.
+`44×44 px`. The matching right-aligned audio button reports and toggles the
+actual media mute state. Source replacement restores muted playback so every
+new clip begins consistently and can autoplay on mobile.
 
 ## State and architecture boundaries
 
@@ -99,6 +101,8 @@ Automated coverage verifies:
   and landscape media fills a short landscape phone with tools below;
 - desktop transport stays at most `38 px` high and phone transport at most
   `48 px`, with icon-only play/pause styling and mobile target sizing preserved;
+- new sources start muted, the right-edge control toggles the media element,
+  and source replacement restores the default;
 - active ordinary phone targets meet the `44×44 px` minimum;
 - the desktop mode bar stays hidden and the existing panels remain visible;
 - advanced calibration remains reachable at the bottom of Analyze while

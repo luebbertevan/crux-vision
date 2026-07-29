@@ -61,6 +61,7 @@ test('keeps transport and workspace state intact while changing mobile tools', a
   const checkpoints = page.getByTestId('checkpoint-controls');
   const overlaySettings = page.getByTestId('overlay-settings');
   const poseQuality = page.getByTestId('pose-quality-preset');
+  const video = page.locator('video');
 
   await expect(nav).toBeVisible();
   await expect(transport).toBeVisible();
@@ -69,6 +70,29 @@ test('keeps transport and workspace state intact while changing mobile tools', a
   await expect(checkpoints).toBeHidden();
   await expect(overlaySettings).toBeHidden();
   await expect(poseQuality).toBeVisible();
+  const unmuteButton = page.getByRole('button', { name: 'Unmute video' });
+  await expect(unmuteButton).toBeVisible();
+  await expect(unmuteButton).toHaveAttribute('aria-pressed', 'true');
+  expect(
+    await video.evaluate((element) => (element as HTMLVideoElement).muted),
+  ).toBe(true);
+  const transportBounds = await transport.boundingBox();
+  const unmuteBounds = await unmuteButton.boundingBox();
+  expect(transportBounds).not.toBeNull();
+  expect(unmuteBounds).not.toBeNull();
+  expect(unmuteBounds!.width).toBeGreaterThanOrEqual(44);
+  expect(unmuteBounds!.height).toBeGreaterThanOrEqual(44);
+  expect(unmuteBounds!.x + unmuteBounds!.width).toBeLessThanOrEqual(
+    transportBounds!.x + transportBounds!.width,
+  );
+  await unmuteButton.click();
+  await expect(page.getByRole('button', { name: 'Mute video' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+  expect(
+    await video.evaluate((element) => (element as HTMLVideoElement).muted),
+  ).toBe(false);
 
   for (const button of await nav.getByRole('button').all()) {
     const bounds = await button.boundingBox();
@@ -154,9 +178,23 @@ test('keeps transport and workspace state intact while changing mobile tools', a
   ).toHaveAttribute('aria-pressed', 'true');
   await expect(overlaySettings).toBeVisible();
   await expect(transport).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Mute video' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+  expect(
+    await video.evaluate((element) => (element as HTMLVideoElement).muted),
+  ).toBe(false);
   await expectNoHorizontalOverflow(page);
 
   await importVideo(page, landscapeFixture);
+  await expect(page.getByRole('button', { name: 'Unmute video' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  expect(
+    await video.evaluate((element) => (element as HTMLVideoElement).muted),
+  ).toBe(true);
   await expect(
     nav.getByRole('button', { name: 'Show Analyze tools' }),
   ).toHaveAttribute('aria-pressed', 'true');

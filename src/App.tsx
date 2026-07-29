@@ -24,6 +24,7 @@ import {
 } from './components/CheckpointControls';
 import {
   CloseIcon,
+  MutedIcon,
   PauseIcon,
   PlayIcon,
   RedoIcon,
@@ -31,6 +32,7 @@ import {
   SparkIcon,
   UndoIcon,
   UploadIcon,
+  VolumeIcon,
 } from './components/Icons';
 import { OverlayCanvas, type StageFeedback } from './components/OverlayCanvas';
 import {
@@ -410,6 +412,7 @@ export function App() {
         setRangeLoopEnabled(false);
         player.setLoopRange(null);
         player.setPlaybackRate(1);
+        player.setMuted(true);
         checkpointsRef.current = [];
         setCheckpoints([]);
         checkpointSequenceRef.current = 0;
@@ -1719,6 +1722,7 @@ export function App() {
                   src={source.url}
                   poster={source.posterUrl ?? undefined}
                   playsInline
+                  muted={playerSnapshot.muted}
                   preload="auto"
                   onCanPlay={(event) => {
                     if (autoplaySessionRef.current === source.id) return;
@@ -1836,6 +1840,19 @@ export function App() {
               <span className="transport-time transport-duration">
                 {formatTime(playbackDuration)}
               </span>
+              <button
+                type="button"
+                className="mute-button"
+                aria-label={playerSnapshot.muted ? 'Unmute video' : 'Mute video'}
+                aria-pressed={playerSnapshot.muted}
+                onClick={() => player.toggleMuted()}
+              >
+                {playerSnapshot.muted ? (
+                  <MutedIcon size={21} />
+                ) : (
+                  <VolumeIcon size={21} />
+                )}
+              </button>
             </div>
           </div>
 

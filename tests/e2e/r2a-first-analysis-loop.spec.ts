@@ -34,6 +34,12 @@ test('imports portrait media upright from a local blob without upload', async ({
 
   const videoElement = page.locator('video');
   await expect(videoElement).toHaveAttribute('poster', /^blob:/);
+  await expect
+    .poll(() =>
+      videoElement.evaluate((element) => (element as HTMLVideoElement).muted),
+    )
+    .toBe(true);
+  await expect(page.getByRole('button', { name: 'Unmute video' })).toBeVisible();
   const posterUrl = await videoElement.getAttribute('poster');
   const posterSize = await page.evaluate(async (url) => {
     const image = new Image();

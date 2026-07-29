@@ -29,6 +29,25 @@ export function PauseIcon({ size = 20, className }: IconProps) {
   );
 }
 
+export function VolumeIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg {...baseProps(size, className)}>
+      <path d="M5 9.5h3.5L13 6v12l-4.5-3.5H5v-5Z" />
+      <path d="M16 9a4.5 4.5 0 0 1 0 6" />
+      <path d="M18.5 6.5a8 8 0 0 1 0 11" />
+    </svg>
+  );
+}
+
+export function MutedIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg {...baseProps(size, className)}>
+      <path d="M5 9.5h3.5L13 6v12l-4.5-3.5H5v-5Z" />
+      <path d="m16.5 10 4 4m0-4-4 4" />
+    </svg>
+  );
+}
+
 export function UploadIcon({ size = 19, className }: IconProps) {
   return (
     <svg {...baseProps(size, className)}>

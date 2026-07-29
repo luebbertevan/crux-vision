@@ -174,6 +174,9 @@ bar, and both desktop source orientations use the same inset transport
 placement. The shared transport is a slim rounded pill with transparent,
 icon-only play/pause presentation. Its mobile button keeps a `44×44 px` hit
 target even though the visible icon no longer appears inside a filled button.
+A matching icon-only mute control sits at the far right. New sources start
+muted for predictable mobile autoplay; the user can unmute for the remainder
+of that source session.
 
 This is intentionally an MVP navigation layer, not a bottom-sheet system or
 interface rewrite. The transport remains inset within the stage rather than

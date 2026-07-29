@@ -4,6 +4,7 @@ export type PlayerSnapshot = {
   playing: boolean;
   ready: boolean;
   playbackRate: number;
+  muted: boolean;
 };
 
 const EMPTY_SNAPSHOT: PlayerSnapshot = {
@@ -12,6 +13,7 @@ const EMPTY_SNAPSHOT: PlayerSnapshot = {
   playing: false,
   ready: false,
   playbackRate: 1,
+  muted: true,
 };
 
 export class PlayerController {
@@ -32,6 +34,7 @@ export class PlayerController {
     if (this.video === video) return;
     this.removeListeners();
     this.video = video;
+    if (this.video) this.video.muted = true;
     this.addListeners();
     this.publish();
   }
@@ -59,6 +62,17 @@ export class PlayerController {
   setPlaybackRate(rate: number): void {
     if (!Number.isFinite(rate) || rate <= 0) return;
     if (this.video) this.video.playbackRate = Math.min(4, Math.max(0.1, rate));
+    this.publish();
+  }
+
+  setMuted(muted: boolean): void {
+    if (this.video) this.video.muted = muted;
+    this.publish();
+  }
+
+  toggleMuted(): void {
+    if (!this.video) return;
+    this.video.muted = !this.video.muted;
     this.publish();
   }
 
@@ -91,6 +105,7 @@ export class PlayerController {
           playing: !video.paused && !video.ended,
           ready: video.readyState >= HTMLMediaElement.HAVE_METADATA,
           playbackRate: Number.isFinite(video.playbackRate) ? video.playbackRate : 1,
+          muted: video.muted,
         }
       : EMPTY_SNAPSHOT;
     if (
@@ -98,7 +113,8 @@ export class PlayerController {
       next.durationSeconds === this.snapshot.durationSeconds &&
       next.playing === this.snapshot.playing &&
       next.ready === this.snapshot.ready &&
-      next.playbackRate === this.snapshot.playbackRate
+      next.playbackRate === this.snapshot.playbackRate &&
+      next.muted === this.snapshot.muted
     ) {
       if (next.playing) this.scheduleLoopCheck();
       else this.cancelLoopCheck();
@@ -174,6 +190,7 @@ export class PlayerController {
       'seeked',
       'canplay',
       'ratechange',
+      'volumechange',
     ]) {
       this.video?.addEventListener(eventName, this.handleMediaEvent);
     }
@@ -191,6 +208,7 @@ export class PlayerController {
       'seeked',
       'canplay',
       'ratechange',
+      'volumechange',
     ]) {
       this.video?.removeEventListener(eventName, this.handleMediaEvent);
     }

@@ -163,7 +163,8 @@ side brand lockup remains desktop-only. Phone review uses the translucent,
 inset over-video transport for both source and phone orientations while
 retaining 44 px touch targets. Across desktop and phone layouts, play/pause is
 an icon-only control inside a slimmer pill transport instead of a filled
-standard button.
+standard button. A matching right-aligned audio control reflects the current
+mute state, and every newly opened source starts muted.
 Video and canvas still share identical bounds and `object-fit: contain`.
 
 ### R2 phone gate — Minimal physical-device smoke test
@@ -556,6 +557,9 @@ Build and validate:
 - reduce transport obstruction with a rounded pill, tighter spacing, and an
   icon-only play/pause control while preserving its accessible name and the
   mobile `44×44 px` hit target;
+- add a matching right-aligned mute control, default each newly opened video to
+  muted playback, and preserve the chosen audio state while reviewing that
+  source;
 - leave desktop panel layout and behavior unchanged apart from making the
   landscape transport use the same over-video placement.
 
