@@ -413,6 +413,12 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
     mimeType: 'video/quicktime',
     buffer: await readFile(portraitFixture),
   });
+  const mobileNav = page.getByTestId('mobile-workspace-nav');
+  await expect(mobileNav).toBeVisible();
+  await expect(
+    mobileNav.getByRole('button', { name: 'Show Review tools' }),
+  ).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Show Inspect tools' }).click();
   const overlaySettings = page.getByTestId('overlay-settings');
   await expect(overlaySettings.locator(':scope > summary')).toBeVisible();
   await expect(overlaySettings).toHaveAttribute('open', '');
@@ -422,6 +428,7 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   await expect(
     page.getByTestId('active-trail-source-shoulder-midpoint'),
   ).toBeVisible();
+  await page.getByRole('button', { name: 'Show Review tools' }).click();
   const portrait = await getReviewBounds(page);
   expect(portrait.stage.width).toBeGreaterThanOrEqual(392);
   expect(portrait.stage.height).toBeGreaterThanOrEqual(695);
@@ -492,6 +499,7 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   );
   const playButton = page.getByRole('button', { name: /Play video|Pause video/ });
   expect((await playButton.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+  await page.getByRole('button', { name: 'Show Timeline tools' }).click();
   const analyzeButton = page.getByRole('button', { name: 'Analyze range' });
   await analyzeButton.scrollIntoViewIfNeeded();
   expect((await analyzeButton.boundingBox())?.height).toBeGreaterThanOrEqual(44);

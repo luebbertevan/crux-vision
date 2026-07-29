@@ -508,30 +508,67 @@ analytic anchors.
 
 ### R2D — Mobile refinement and feedback release
 
+**Status:** In progress; R2D.1 implementation complete, physical iPhone review
+pending
+
 **Outcome:** The complete R2 loop is comfortable enough to test during an
 ordinary gym session.
 
+#### R2D.1 — Mobile workspace navigation MVP
+
+**Outcome:** The working single-video interface gains a compact phone
+information architecture without redesigning the player or freezing a final
+mobile interaction model before gym feedback.
+
 Build and validate:
 
-- the phone Review/Inspect/Timeline interaction model;
-- a dedicated mobile navigation and settings UX pass: keep playback and other
-  high-frequency actions immediately reachable, move secondary/global settings
-  into a compact hamburger or tool menu, and use quick-opening disclosures for
-  contextual setting groups;
+- expose **Review**, **Timeline**, and **Inspect** through one compact mobile
+  mode bar immediately after the stage in portrait and at the top of the
+  existing control rail in landscape;
+- keep the existing video and transport mounted and unchanged across all three
+  modes rather than duplicating controls or introducing a viewport-fixed dock;
+- place playback speed, range looping, and presentation-frame navigation in
+  Review; range, analysis, history, and checkpoints in Timeline; and overlay,
+  trail, and pose-quality controls in Inspect;
+- keep every tool component mounted while its mode is inactive so local
+  disclosures, edit history, range, checkpoints, playback choices, overlay
+  choices, and pose-quality state survive mode and orientation changes;
+- reset only the selected mode to Review when the source is replaced, while
+  retaining the existing source-session reset contract for analysis state;
 - reduce mobile vertical whitespace and control padding enough to keep the
   video and current task in view without weakening safe-area handling,
   readable type, 44 px touch targets, or clear separation between controls;
-- use familiar icons for compact, repeated actions, with visible selected
-  states and accessible names; retain short text labels where an icon would be
-  ambiguous rather than optimizing for icon count alone;
-- preserve the user's place when opening, closing, or switching menus, avoid
-  deep nesting, and make the most common review-to-overlay-settings path
-  reachable in one or two deliberate taps;
+- retain short text labels for the three modes because icons would be
+  ambiguous, with visible selected states and accessible button names;
+- keep the common review-to-overlay-settings path to one deliberate mode
+  change and avoid draggable sheets, deep nesting, or a second global menu in
+  this MVP;
+- validate portrait and landscape phone viewports against both portrait and
+  landscape video fixtures, including safe areas, touch behavior, responsive
+  overflow, and unchanged video/canvas registration;
+- leave desktop panel layout and behavior unchanged.
+
+**Exit:** At `393×852`, `393×740`, and `852×393`, the stage and transport remain
+usable, the three modes expose only their assigned controls, active targets are
+at least `44×44 px`, and switching modes or orientation does not lose session
+state. Both source orientations remain aligned without horizontal overflow.
+The privately deployed build is ready for the physical iPhone review.
+
+R2D.1 is implemented as a mobile-only visibility and navigation layer over the
+existing stateful components. The transport remains stage-adjacent rather than
+fixed to the viewport; a fixed dock, draggable sheet, hamburger menu, or other
+navigation layer requires gym evidence. Dedicated video zoom/pan and pose-quality
+recalibration remain out of scope. See
+[`docs/r2d1-implementation-spec.md`](./docs/r2d1-implementation-spec.md).
+
+#### R2D.2 — Sustained physical-device validation
+
+Build and validate:
+
 - audit the mobile information architecture and interaction density against
   Instagram's video-editing flow and a small set of phone-native video editors,
   then validate the resulting Crux-specific hierarchy with real gym tasks
   rather than copying another product's visual treatment;
-- responsive layout, safe areas, touch behavior, and distraction-free review;
 - sustained 20–30 second phone analysis, responsiveness, heat, battery, and
   browser-reload observations;
 - validate the selected 60-second range cap for phone memory, thermal behavior,
@@ -540,14 +577,20 @@ Build and validate:
   sustained responsiveness or power;
 - an advanced analysis-density setting informed by the phone measurements,
   with 30 samples/second as the ordinary default and lower/higher options only
-  where source frame rate and device performance make them meaningful;
-- a real gym-session feedback pass and a short findings report.
+  where source frame rate and device performance make them meaningful.
 
-The R2D navigation pass should produce a compact, portable information
-architecture for Review, Inspect, Timeline, overlays, pose quality, and advanced
-settings. The web implementation is the first proving ground, but interaction
-contracts and terminology should not depend on browser-specific layout so they
-can inform a later native app.
+#### R2D.3 — Gym feedback release
+
+- run the primary import → isolate move → analyze → review → inspect trails
+  workflow during an ordinary gym session;
+- decide from observed friction whether a fixed transport, compact global menu,
+  sheet treatment, or further spacing pass is warranted;
+- record a short findings report and make only the refinements supported by
+  that session.
+
+The R2D navigation model should remain portable across web and a possible later
+native app: its Review, Timeline, Inspect, overlay, pose-quality, and advanced
+settings terminology does not depend on browser-specific layout.
 
 **R2 feedback question:** Can a climber import a phone clip at the gym, reach the
 interesting move quickly, and learn something from the skeleton or trails in

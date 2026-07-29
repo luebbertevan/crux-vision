@@ -193,6 +193,7 @@ test('keeps global history visible and touchable on phone layouts', async ({
     await page.setViewportSize(viewport);
     await page.goto('/');
     await importVideo(page);
+    await page.getByRole('button', { name: 'Show Timeline tools' }).click();
 
     const controls = page.getByTestId('global-history-controls');
     await expect(controls).toBeVisible();

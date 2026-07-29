@@ -1,7 +1,7 @@
 # R2 product spec: first useful Crux Vision
 
-**Status:** R2A, the pose-quality calibration gate, R2B, and R2C complete; R2D
-next
+**Status:** R2A, the pose-quality calibration gate, R2B, and R2C complete;
+R2D.1 implemented with physical iPhone review pending
 
 **Purpose:** Establish enough product and technical direction to start a fast
 feedback loop without freezing the interface before it has been used.
@@ -148,6 +148,33 @@ remains local to the current source session. The implementation record is in
 Resolve the phone layout through real use, complete touch and safe-area work,
 run sustained-device measurements, and conduct the first gym feedback session.
 
+#### R2D.1 — Mobile workspace navigation MVP
+
+R2D.1 adds one mobile-only **Review / Timeline / Inspect** mode bar without
+changing the desktop workspace or player architecture. Review owns speed, loop,
+and frame navigation. Timeline owns the range, analysis action and progress,
+edit history, and checkpoints. Inspect owns overlay visibility, trail
+selection/appearance, and the existing pose-quality surface.
+
+The single stage and transport stay mounted across modes. Tool components also
+stay mounted and are hidden only by the mobile layout, so playback, range,
+checkpoints, history, trail choices, pose-quality settings, and open
+disclosures survive mode and orientation changes. Replacing the source returns
+the mode to Review while retaining the established source-session reset.
+
+The mode bar appears below the stage on narrow portrait phones and at the top
+of the existing control rail on short landscape phones. It uses explicit text,
+selected states, accessible names, and `44×44 px` minimum active targets.
+Desktop continues to show all panels with no mode bar.
+
+This is intentionally an MVP navigation layer, not a bottom-sheet system or
+interface rewrite. The transport remains adjacent to the stage rather than
+fixed to the viewport. A draggable sheet, fixed dock, hamburger/global menu, or
+additional chrome should be added only if physical-phone and gym testing show
+that the current one-tap mode changes are insufficient. Dedicated zoom/pan,
+analysis-density changes, model/device tuning, and pose-quality recalibration
+remain outside R2D.1.
+
 ## Technical baseline from R1
 
 R2 starts with these decisions unless new evidence overturns them:
@@ -282,7 +309,9 @@ R2 is complete when:
   space on desktop and narrow phone viewports;
 - analysis appears progressively over a user-selected range;
 - the UI stays usable while inference runs;
-- the user can slow, scrub, frame-step, loop, zoom, and return to checkpoints;
+- the user can slow, scrub, frame-step, loop, and return to checkpoints;
+- dedicated video zoom/pan remains deferred until gym feedback establishes a
+  need and its shared video/overlay transform can be validated;
 - wrist, elbow, knee, ankle, hip, and shoulder trails can be selected without
   code changes;
 - low-confidence gaps do not create prominent false connections;
@@ -306,8 +335,11 @@ R2 is complete when:
 
 ## Decisions intentionally left for feedback
 
-- Exact navigation and placement of Review, Inspect, and Timeline on the phone.
-- Whether the timeline is always visible or expands on demand.
+- Whether physical-phone use warrants replacing the R2D.1 mode bar with a
+  fixed transport, draggable sheet, or additional global menu.
+- Whether more timeline detail should remain always visible or expand on
+  demand; the R2D.1 coarse transport stays present while the Timeline tools are
+  mode-selected.
 - How much pose progress detail normal users should see.
 - Whether R2D phone evidence requires a lower-power Lite or reduced-density
   option for sustained analysis; Full remains the quality default meanwhile.

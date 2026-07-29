@@ -33,6 +33,10 @@ import {
   UploadIcon,
 } from './components/Icons';
 import { OverlayCanvas, type StageFeedback } from './components/OverlayCanvas';
+import {
+  MobileWorkspaceNav,
+  type MobileWorkspaceMode,
+} from './components/MobileWorkspaceNav';
 import { OverlaySettingsPanel } from './components/OverlaySettingsPanel';
 import { PoseQualityPanel } from './components/PoseQualityPanel';
 import {
@@ -265,6 +269,8 @@ export function App() {
   const [calibrationLabels, setCalibrationLabels] = useState<
     CalibrationLabelRecord[]
   >([]);
+  const [mobileWorkspaceMode, setMobileWorkspaceMode] =
+    useState<MobileWorkspaceMode>('review');
 
   const adapterRef = useRef<BrowserMediaAdapter | null>(null);
   const objectUrlRef = useRef<string | null>(null);
@@ -412,6 +418,7 @@ export function App() {
         overlaySettingsRef.current = nextOverlaySettings;
         setOverlaySettings(nextOverlaySettings);
         setOverlaySettingsOpen(true);
+        setMobileWorkspaceMode('review');
         calibrationLabelsRef.current = [];
         setCalibrationLabels([]);
         editHistoryRef.current.clear();
@@ -1604,6 +1611,7 @@ export function App() {
       data-quality-group-coverage={JSON.stringify(
         qualityEvaluation.metrics.groupCoverage,
       )}
+      data-mobile-workspace-mode={mobileWorkspaceMode}
     >
       <header className="topbar">
         <a className="brand" href="/" aria-label="Crux Vision home">
@@ -1827,7 +1835,14 @@ export function App() {
             </div>
           </div>
 
-          <aside className="control-rail">
+          <aside
+            className={`control-rail mobile-workspace-${mobileWorkspaceMode}`}
+            data-testid="control-rail"
+          >
+            <MobileWorkspaceNav
+              mode={mobileWorkspaceMode}
+              onChange={setMobileWorkspaceMode}
+            />
             <div className="range-panel-slot">
               {range && (
                 <RangeSelector
@@ -1839,7 +1854,7 @@ export function App() {
                   onChange={changeRange}
                 >
                 <section
-                  className="review-tool-section analysis-run-section"
+                  className="review-tool-section analysis-run-section mobile-timeline-content"
                   aria-label="Pose analysis"
                 >
                   <div
@@ -1964,7 +1979,7 @@ export function App() {
                   onExactFrameChange={seekToCalibrationFrame}
                 />
                 <section
-                  className="review-tool-section settings-history-bar"
+                  className="review-tool-section settings-history-bar mobile-timeline-content"
                   data-testid="settings-history-bar"
                   aria-label="Edit history"
                 >
@@ -2017,18 +2032,20 @@ export function App() {
                     </button>
                   </div>
                 </section>
-                <CheckpointControls
-                  checkpoints={checkpoints}
-                  currentCheckpointIndex={currentCheckpointIndex}
-                  canGoPrevious={previousCheckpointIndex !== null}
-                  canGoNext={nextCheckpointIndex !== null}
-                  onAdd={addCheckpoint}
-                  onSelect={seekToCheckpoint}
-                  onRename={renameCheckpoint}
-                  onRemove={removeCheckpoint}
-                  onPrevious={() => goToAdjacentCheckpoint('previous')}
-                  onNext={() => goToAdjacentCheckpoint('next')}
-                />
+                <div className="mobile-timeline-content">
+                  <CheckpointControls
+                    checkpoints={checkpoints}
+                    currentCheckpointIndex={currentCheckpointIndex}
+                    canGoPrevious={previousCheckpointIndex !== null}
+                    canGoNext={nextCheckpointIndex !== null}
+                    onAdd={addCheckpoint}
+                    onSelect={seekToCheckpoint}
+                    onRename={renameCheckpoint}
+                    onRemove={removeCheckpoint}
+                    onPrevious={() => goToAdjacentCheckpoint('previous')}
+                    onNext={() => goToAdjacentCheckpoint('next')}
+                  />
+                </div>
                 </RangeSelector>
               )}
             </div>

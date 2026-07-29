@@ -612,14 +612,20 @@ test('keeps the advanced calibration workspace usable at iPhone width', async ({
   await page.setViewportSize({ width: 393, height: 852 });
   await page.goto('/');
   await importVideo(page, portraitFixture);
+  await page.getByRole('button', { name: 'Show Inspect tools' }).click();
   await page.getByText('Pose quality calibration').click();
 
   await expect(page.getByTestId('calibration-model')).toBeVisible();
   await expect(page.getByTestId('pose-preview-mode')).toBeVisible();
+  await page.getByRole('button', { name: 'Show Review tools' }).click();
   await expect(page.getByLabel('Exact analyzed frame')).toBeVisible();
   await expect(
     page.getByRole('group', { name: 'Frame navigation' }),
   ).toBeVisible();
+  const exactFrameHeight = (
+    await page.getByLabel('Exact analyzed frame').boundingBox()
+  )?.height;
+  await page.getByRole('button', { name: 'Show Inspect tools' }).click();
   await page.getByRole('button', { name: 'Export calibration JSON' })
     .scrollIntoViewIfNeeded();
   await expect(page.getByRole('button', { name: 'Export calibration JSON' }))
@@ -632,10 +638,10 @@ test('keeps the advanced calibration workspace usable at iPhone width', async ({
     ),
   ).toBe(true);
 
+  expect(exactFrameHeight).toBeGreaterThanOrEqual(44);
   for (const locator of [
     page.getByTestId('calibration-model'),
     page.getByTestId('pose-preview-mode'),
-    page.getByLabel('Exact analyzed frame'),
     page.getByRole('button', { name: 'Export calibration JSON' }),
   ]) {
     expect((await locator.boundingBox())?.height).toBeGreaterThanOrEqual(44);

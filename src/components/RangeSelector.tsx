@@ -65,7 +65,7 @@ export function RangeSelector({
 
   return (
     <section className="range-section" aria-labelledby="range-title">
-      <div className="section-heading">
+      <div className="section-heading mobile-timeline-content">
         <div>
           <span className="section-kicker">Clip &amp; analysis</span>
           <h2 id="range-title">Review controls</h2>
@@ -75,7 +75,10 @@ export function RangeSelector({
         </span>
       </div>
 
-      <div className="range-readout" aria-live="polite">
+      <div
+        className="range-readout mobile-timeline-content"
+        aria-live="polite"
+      >
         <div className="range-readout-edge">
           <span>
             <small>START</small>
@@ -137,7 +140,10 @@ export function RangeSelector({
         </div>
       </div>
 
-      <div className="range-track-wrap" style={trackStyle}>
+      <div
+        className="range-track-wrap mobile-timeline-content"
+        style={trackStyle}
+      >
         <div className="range-track-visual" aria-hidden="true">
           <span className="range-selected" />
           <span className="range-analyzed" />

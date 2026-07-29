@@ -1,0 +1,106 @@
+# R2D.1 implementation record: mobile workspace navigation MVP
+
+**Date:** July 28, 2026
+**Status:** Implementation and emulated layout validation complete; physical
+iPhone review pending
+
+## Outcome
+
+Crux Vision now exposes one compact mobile navigation model without redesigning
+the working player. Review, Timeline, and Inspect divide the existing controls
+into task-focused surfaces while the source video, live overlay, and transport
+remain the same mounted instances.
+
+Desktop retains the complete two-panel workspace. R2D.1 changes only phone
+information architecture, phone touch sizing, and the minimum styling required
+to make those modes legible.
+
+## Interaction contract
+
+| Mode | Controls |
+|---|---|
+| Review | Playback speed, selected-range loop, previous/next presentation frame |
+| Timeline | Analysis range, progress and run/cancel actions, source replacement, edit history, checkpoints |
+| Inspect | Overlay master, skeleton/trails, trail sources and appearance, pose-quality preset and advanced calibration disclosure |
+
+The mode bar uses text rather than adding uncertain icons. It appears directly
+after the stage in narrow portrait layouts and at the top of the existing
+right-hand control rail on short landscape phones.
+
+The video and transport never remount when the mode changes. Inactive tool
+groups use responsive visibility only; their React components remain mounted.
+This preserves:
+
+- current playback time, rate, and loop choice;
+- analysis range, progress, and cached pose;
+- checkpoints and source-session edit history;
+- overlay layers, trail sources, per-trail appearance, and checkpoint ranges;
+- pose-quality preset, advanced calibration state, and disclosure choices.
+
+Changing orientation preserves the selected mode and all session state.
+Replacing the source returns the mode to Review and then follows the existing
+source-session reset rules.
+
+## Responsive contract
+
+R2D.1 activates at the established phone surfaces:
+
+- narrow layouts up to `719 px`;
+- short landscape layouts up to `950×500 px`.
+
+At `393×852` and the reduced-height `393×740` case, the upright stage remains
+full width and the portrait transport remains inset over the stage. The mode bar
+follows the stage and becomes sticky only after it reaches the safe-area top
+during normal scrolling.
+
+At `852×393`, the stage and persistent transport remain in the left review
+column while the mode bar and selected tools use the existing scrollable right
+rail.
+
+Active ordinary controls are at least `44×44 px` in both orientations. R2D.1
+also corrects inherited small landscape range/action targets and replaces the
+eight tiny advanced trail-color swatches with two rows of touch-sized choices.
+
+## State and architecture boundaries
+
+Mobile navigation is transient interface state. It is not written to the edit
+history or persisted outside the current page session. No playback, media,
+pose, filtering, smoothing, rendering, or display-transform contract changed.
+
+R2D.1 does not add:
+
+- video zoom or pan;
+- pose-quality recalibration or new quality defaults;
+- analysis-density or model/device tuning;
+- a draggable sheet, viewport-fixed transport, hamburger menu, or new routing;
+- session persistence, comparison, or additional media handling.
+
+## Verification
+
+Automated coverage verifies:
+
+- Review is the default and source replacement returns to it;
+- exactly the assigned phone tool group is visible for each mode;
+- transport and stage remain visible in every mode;
+- playback rate, checkpoints, trail visibility, open disclosures, and selected
+  mode survive mode and orientation changes;
+- portrait and landscape phone viewports work with both portrait and landscape
+  source fixtures without horizontal overflow;
+- active ordinary phone targets meet the `44×44 px` minimum;
+- the desktop mode bar stays hidden and the existing panels remain visible;
+- advanced calibration remains reachable by moving between Inspect and Review;
+- video and canvas alignment remains covered by the existing responsive
+  regression suite.
+
+The visual matrix covers `393×852` and `852×393` with both source orientations
+in Review, Timeline, and Inspect. The existing responsive suite retains the
+`393×740` dynamic-browser-chrome case.
+
+The final automated gate passes 81 Vitest tests and 33 standard Playwright
+browser tests; one separate real-fixture visual-review test remains opt-in and
+was skipped. The production build also passes.
+
+The remaining acceptance step is a short physical iPhone 15 review of the
+private deployment. Sustained analysis, thermal/battery behavior, the 60-second
+cap, model/delegate measurements, and gym-session findings remain R2D.2 and
+R2D.3 work.

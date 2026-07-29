@@ -263,12 +263,11 @@ test('keeps precision controls clear and touchable across review layouts', async
     await page.setViewportSize(layout.viewport);
     await page.goto('/');
     await importVideo(page, layout.fixture);
+    const phoneLayout = layout.label.startsWith('phone');
 
     const controls = page.getByTestId('precision-review-controls');
     await expect(controls).toBeVisible();
     await expect(controls.getByText('Frame', { exact: true })).toBeVisible();
-    const checkpointControls = page.getByTestId('checkpoint-controls');
-    await expect(checkpointControls).toBeVisible();
     await page.locator('video').evaluate((element) => {
       const media = element as HTMLVideoElement;
       media.pause();
@@ -287,6 +286,12 @@ test('keeps precision controls clear and touchable across review layouts', async
     await expect(page.getByRole('button', { name: 'Next estimated frame' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Previous estimated frame' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Next estimated frame' })).toBeEnabled();
+
+    if (phoneLayout) {
+      await page.getByRole('button', { name: 'Show Timeline tools' }).click();
+    }
+    const checkpointControls = page.getByTestId('checkpoint-controls');
+    await expect(checkpointControls).toBeVisible();
 
     await page.locator('video').evaluate(async (element) => {
       const media = element as HTMLVideoElement;
@@ -321,6 +326,16 @@ test('keeps precision controls clear and touchable across review layouts', async
       timelineBounds!.x + timelineBounds!.width,
     );
 
+    let checkpointAddHeight: number | undefined;
+    if (phoneLayout) {
+      checkpointAddHeight = (
+        await checkpointControls
+          .getByRole('button', { name: 'Add', exact: true })
+          .boundingBox()
+      )?.height;
+      await page.getByRole('button', { name: 'Show Review tools' }).click();
+    }
+
     const [controlBounds, rangeBounds] = await Promise.all([
       controls.boundingBox(),
       page.locator('.range-section').boundingBox(),
@@ -332,17 +347,11 @@ test('keeps precision controls clear and touchable across review layouts', async
       rangeBounds!.x + rangeBounds!.width + 0.5,
     );
 
-    if (layout.label.startsWith('phone')) {
+    if (phoneLayout) {
       for (const button of await controls.getByRole('button').all()) {
         expect((await button.boundingBox())?.height).toBeGreaterThanOrEqual(44);
       }
-      expect(
-        (
-          await checkpointControls
-            .getByRole('button', { name: 'Add', exact: true })
-            .boundingBox()
-        )?.height,
-      ).toBeGreaterThanOrEqual(44);
+      expect(checkpointAddHeight).toBeGreaterThanOrEqual(44);
     }
 
     await expectNoHorizontalOverflow(page);
@@ -365,6 +374,7 @@ test.describe('touch-first checkpoint playback', () => {
   test('pauses before navigating to a checkpoint on mobile', async ({ page }) => {
     await page.goto('/');
     await importVideo(page, portraitFixture);
+    await page.getByRole('button', { name: 'Show Timeline tools' }).click();
 
     expect(
       await page.evaluate(() =>
