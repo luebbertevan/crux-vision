@@ -2232,6 +2232,9 @@ details[open] > summary > .disclosure-arrow {
     height: 34px;
     flex: 0 0 34px;
   }
+  .stage-brand-mark i:nth-child(1) { left: 7px; top: 10px; }
+  .stage-brand-mark i:nth-child(2) { left: 14px; top: 4px; }
+  .stage-brand-mark i:nth-child(3) { left: 21px; top: 8px; }
   .stage-brand strong { font-size: .88rem; }
   .has-source .transport {
     border-color: transparent;

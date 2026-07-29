@@ -471,6 +471,24 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   await expect(page.locator('.topbar')).toBeHidden();
   await expect(page.locator('.stage-brand')).toBeVisible();
   await expect(page.locator('.stage-brand small')).toHaveCount(0);
+  const stageMarkCenterOffset = await page.locator('.stage-brand-mark').evaluate(
+    (mark) => {
+      const markBounds = mark.getBoundingClientRect();
+      const strokeBounds = Array.from(mark.querySelectorAll('i')).map((stroke) =>
+        stroke.getBoundingClientRect(),
+      );
+      const left = Math.min(...strokeBounds.map((bounds) => bounds.left));
+      const right = Math.max(...strokeBounds.map((bounds) => bounds.right));
+      const top = Math.min(...strokeBounds.map((bounds) => bounds.top));
+      const bottom = Math.max(...strokeBounds.map((bounds) => bounds.bottom));
+      return {
+        x: (left + right) / 2 - (markBounds.left + markBounds.width / 2),
+        y: (top + bottom) / 2 - (markBounds.top + markBounds.height / 2),
+      };
+    },
+  );
+  expect(Math.abs(stageMarkCenterOffset.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(stageMarkCenterOffset.y)).toBeLessThanOrEqual(1);
   await expect(page.getByText('REVIEW', { exact: true })).toHaveCount(0);
   expect(portrait.stage.width).toBeGreaterThanOrEqual(392);
   expect(portrait.stage.height).toBeGreaterThanOrEqual(695);
