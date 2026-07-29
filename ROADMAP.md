@@ -157,7 +157,8 @@ portrait stage is approximately 496×882 px at 1440×900 and remains
 393×698.5 px at 393×852; desktop landscape is approximately 1072×603 px. The
 852×393 layout keeps portrait media full-height beside a vertical sticky mode
 rail and an independently scrolling settings rail. Its compact transport stays
-inside the narrow player and its branding scales with the stage. A landscape
+inside the narrow player, gives the seek track the available space by omitting
+both time labels, and scales its branding with the stage. A landscape
 source instead starts at the top edge and uses the largest contain-fit that
 keeps the complete player and transport visible inside the screen. A vertical
 sticky mode rail sits to the left of the centered settings column below the
@@ -540,6 +541,9 @@ Build and validate:
 - keep the existing video and transport mounted across all three modes, with
   one inset over-video transport rather than duplicated controls or a
   viewport-fixed dock;
+- retain the desktop inline Set start / Set end treatment on mobile while
+  preserving 44 px touch targets, rather than stretching the buttons into
+  separate full-width rows;
 - place range, analysis, history, pose quality, and calibration in Analyze;
   playback speed, range looping, presentation-frame navigation, and
   checkpoints in Playback; and overlay and trail controls in Overlay;

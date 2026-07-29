@@ -2343,35 +2343,6 @@ details[open] > summary > .disclosure-arrow {
   .range-track-visual {
     top: 19px;
   }
-  .range-readout {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: stretch;
-    gap: 8px;
-  }
-  .range-readout-edge,
-  .range-readout-edge.is-end {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: stretch;
-    justify-content: stretch;
-    row-gap: 7px;
-    text-align: left;
-  }
-  .range-readout-edge.is-end > span,
-  .range-readout-edge.is-end > .range-set-button {
-    grid-row: auto;
-    grid-column: 1;
-  }
-  .range-readout-edge.is-end > span {
-    text-align: right;
-  }
-  .range-readout-edge > .range-set-button {
-    width: 100%;
-    padding-inline: 12px;
-    font-size: .64rem;
-  }
-  .range-arrow {
-    display: none;
-  }
   .trail-source-remove {
     width: 44px;
     min-width: 44px;
@@ -2654,11 +2625,11 @@ details[open] > summary > .disclosure-arrow {
   .has-portrait-source .transport {
     width: calc(var(--stage-width, 100%) - 16px);
     max-width: calc(100% - 16px);
-    grid-template-columns: 44px auto minmax(0, 1fr) 44px;
-    gap: 4px;
-    padding-inline: 4px;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    gap: 0;
+    padding-inline: 2px;
   }
-  .has-portrait-source .transport-duration { display: none; }
+  .has-portrait-source .transport-time { display: none; }
   .has-portrait-source .stage-brand {
     transform: scale(.78);
     transform-origin: left top;

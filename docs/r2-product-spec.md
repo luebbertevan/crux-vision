@@ -173,7 +173,8 @@ the top edge and uses the largest contain-fit that keeps the complete player
 and transport inside the viewport; selected tools follow below it. Portrait
 sources keep the compact side-by-side stage and settings rail, fill the screen
 height without a reserved bottom strip, and use a stage-contained transport
-that omits only the duration readout when space is tight. Their over-video
+that omits both time readouts so the seek track remains useful when space is
+tight. Their over-video
 branding scales down with the player. Every mobile stage owns a compact
 mark-and-name lockup in its top-left corner instead of a separate top bar. It
 has no glass backing and omits both the REVIEW label and Movement review
@@ -188,7 +189,8 @@ control sits at the far right. New sources start muted for predictable mobile
 autoplay; the user can unmute for the remainder of that source session. The
 visible pill remains 36 px thick at every viewport size. Mobile play and mute
 hit areas extend transparently to `44×44 px` without making the transport look
-taller.
+taller. Mobile Set start and Set end controls retain the desktop inline visual
+treatment beside their time values, with 44 px touch-target height.
 
 This is intentionally an MVP navigation layer, not a bottom-sheet system or
 interface rewrite. The transport remains inset within the stage rather than

@@ -611,6 +611,17 @@ test('landscape phone uses the available space for both video orientations', asy
   expect(bounds.rail.bottom).toBeGreaterThanOrEqual(392);
   expect(bounds.stageBrandMark.width).toBeLessThanOrEqual(27);
   expectAligned(bounds.video, bounds.canvas);
+  await expect(page.locator('.transport-time')).toHaveCount(2);
+  for (const timeReadout of await page.locator('.transport-time').all()) {
+    await expect(timeReadout).toBeHidden();
+  }
+  const portraitTimelineBounds = await page
+    .locator('.playback-timeline')
+    .boundingBox();
+  expect(portraitTimelineBounds).not.toBeNull();
+  expect(portraitTimelineBounds!.width).toBeGreaterThanOrEqual(
+    bounds.transport.width - 100,
+  );
   const portraitNavButtons = await page
     .getByTestId('mobile-workspace-nav')
     .getByRole('button')

@@ -56,7 +56,8 @@ during normal scrolling.
 
 At `852×393`, a portrait source fills the screen height in the left review
 column without a reserved bottom strip. Its compact transport remains entirely
-inside the narrow stage, its branding scales down with the player, and a
+inside the narrow stage and omits both time readouts so seeking receives the
+remaining width. Its branding scales down with the player, and a
 vertical sticky mode rail sits between the video and independently scrolling
 settings. A landscape source instead keeps the transport inset over the video,
 starts the stage at the top screen edge, and scales to the largest size that
@@ -112,6 +113,10 @@ Automated coverage verifies:
   phone with tools below;
 - short-landscape navigation is vertical and remains visible while portrait
   settings scroll independently or the landscape-source settings page scrolls;
+- the short-landscape portrait transport hides both time readouts and devotes
+  the recovered space to its seek track;
+- mobile Set start / Set end controls use the shared inline desktop treatment
+  while retaining 44 px touch targets;
 - mobile review hides the separate top bar, displays the mark and name inside
   the stage without a glass backing or subtitle, and does not render the REVIEW
   label;

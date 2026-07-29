@@ -129,9 +129,13 @@ test('keeps transport and workspace state intact while changing mobile tools', a
   expect(endButtonBounds).not.toBeNull();
   expect(startButtonBounds!.height).toBeGreaterThanOrEqual(44);
   expect(endButtonBounds!.height).toBeGreaterThanOrEqual(44);
-  expect(startButtonBounds!.width).toBeGreaterThanOrEqual(120);
-  expect(endButtonBounds!.width).toBeGreaterThanOrEqual(120);
-  expect(startButtonBounds!.width).toBeCloseTo(endButtonBounds!.width, 0);
+  expect(startButtonBounds!.width).toBeGreaterThanOrEqual(44);
+  expect(endButtonBounds!.width).toBeGreaterThanOrEqual(44);
+  expect(startButtonBounds!.width).toBeLessThan(120);
+  expect(endButtonBounds!.width).toBeLessThan(120);
+  expect(
+    Math.abs(startButtonBounds!.width - endButtonBounds!.width),
+  ).toBeLessThan(8);
   expect(startButtonBounds!.y).toBeCloseTo(endButtonBounds!.y, 0);
 
   await showTools(page, 'Playback');
@@ -254,6 +258,38 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
     await expect(page.locator('.topbar')).toBeHidden();
     await expect(page.locator('.stage-brand')).toBeVisible();
     await expect(page.locator('.stage-brand small')).toHaveCount(0);
+    const startValueBounds = await page
+      .locator('.range-readout-edge > span')
+      .first()
+      .boundingBox();
+    const setStartBounds = await page
+      .getByRole('button', { name: 'Set start' })
+      .boundingBox();
+    const endValueBounds = await page
+      .locator('.range-readout-edge > span')
+      .last()
+      .boundingBox();
+    const setEndBounds = await page
+      .getByRole('button', { name: 'Set end' })
+      .boundingBox();
+    expect(startValueBounds).not.toBeNull();
+    expect(setStartBounds).not.toBeNull();
+    expect(endValueBounds).not.toBeNull();
+    expect(setEndBounds).not.toBeNull();
+    expect(setStartBounds!.y).toBeLessThan(
+      startValueBounds!.y + startValueBounds!.height,
+    );
+    expect(setEndBounds!.y).toBeLessThan(
+      endValueBounds!.y + endValueBounds!.height,
+    );
+    expect(startValueBounds!.x + startValueBounds!.width).toBeLessThanOrEqual(
+      setStartBounds!.x,
+    );
+    expect(setEndBounds!.x + setEndBounds!.width).toBeLessThanOrEqual(
+      endValueBounds!.x,
+    );
+    expect(setStartBounds!.width).toBeLessThan(120);
+    expect(setEndBounds!.width).toBeLessThan(120);
 
     if (layout.viewport.width > layout.viewport.height) {
       const [stageBounds, navBounds, railBounds] = await Promise.all([
