@@ -2070,7 +2070,12 @@ details[open] > summary > .disclosure-arrow {
 @media (min-width: 981px) {
   .has-landscape-source .source-filename {
     margin-right: 0;
+    font-size: 1.15rem;
     text-align: right;
+  }
+  .has-landscape-source .brand {
+    transform: scale(1.25);
+    transform-origin: left center;
   }
 
   .has-portrait-source.app-shell { position: relative; }
@@ -2167,6 +2172,9 @@ details[open] > summary > .disclosure-arrow {
 @media (min-width: 1600px) and (min-aspect-ratio: 8 / 5) {
   .has-portrait-source .topbar {
     top: 32px;
+  }
+  .has-landscape-source .brand {
+    transform: scale(1.875);
   }
 }
 

@@ -171,6 +171,10 @@ test('desktop portrait and landscape stages use the available review surface', a
     Math.abs(portrait.portraitFilename.x - portrait.poseCard.x),
   ).toBeLessThanOrEqual(1);
   await expect(page.locator('.portrait-review-filename')).toHaveCSS('text-align', 'right');
+  const portraitBrandMark = await page.locator('.brand-mark').boundingBox();
+  const portraitBrandName = await page.locator('.brand strong').boundingBox();
+  expect(portraitBrandMark).not.toBeNull();
+  expect(portraitBrandName).not.toBeNull();
   await expect(page.locator('.topbar-actions')).toHaveCount(0);
   await expect(page.getByText('Local only')).toHaveCount(0);
   await expect(
@@ -277,7 +281,16 @@ test('desktop portrait and landscape stages use the available review surface', a
   await expect(page.locator('.file-button-label-full')).toHaveText('Replace video');
   await expect(page.locator('.file-button-label-full')).toBeVisible();
   await expect(page.locator('.range-section .analysis-actions .file-button-compact')).toBeVisible();
-  await expect(page.locator('.source-filename')).toHaveCSS('font-size', '24.32px');
+  await expect(page.locator('.source-filename')).toHaveCSS('font-size', '18.4px');
+  const landscapeBrandMark = await page.locator('.brand-mark').boundingBox();
+  const landscapeBrandName = await page.locator('.brand strong').boundingBox();
+  expect(landscapeBrandMark).not.toBeNull();
+  expect(landscapeBrandName).not.toBeNull();
+  expect(landscapeBrandMark!.width).toBeCloseTo(portraitBrandMark!.width, 1);
+  expect(landscapeBrandMark!.height).toBeCloseTo(portraitBrandMark!.height, 1);
+  expect(
+    Math.abs(landscapeBrandName!.height - portraitBrandName!.height),
+  ).toBeLessThanOrEqual(0.75);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('desktop-landscape-imported.png'),
