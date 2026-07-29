@@ -1924,11 +1924,18 @@ details[open] > summary > .disclosure-arrow {
 
 @media (min-width: 1200px) and (min-aspect-ratio: 8 / 5) {
   .has-portrait-source.app-shell {
+    --portrait-menu-width: 418px;
     width: 100%;
     padding-inline: 0;
   }
   .has-portrait-source.app-shell .topbar {
-    width: 330px;
+    left: calc(
+      (
+        (100% - var(--stage-width, 100%)) / 2 -
+        var(--portrait-menu-width)
+      ) / 2
+    );
+    width: var(--portrait-menu-width);
     flex-direction: row;
     align-items: center;
     gap: 14px;
@@ -1992,15 +1999,22 @@ details[open] > summary > .disclosure-arrow {
     position: absolute;
     z-index: 2;
     top: 13px;
-    right: 0;
-    width: 380px;
+    right: auto;
+    left: calc(
+      (100% + var(--stage-width, 100%)) / 2 +
+      (
+        (100% - var(--stage-width, 100%)) / 2 -
+        var(--portrait-menu-width)
+      ) / 2
+    );
+    width: var(--portrait-menu-width);
     display: block;
     overflow: hidden;
     color: var(--dim);
-    font-size: 1.64rem;
+    font-size: 1.15rem;
     font-weight: 700;
     letter-spacing: .08em;
-    text-align: right;
+    text-align: left;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -2008,6 +2022,9 @@ details[open] > summary > .disclosure-arrow {
 }
 
 @media (min-width: 1600px) and (min-aspect-ratio: 8 / 5) {
+  .has-portrait-source.app-shell {
+    --portrait-menu-width: 502px;
+  }
   .has-portrait-source .brand {
     transform: scale(1.5);
     transform-origin: left bottom;
@@ -2023,6 +2040,9 @@ details[open] > summary > .disclosure-arrow {
 }
 
 @media (min-width: 1900px) and (min-aspect-ratio: 8 / 5) {
+  .has-portrait-source.app-shell {
+    --portrait-menu-width: 569px;
+  }
   .review-workspace.is-portrait .range-panel-slot,
   .review-workspace.is-portrait .pose-panel-slot {
     width: 569px;
@@ -2034,6 +2054,9 @@ details[open] > summary > .disclosure-arrow {
 }
 
 @media (min-width: 2300px) and (min-aspect-ratio: 8 / 5) {
+  .has-portrait-source.app-shell {
+    --portrait-menu-width: 627px;
+  }
   .review-workspace.is-portrait .range-panel-slot,
   .review-workspace.is-portrait .pose-panel-slot {
     width: 627px;
@@ -2228,6 +2251,35 @@ details[open] > summary > .disclosure-arrow {
   }
   .range-track-visual {
     top: 19px;
+  }
+  .range-readout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 8px;
+  }
+  .range-readout-edge,
+  .range-readout-edge.is-end {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    justify-content: stretch;
+    row-gap: 7px;
+    text-align: left;
+  }
+  .range-readout-edge.is-end > span,
+  .range-readout-edge.is-end > .range-set-button {
+    grid-row: auto;
+    grid-column: 1;
+  }
+  .range-readout-edge.is-end > span {
+    text-align: right;
+  }
+  .range-readout-edge > .range-set-button {
+    width: 100%;
+    padding-inline: 12px;
+    font-size: .64rem;
+  }
+  .range-arrow {
+    display: none;
   }
   .trail-source-remove {
     width: 44px;

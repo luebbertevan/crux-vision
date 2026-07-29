@@ -164,10 +164,13 @@ test('desktop portrait and landscape stages use the available review surface', a
   await expect(page.locator('.portrait-review-filename')).toBeVisible();
   await expect(page.locator('.portrait-review-filename')).toHaveCSS(
     'font-size',
-    '26.24px',
+    '18.4px',
   );
-  expect(1440 - portrait.portraitFilename.right).toBeLessThanOrEqual(12);
-  await expect(page.locator('.portrait-review-filename')).toHaveCSS('text-align', 'right');
+  expect(Math.abs(portrait.topbar.x - portrait.rangeCard.x)).toBeLessThanOrEqual(1);
+  expect(
+    Math.abs(portrait.portraitFilename.x - portrait.poseCard.x),
+  ).toBeLessThanOrEqual(1);
+  await expect(page.locator('.portrait-review-filename')).toHaveCSS('text-align', 'left');
   await expect(page.locator('.topbar-actions')).toHaveCount(0);
   await expect(page.getByText('Local only')).toHaveCount(0);
   await expect(

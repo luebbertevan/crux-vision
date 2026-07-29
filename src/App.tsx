@@ -1566,6 +1566,11 @@ export function App() {
             ? 'has-landscape-source'
             : ''
       }`}
+      style={
+        {
+          '--stage-width': stageSize ? `${stageSize.width}px` : '100%',
+        } as CSSProperties
+      }
       data-analysis-phase={analysis.phase}
       data-playback-rate={playerSnapshot.playbackRate}
       data-range-loop={rangeLoopEnabled ? 'enabled' : 'disabled'}
@@ -1675,11 +1680,6 @@ export function App() {
             sourceIsPortrait ? 'is-portrait' : 'is-landscape'
           }`}
           data-video-orientation={sourceIsPortrait ? 'portrait' : 'landscape'}
-          style={
-            {
-              '--stage-width': stageSize ? `${stageSize.width}px` : '100%',
-            } as CSSProperties
-          }
         >
           <span
             className="portrait-review-filename"
