@@ -86,6 +86,20 @@ test('keeps transport and review state intact while changing mobile tools', asyn
   await expect(analysisStatus).toBeVisible();
   await expect(checkpoints).toBeVisible();
   await expect(overlaySettings).toBeHidden();
+  const startButtonBounds = await page
+    .getByRole('button', { name: 'Set start' })
+    .boundingBox();
+  const endButtonBounds = await page
+    .getByRole('button', { name: 'Set end' })
+    .boundingBox();
+  expect(startButtonBounds).not.toBeNull();
+  expect(endButtonBounds).not.toBeNull();
+  expect(startButtonBounds!.height).toBeGreaterThanOrEqual(44);
+  expect(endButtonBounds!.height).toBeGreaterThanOrEqual(44);
+  expect(startButtonBounds!.width).toBeGreaterThanOrEqual(120);
+  expect(endButtonBounds!.width).toBeGreaterThanOrEqual(120);
+  expect(startButtonBounds!.width).toBeCloseTo(endButtonBounds!.width, 0);
+  expect(startButtonBounds!.y).toBeCloseTo(endButtonBounds!.y, 0);
 
   await page.locator('video').evaluate(async (element) => {
     const video = element as HTMLVideoElement;
