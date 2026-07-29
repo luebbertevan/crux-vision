@@ -2242,6 +2242,28 @@ details[open] > summary > .disclosure-arrow {
     font-size: .58rem;
     text-shadow: 0 1px 5px rgba(0,0,0,.95);
   }
+  .has-source .transport {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+  .has-source .transport::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 36px;
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 999px;
+    background: rgba(8,12,9,.48);
+    box-shadow: 0 8px 30px rgba(0,0,0,.34);
+    backdrop-filter: blur(16px) saturate(1.1);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
   .mobile-workspace-nav {
     position: sticky;
     z-index: 8;
@@ -2472,11 +2494,11 @@ details[open] > summary > .disclosure-arrow {
     width: auto;
     max-width: none;
     margin: 0;
-    border: 1px solid rgba(255,255,255,.22);
+    border: 1px solid transparent;
     border-radius: 999px;
-    background: rgba(8,12,9,.48);
-    box-shadow: 0 8px 30px rgba(0,0,0,.34);
-    backdrop-filter: blur(16px) saturate(1.1);
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
     transform: none;
   }
   .has-source .stage-feedback { bottom: 60px; }

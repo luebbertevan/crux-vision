@@ -278,6 +278,11 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
           (element) => getComputedStyle(element).borderRadius,
         )),
       ).toBeGreaterThanOrEqual(20);
+      expect(
+        Number.parseFloat(await transport.evaluate(
+          (element) => getComputedStyle(element, '::before').height,
+        )),
+      ).toBeCloseTo(36, 0);
 
       if (layout.label === 'landscape-phone-landscape-video') {
         const railBounds = await page.locator('.control-rail').boundingBox();

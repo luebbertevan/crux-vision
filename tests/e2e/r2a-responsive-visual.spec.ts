@@ -468,6 +468,11 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   expect(portrait.transport.y).toBeGreaterThanOrEqual(portrait.stage.bottom - 70);
   expect(portrait.transport.bottom).toBeLessThanOrEqual(portrait.stage.bottom - 4);
   expect(portrait.transport.height).toBeLessThanOrEqual(48);
+  expect(
+    Number.parseFloat(await page.locator('.transport').evaluate(
+      (element) => getComputedStyle(element, '::before').height,
+    )),
+  ).toBeCloseTo(36, 0);
   expectAligned(portrait.video, portrait.canvas);
   await expectPlaybackInputCentered(page);
   await expectNoHorizontalOverflow(page);
@@ -594,6 +599,11 @@ test('landscape phone keeps portrait and landscape review controls usable', asyn
   expect(bounds.transport.y).toBeGreaterThanOrEqual(bounds.stage.bottom - 72);
   expect(bounds.transport.bottom).toBeLessThanOrEqual(bounds.stage.bottom - 4);
   expect(bounds.transport.height).toBeLessThanOrEqual(48);
+  expect(
+    Number.parseFloat(await page.locator('.transport').evaluate(
+      (element) => getComputedStyle(element, '::before').height,
+    )),
+  ).toBeCloseTo(36, 0);
   expect(bounds.rail.y).toBeGreaterThanOrEqual(bounds.stage.bottom + 10);
   expectAligned(bounds.video, bounds.canvas);
   await expectNoHorizontalOverflow(page);

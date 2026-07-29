@@ -73,7 +73,10 @@ button semantics and an accessible name, but its visual treatment is a bare
 icon rather than a filled standard button; the mobile hit area remains
 `44×44 px`. The matching right-aligned audio button reports and toggles the
 actual media mute state. Source replacement restores muted playback so every
-new clip begins consistently and can autoplay on mobile.
+new clip begins consistently and can autoplay on mobile. The transport's
+visible pill is fixed at `36 px` across desktop and phone layouts. On phone, the
+play and mute controls retain transparent `44×44 px` hit areas around that
+thinner visual shell.
 
 ## State and architecture boundaries
 
@@ -105,8 +108,9 @@ Automated coverage verifies:
   phone with tools below;
 - mobile review hides the separate top bar, displays the brand inside the stage,
   and does not render the REVIEW label;
-- desktop transport stays at most `38 px` high and phone transport at most
-  `48 px`, with icon-only play/pause styling and mobile target sizing preserved;
+- the visible transport pill stays `36 px` high across desktop and phone
+  layouts while the phone interaction container stays at most `48 px`, with
+  icon-only controls and mobile target sizing preserved;
 - new sources start muted, the right-edge control toggles the media element,
   and source replacement restores the default;
 - active ordinary phone targets meet the `44×44 px` minimum;

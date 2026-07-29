@@ -166,7 +166,9 @@ translucent, inset over-video transport for both source and phone orientations w
 retaining 44 px touch targets. Across desktop and phone layouts, play/pause is
 an icon-only control inside a slimmer pill transport instead of a filled
 standard button. A matching right-aligned audio control reflects the current
-mute state, and every newly opened source starts muted.
+mute state, and every newly opened source starts muted. The visible pill stays
+36 px thick across desktop and phone layouts; transparent mobile hit areas
+extend to 44 px without visually enlarging the transport.
 Video and canvas still share identical bounds and `object-fit: contain`.
 
 ### R2 phone gate — Minimal physical-device smoke test
@@ -566,6 +568,8 @@ Build and validate:
 - add a matching right-aligned mute control, default each newly opened video to
   muted playback, and preserve the chosen audio state while reviewing that
   source;
+- keep the visible transport pill at a fixed 36 px thickness across viewport
+  sizes while retaining invisible `44×44 px` mobile hit areas;
 - leave desktop panel layout and behavior unchanged apart from making the
   landscape transport use the same over-video placement.
 
