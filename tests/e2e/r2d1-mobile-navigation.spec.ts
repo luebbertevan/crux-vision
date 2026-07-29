@@ -253,6 +253,7 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
     await expect(transport).toBeVisible();
     await expect(page.locator('.topbar')).toBeHidden();
     await expect(page.locator('.stage-brand')).toBeVisible();
+    await expect(page.locator('.stage-brand small')).toHaveCount(0);
 
     for (const mode of ['Analyze', 'Playback', 'Overlay'] as const) {
       await showTools(page, mode);
@@ -261,8 +262,14 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
       await expect(transport).toBeVisible();
       const stageBounds = await stage.boundingBox();
       const transportBounds = await transport.boundingBox();
+      const stageBrandBounds = await page.locator('.stage-brand').boundingBox();
       expect(stageBounds).not.toBeNull();
       expect(transportBounds).not.toBeNull();
+      expect(stageBrandBounds).not.toBeNull();
+      expect(stageBrandBounds!.x - stageBounds!.x).toBeGreaterThanOrEqual(9.5);
+      expect(stageBrandBounds!.x - stageBounds!.x).toBeLessThanOrEqual(11.5);
+      expect(stageBrandBounds!.y - stageBounds!.y).toBeGreaterThanOrEqual(9.5);
+      expect(stageBrandBounds!.y - stageBounds!.y).toBeLessThanOrEqual(11.5);
       expect(transportBounds!.y).toBeGreaterThanOrEqual(
         stageBounds!.y + stageBounds!.height - 72,
       );

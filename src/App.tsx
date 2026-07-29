@@ -1751,7 +1751,6 @@ export function App() {
                   </span>
                   <span>
                     <strong>Crux Vision</strong>
-                    <small>Movement review</small>
                   </span>
                 </div>
                 <div className="stage-topline">

@@ -102,6 +102,12 @@ const expectNoHorizontalOverflow = async (page: import('@playwright/test').Page)
   ).toBe(true);
 };
 
+const expectMovementReviewBranding = async (page: Page) => {
+  const subtitle = page.locator('.topbar .brand small');
+  await expect(subtitle).toBeVisible();
+  await expect(subtitle).toHaveCSS('color', 'rgb(188, 255, 112)');
+};
+
 test('desktop empty shell visual acceptance', async ({ page }, testInfo) => {
   for (const viewport of [
     { width: 1280, height: 800, label: 'laptop' },
@@ -114,6 +120,7 @@ test('desktop empty shell visual acceptance', async ({ page }, testInfo) => {
       page.getByRole('heading', { name: /See your climbing/i }),
     ).toBeVisible();
     await expect(page.getByText('Nothing leaves this device.')).toBeVisible();
+    await expectMovementReviewBranding(page);
     await expectNoHorizontalOverflow(page);
 
     if (viewport.label === 'wide') {
@@ -136,6 +143,7 @@ test('desktop portrait and landscape stages use the available review surface', a
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await importVideo(page, portraitFixture);
+  await expectMovementReviewBranding(page);
 
   const portrait = await getReviewBounds(page);
   expect(portrait.stage.height).toBeGreaterThanOrEqual(875);
@@ -429,6 +437,7 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
     /maximum-scale=1\.0, user-scalable=no/,
   );
   await expect(page.getByRole('heading', { name: /See your climbing/i })).toBeVisible();
+  await expectMovementReviewBranding(page);
   await expectNoHorizontalOverflow(page);
   const openButton = page.getByTestId('video-input').locator('..');
   expect((await openButton.boundingBox())?.height).toBeGreaterThanOrEqual(44);
@@ -458,6 +467,7 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   const portrait = await getReviewBounds(page);
   await expect(page.locator('.topbar')).toBeHidden();
   await expect(page.locator('.stage-brand')).toBeVisible();
+  await expect(page.locator('.stage-brand small')).toHaveCount(0);
   await expect(page.getByText('REVIEW', { exact: true })).toHaveCount(0);
   expect(portrait.stage.width).toBeGreaterThanOrEqual(392);
   expect(portrait.stage.height).toBeGreaterThanOrEqual(695);
@@ -594,6 +604,25 @@ test('landscape phone keeps portrait and landscape review controls usable', asyn
   expect(bounds.stage.bottom).toBeLessThanOrEqual(393.5);
   expect(bounds.stageBrand.x).toBeGreaterThanOrEqual(bounds.stage.x + 9.5);
   expect(bounds.stageBrand.y).toBeGreaterThanOrEqual(bounds.stage.y + 9.5);
+  expect(bounds.stageBrand.x).toBeLessThanOrEqual(bounds.stage.x + 11.5);
+  expect(bounds.stageBrand.y).toBeLessThanOrEqual(bounds.stage.y + 11.5);
+  await expect(page.locator('.stage-brand small')).toHaveCount(0);
+  expect(
+    await page.locator('.stage-brand').evaluate((element) => {
+      const styles = getComputedStyle(element);
+      return {
+        background: styles.backgroundColor,
+        border: styles.borderTopWidth,
+        shadow: styles.boxShadow,
+        backdrop: styles.backdropFilter,
+      };
+    }),
+  ).toEqual({
+    background: 'rgba(0, 0, 0, 0)',
+    border: '0px',
+    shadow: 'none',
+    backdrop: 'none',
+  });
   expect(bounds.transport.x).toBeGreaterThanOrEqual(bounds.stage.x + 7.5);
   expect(bounds.transport.right).toBeLessThanOrEqual(bounds.stage.right - 7.5);
   expect(bounds.transport.y).toBeGreaterThanOrEqual(bounds.stage.bottom - 72);
@@ -609,6 +638,30 @@ test('landscape phone keeps portrait and landscape review controls usable', asyn
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath('iphone-landscape-landscape-video.png'),
+    fullPage: true,
+  });
+
+  await page.setViewportSize({ width: 944, height: 438 });
+  await expect
+    .poll(async () => (await getReviewBounds(page)).stage.height)
+    .toBeGreaterThanOrEqual(437);
+  bounds = await getReviewBounds(page);
+  expect(bounds.stage.y).toBeLessThanOrEqual(0.5);
+  expect(bounds.stage.height).toBeGreaterThanOrEqual(437);
+  expect(bounds.stage.height).toBeLessThanOrEqual(438);
+  expect(bounds.stage.bottom).toBeGreaterThanOrEqual(437);
+  expect(bounds.stage.bottom).toBeLessThanOrEqual(438.5);
+  expect(bounds.stage.width).toBeGreaterThanOrEqual(777);
+  expect(bounds.stage.width).toBeLessThanOrEqual(780);
+  expect(bounds.stageBrand.x - bounds.stage.x).toBeGreaterThanOrEqual(9.5);
+  expect(bounds.stageBrand.x - bounds.stage.x).toBeLessThanOrEqual(11.5);
+  expect(bounds.stageBrand.y - bounds.stage.y).toBeGreaterThanOrEqual(9.5);
+  expect(bounds.stageBrand.y - bounds.stage.y).toBeLessThanOrEqual(11.5);
+  expect(bounds.transport.x).toBeGreaterThanOrEqual(bounds.stage.x + 7.5);
+  expect(bounds.transport.right).toBeLessThanOrEqual(bounds.stage.right - 7.5);
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({
+    path: testInfo.outputPath('screenshot-sized-landscape-video.png'),
     fullPage: true,
   });
 });

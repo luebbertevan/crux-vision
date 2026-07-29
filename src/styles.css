@@ -2221,12 +2221,6 @@ details[open] > summary > .disclosure-arrow {
     display: inline-flex;
     align-items: center;
     gap: 9px;
-    padding: 5px 9px 5px 5px;
-    border: 1px solid rgba(255,255,255,.18);
-    border-radius: 13px;
-    background: rgba(5,8,5,.58);
-    box-shadow: 0 4px 18px rgba(0,0,0,.38);
-    backdrop-filter: blur(12px) saturate(1.1);
     text-shadow: 0 1px 5px rgba(0,0,0,.95);
     pointer-events: none;
   }
@@ -2236,12 +2230,6 @@ details[open] > summary > .disclosure-arrow {
     flex: 0 0 34px;
   }
   .stage-brand strong { font-size: .88rem; }
-  .stage-brand small {
-    display: block;
-    color: var(--lime);
-    font-size: .58rem;
-    text-shadow: 0 1px 5px rgba(0,0,0,.95);
-  }
   .has-source .transport {
     border-color: transparent;
     background: transparent;
@@ -2425,7 +2413,6 @@ details[open] > summary > .disclosure-arrow {
   .brand-mark i:nth-child(2) { left: 15px; top: 4px; }
   .brand-mark i:nth-child(3) { left: 22px; top: 8px; }
   .brand small { display: none; }
-  .stage-brand small { display: block; }
   .is-empty .brand { gap: 11px; }
   .is-empty .brand-mark {
     width: 44px;

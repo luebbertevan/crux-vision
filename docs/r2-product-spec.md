@@ -170,18 +170,20 @@ When a short landscape phone displays a landscape source, the stage starts at
 the top edge and uses the largest contain-fit that keeps the complete player
 and transport inside the viewport; selected tools follow below it. Portrait
 sources keep the compact side-by-side stage and rail. Every mobile stage owns a
-compact dark-backed brand lockup in its top-left corner instead of a separate
-top bar. The REVIEW label is removed, and the Movement review subtitle uses
-lime for contrast over footage. Desktop continues to show all panels with no
-mode bar, and both desktop source orientations use the same inset transport
-placement. The shared transport is a slim rounded pill with transparent,
-icon-only play/pause presentation. Its mobile button keeps a `44×44 px` hit
-target even though the visible icon no longer appears inside a filled button.
-A matching icon-only mute control sits at the far right. New sources start
-muted for predictable mobile autoplay; the user can unmute for the remainder
-of that source session. The visible pill remains 36 px thick at every viewport
-size. Mobile play and mute hit areas extend transparently to `44×44 px` without
-making the transport look taller.
+compact mark-and-name lockup in its top-left corner instead of a separate top
+bar. It has no glass backing and omits both the REVIEW label and Movement review
+subtitle so it stays legible without covering more footage. The landing and
+desktop-header Movement review subtitle continues to use the shared lime brand
+color. Desktop continues to show all panels with no mode bar, and both desktop
+source orientations use the same inset transport placement. The shared
+transport is a slim rounded pill with transparent, icon-only play/pause
+presentation. Its mobile button keeps a `44×44 px` hit target even though the
+visible icon no longer appears inside a filled button. A matching icon-only mute
+control sits at the far right. New sources start muted for predictable mobile
+autoplay; the user can unmute for the remainder of that source session. The
+visible pill remains 36 px thick at every viewport size. Mobile play and mute
+hit areas extend transparently to `44×44 px` without making the transport look
+taller.
 
 This is intentionally an MVP navigation layer, not a bottom-sheet system or
 interface rewrite. The transport remains inset within the stage rather than

@@ -60,10 +60,11 @@ right rail. A landscape source instead keeps the transport inset over the
 video, starts the stage at the top screen edge, and scales to the largest size
 that keeps the entire player visible at once.
 The mode bar and selected tools follow below the stage. Every mobile source
-orientation hides the separate top bar and places a dark-backed brand lockup
-inside the video's top-left corner. The REVIEW label is removed and Movement
-review is lime for legibility. This preserves `object-fit: contain` without
-adding crop, zoom, or pan.
+orientation hides the separate top bar and places a mark-and-name brand lockup
+inside the video's top-left corner. The lockup has no glass backing and omits
+both the REVIEW label and Movement review subtitle. Landing and desktop-header
+branding retains the lime Movement review subtitle. This preserves
+`object-fit: contain` without adding crop, zoom, or pan.
 
 Active ordinary controls are at least `44×44 px` in both orientations. R2D.1
 also corrects inherited small landscape range/action targets and replaces the
@@ -106,8 +107,9 @@ Automated coverage verifies:
 - every source and viewport combination keeps the transport inside the stage,
   and landscape media uses the largest complete-player fit on a short landscape
   phone with tools below;
-- mobile review hides the separate top bar, displays the brand inside the stage,
-  and does not render the REVIEW label;
+- mobile review hides the separate top bar, displays the mark and name inside
+  the stage without a glass backing or subtitle, and does not render the REVIEW
+  label;
 - the visible transport pill stays `36 px` high across desktop and phone
   layouts while the phone interaction container stays at most `48 px`, with
   icon-only controls and mobile target sizing preserved;
