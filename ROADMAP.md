@@ -155,10 +155,13 @@ gutter without reserving a second transport row. Desktop landscape retains the
 compact horizontal top bar. At the reference viewports, the
 portrait stage is approximately 496×882 px at 1440×900 and remains
 393×698.5 px at 393×852; desktop landscape is approximately 1072×603 px. The
-852×393 layout keeps portrait media beside its control rail. A landscape
+852×393 layout keeps portrait media full-height beside a vertical sticky mode
+rail and an independently scrolling settings rail. Its compact transport stays
+inside the narrow player and its branding scales with the stage. A landscape
 source instead starts at the top edge and uses the largest contain-fit that
-keeps the complete player and transport visible inside the screen, with
-selected tools following below the stage. Phone branding lives in a compact
+keeps the complete player and transport visible inside the screen. A vertical
+sticky mode rail sits to the left of the centered settings column below the
+stage. Phone branding lives in a compact
 mark-and-name lockup at the top-left of the video with no glass backing; the
 separate mobile top bar, REVIEW label, and Movement review subtitle are removed.
 The landing and desktop-header subtitle uses muted text with a subtle lime
@@ -532,8 +535,8 @@ mobile interaction model before gym feedback.
 Build and validate:
 
 - expose **Analyze**, **Playback**, and **Overlay** through one compact mobile
-  mode bar immediately after the stage in portrait and at the top of the
-  existing control rail in landscape;
+  mode bar immediately after the stage in portrait and as a vertical sticky
+  rail beside the settings in landscape;
 - keep the existing video and transport mounted across all three modes, with
   one inset over-video transport rather than duplicated controls or a
   viewport-fixed dock;
@@ -558,7 +561,8 @@ Build and validate:
   overflow, and unchanged video/canvas registration;
 - place a short landscape phone's landscape source at the largest uncropped
   size that keeps the complete player inside the screen, with selected tools
-  below the stage, while retaining the compact side-by-side layout for portrait
+  below the stage, a vertical mode rail to the left of the centered settings,
+  and a compact side-by-side video / mode / settings layout for portrait
   sources;
 - remove the REVIEW stage label and mobile top bar, place a high-contrast
   mark-and-name lockup with no glass backing inside the video on every phone

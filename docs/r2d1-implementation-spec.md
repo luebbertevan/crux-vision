@@ -54,12 +54,15 @@ full width and the portrait transport remains inset over the stage. The mode bar
 follows the stage and becomes sticky only after it reaches the safe-area top
 during normal scrolling.
 
-At `852×393`, a portrait source and persistent transport remain in the left
-review column while the mode bar and selected tools use the existing scrollable
-right rail. A landscape source instead keeps the transport inset over the
-video, starts the stage at the top screen edge, and scales to the largest size
-that keeps the entire player visible at once.
-The mode bar and selected tools follow below the stage. Every mobile source
+At `852×393`, a portrait source fills the screen height in the left review
+column without a reserved bottom strip. Its compact transport remains entirely
+inside the narrow stage, its branding scales down with the player, and a
+vertical sticky mode rail sits between the video and independently scrolling
+settings. A landscape source instead keeps the transport inset over the video,
+starts the stage at the top screen edge, and scales to the largest size that
+keeps the entire player visible at once. Below it, a vertical sticky mode rail
+sits to the left of a settings column that remains centered under the video.
+Every mobile source
 orientation hides the separate top bar and places a mark-and-name brand lockup
 inside the video's top-left corner. The lockup has no glass backing and omits
 both the REVIEW label and Movement review subtitle. Landing and desktop-header
@@ -107,6 +110,8 @@ Automated coverage verifies:
 - every source and viewport combination keeps the transport inside the stage,
   and landscape media uses the largest complete-player fit on a short landscape
   phone with tools below;
+- short-landscape navigation is vertical and remains visible while portrait
+  settings scroll independently or the landscape-source settings page scrolls;
 - mobile review hides the separate top bar, displays the mark and name inside
   the stage without a glass backing or subtitle, and does not render the REVIEW
   label;

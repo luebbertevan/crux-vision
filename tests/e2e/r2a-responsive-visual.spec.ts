@@ -56,6 +56,9 @@ const getReviewBounds = async (page: Page) =>
       transport: bounds('.transport'),
       topbar: bounds('.topbar'),
       stageBrand: bounds('.stage-brand'),
+      stageBrandMark: bounds('.stage-brand-mark'),
+      mobileNav: bounds('.mobile-workspace-nav'),
+      mobileTools: bounds('.mobile-tools-layout'),
       rail: bounds('.control-rail'),
       rangeCard: bounds('.range-section'),
       poseCard: bounds('.analysis-section'),
@@ -590,17 +593,38 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   });
 });
 
-test('landscape phone keeps portrait and landscape review controls usable', async ({
+test('landscape phone uses the available space for both video orientations', async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 852, height: 393 });
   await page.goto('/');
   await importVideo(page, portraitFixture);
   let bounds = await getReviewBounds(page);
+  expect(bounds.stage.height).toBeGreaterThanOrEqual(392);
+  expect(bounds.stage.bottom).toBeGreaterThanOrEqual(392);
   expect(bounds.transport.y).toBeGreaterThanOrEqual(bounds.stage.bottom - 72);
   expect(bounds.transport.bottom).toBeLessThanOrEqual(bounds.stage.bottom - 4);
-  expect(bounds.stage.right).toBeLessThan(bounds.rail.x);
+  expect(bounds.transport.x).toBeGreaterThanOrEqual(bounds.stage.x + 7.5);
+  expect(bounds.transport.right).toBeLessThanOrEqual(bounds.stage.right - 7.5);
+  expect(bounds.stage.right).toBeLessThan(bounds.mobileNav.x);
+  expect(bounds.mobileNav.right).toBeLessThan(bounds.rail.x);
+  expect(bounds.rail.bottom).toBeGreaterThanOrEqual(392);
+  expect(bounds.stageBrandMark.width).toBeLessThanOrEqual(27);
   expectAligned(bounds.video, bounds.canvas);
+  const portraitNavButtons = await page
+    .getByTestId('mobile-workspace-nav')
+    .getByRole('button')
+    .all();
+  const portraitNavButtonBounds = await Promise.all(
+    portraitNavButtons.map((button) => button.boundingBox()),
+  );
+  expect(portraitNavButtonBounds).toHaveLength(3);
+  expect(portraitNavButtonBounds[1]!.y).toBeGreaterThan(
+    portraitNavButtonBounds[0]!.y + portraitNavButtonBounds[0]!.height,
+  );
+  expect(portraitNavButtonBounds[2]!.y).toBeGreaterThan(
+    portraitNavButtonBounds[1]!.y + portraitNavButtonBounds[1]!.height,
+  );
   await expectNoHorizontalOverflow(page);
   await expect(page.getByTestId('video-stage')).toBeVisible();
   expect(
@@ -655,6 +679,15 @@ test('landscape phone keeps portrait and landscape review controls usable', asyn
     )),
   ).toBeCloseTo(36, 0);
   expect(bounds.rail.y).toBeGreaterThanOrEqual(bounds.stage.bottom + 10);
+  expect(
+    Math.abs(bounds.rail.x + bounds.rail.width / 2 - 852 / 2),
+  ).toBeLessThanOrEqual(1);
+  expect(bounds.mobileNav.right).toBeLessThan(bounds.rail.x);
+  expect(bounds.mobileNav.y).toBeCloseTo(bounds.rail.y, 0);
+  await expect(page.getByTestId('mobile-workspace-nav')).toHaveCSS(
+    'position',
+    'sticky',
+  );
   expectAligned(bounds.video, bounds.canvas);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({

@@ -255,6 +255,47 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
     await expect(page.locator('.stage-brand')).toBeVisible();
     await expect(page.locator('.stage-brand small')).toHaveCount(0);
 
+    if (layout.viewport.width > layout.viewport.height) {
+      const [stageBounds, navBounds, railBounds] = await Promise.all([
+        stage.boundingBox(),
+        nav.boundingBox(),
+        page.locator('.control-rail').boundingBox(),
+      ]);
+      expect(stageBounds).not.toBeNull();
+      expect(navBounds).not.toBeNull();
+      expect(railBounds).not.toBeNull();
+      expect(navBounds!.x + navBounds!.width).toBeLessThan(railBounds!.x);
+      const navButtons = await nav.getByRole('button').all();
+      const navButtonBounds = await Promise.all(
+        navButtons.map((button) => button.boundingBox()),
+      );
+      expect(navButtonBounds).toHaveLength(3);
+      expect(navButtonBounds[1]!.y).toBeGreaterThan(
+        navButtonBounds[0]!.y + navButtonBounds[0]!.height,
+      );
+      expect(navButtonBounds[2]!.y).toBeGreaterThan(
+        navButtonBounds[1]!.y + navButtonBounds[1]!.height,
+      );
+
+      if (layout.fixture === portraitFixture) {
+        expect(stageBounds!.x + stageBounds!.width).toBeLessThan(navBounds!.x);
+        const navY = navBounds!.y;
+        await page.locator('.control-rail').evaluate((element) => {
+          element.scrollTop = 200;
+        });
+        expect((await nav.boundingBox())?.y).toBeCloseTo(navY, 0);
+      } else {
+        expect(
+          Math.abs(
+            railBounds!.x + railBounds!.width / 2 - layout.viewport.width / 2,
+          ),
+        ).toBeLessThanOrEqual(1);
+        await page.evaluate(() => window.scrollTo(0, 500));
+        expect((await nav.boundingBox())?.y).toBeLessThanOrEqual(9);
+        await page.evaluate(() => window.scrollTo(0, 0));
+      }
+    }
+
     for (const mode of ['Analyze', 'Playback', 'Overlay'] as const) {
       await showTools(page, mode);
       await expect(nav).toBeVisible();

@@ -163,19 +163,24 @@ and open disclosures survive mode and orientation changes. Replacing the
 source returns the mode to Analyze while retaining the established
 source-session reset.
 
-The mode bar appears below the stage on narrow portrait phones and at the top
-of the existing control rail on short landscape phones. It uses explicit text,
-selected states, accessible names, and `44×44 px` minimum active targets.
+The mode bar appears below the stage on narrow portrait phones. On short
+landscape phones it becomes a vertical sticky rail: between a portrait source
+and its independently scrolling settings, or to the left of the centered
+settings column below a landscape source. It uses explicit text, selected
+states, accessible names, and `44×44 px` minimum active targets.
 When a short landscape phone displays a landscape source, the stage starts at
 the top edge and uses the largest contain-fit that keeps the complete player
 and transport inside the viewport; selected tools follow below it. Portrait
-sources keep the compact side-by-side stage and rail. Every mobile stage owns a
-compact mark-and-name lockup in its top-left corner instead of a separate top
-bar. It has no glass backing and omits both the REVIEW label and Movement review
+sources keep the compact side-by-side stage and settings rail, fill the screen
+height without a reserved bottom strip, and use a stage-contained transport
+that omits only the duration readout when space is tight. Their over-video
+branding scales down with the player. Every mobile stage owns a compact
+mark-and-name lockup in its top-left corner instead of a separate top bar. It
+has no glass backing and omits both the REVIEW label and Movement review
 subtitle so it stays legible without covering more footage. The landing and
 desktop-header Movement review subtitle uses neutral muted text with a subtle
-lime glow. Desktop continues to show all panels with no mode bar, and both desktop
-source orientations use the same inset transport placement. The shared
+lime glow. Desktop continues to show all panels with no mode bar, and both
+desktop source orientations use the same inset transport placement. The shared
 transport is a slim rounded pill with transparent, icon-only play/pause
 presentation. Its mobile button keeps a `44×44 px` hit target even though the
 visible icon no longer appears inside a filled button. A matching icon-only mute

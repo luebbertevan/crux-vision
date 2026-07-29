@@ -1868,17 +1868,18 @@ export function App() {
             </div>
           </div>
 
-          <aside
-            className={`control-rail mobile-workspace-${mobileWorkspaceMode}`}
-            data-testid="control-rail"
-          >
+          <div className="mobile-tools-layout">
             <MobileWorkspaceNav
               mode={mobileWorkspaceMode}
               onChange={setMobileWorkspaceMode}
             />
-            <div className="range-panel-slot">
-              {range && (
-                <RangeSelector
+            <aside
+              className={`control-rail mobile-workspace-${mobileWorkspaceMode}`}
+              data-testid="control-rail"
+            >
+              <div className="range-panel-slot">
+                {range && (
+                  <RangeSelector
                   range={range}
                   durationMicroseconds={source.metadata.durationMicroseconds}
                   playheadMicroseconds={secondsToMicroseconds(playerSnapshot.currentTimeSeconds)}
@@ -2079,12 +2080,12 @@ export function App() {
                     onNext={() => goToAdjacentCheckpoint('next')}
                   />
                 </div>
-                </RangeSelector>
-              )}
-            </div>
+                  </RangeSelector>
+                )}
+              </div>
 
-            <div className="pose-panel-slot">
-              <section className="analysis-section" aria-labelledby="analysis-title">
+              <div className="pose-panel-slot">
+                <section className="analysis-section" aria-labelledby="analysis-title">
                 <div className="overlay-panel-content">
                   <div className="section-heading analysis-heading">
                     <div>
@@ -2157,9 +2158,10 @@ export function App() {
                   />
                 </div>
 
-              </section>
-            </div>
-          </aside>
+                </section>
+              </div>
+            </aside>
+          </div>
         </section>
       )}
     </main>
