@@ -1,0 +1,459 @@
+{
+  "generatedAt": "2026-07-23T00:59:53.870Z",
+  "fixture": "lache-send.MOV",
+  "analysisRangeSeconds": [
+    7,
+    12
+  ],
+  "sampleRate": 15,
+  "browserVersion": "150.0.7871.129",
+  "environment": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "hardwareConcurrency": 8,
+    "deviceMemoryGiB": 16,
+    "crossOriginIsolated": false
+  },
+  "metadata": {
+    "fileName": "lache-send.MOV",
+    "fileSizeBytes": 44496465,
+    "mimeType": "video/quicktime; codecs=\"hev1.1.6.L120.B0, mp4a.40.2\"",
+    "durationSeconds": 25.703038548752833,
+    "codec": "hevc",
+    "codedWidth": 1920,
+    "codedHeight": 1080,
+    "displayWidth": 1080,
+    "displayHeight": 1920,
+    "rotationDegreesClockwise": 90,
+    "averageFrameRate": 29.96285596368139,
+    "browserCanDecode": true
+  },
+  "runs": [
+    {
+      "engine": "mediapipe",
+      "modelLabel": "MediaPipe Lite",
+      "executionContext": "worker",
+      "delegate": "CPU",
+      "sampleRate": 15,
+      "requestedSamples": 76,
+      "completedSamples": 76,
+      "detectedSamples": 51,
+      "firstDetectedTimestampSeconds": 8.641667,
+      "lastDetectedTimestampSeconds": 11.978333,
+      "loadMilliseconds": 782.3000000044703,
+      "extractionMilliseconds": 34.20000001788139,
+      "inferenceMilliseconds": 1202.800000026822,
+      "wallMilliseconds": 2073.39999999851,
+      "averageInferenceMilliseconds": 15.826315789826607,
+      "inferenceFramesPerSecond": 63.1858995662664,
+      "detectedCoverage": 0.6710526315789473,
+      "jointQuality": {
+        "leftShoulder": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6706875680308593,
+          "largeJumpCandidates": 0
+        },
+        "rightShoulder": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6690467478413331,
+          "largeJumpCandidates": 0
+        },
+        "leftWrist": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6426713294104526,
+          "largeJumpCandidates": 0
+        },
+        "rightWrist": {
+          "acceptedCoverage": 0.013157894736842105,
+          "meanVisibility": 0.25273542184578746,
+          "largeJumpCandidates": 0
+        },
+        "leftHip": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6708488229073977,
+          "largeJumpCandidates": 0
+        },
+        "rightHip": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6707862568529028,
+          "largeJumpCandidates": 0
+        },
+        "leftAnkle": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6435517613825045,
+          "largeJumpCandidates": 0
+        },
+        "rightAnkle": {
+          "acceptedCoverage": 0.6052631578947368,
+          "meanVisibility": 0.4087776843654482,
+          "largeJumpCandidates": 0
+        }
+      }
+    },
+    {
+      "engine": "mediapipe",
+      "modelLabel": "MediaPipe Lite",
+      "executionContext": "worker",
+      "delegate": "GPU",
+      "sampleRate": 15,
+      "requestedSamples": 76,
+      "completedSamples": 76,
+      "detectedSamples": 49,
+      "firstDetectedTimestampSeconds": 8.641667,
+      "lastDetectedTimestampSeconds": 11.978333,
+      "loadMilliseconds": 101,
+      "extractionMilliseconds": 30.30000001192093,
+      "inferenceMilliseconds": 1039.6000000089407,
+      "wallMilliseconds": 1195,
+      "averageInferenceMilliseconds": 13.678947368538694,
+      "inferenceFramesPerSecond": 73.1050403995252,
+      "detectedCoverage": 0.6447368421052632,
+      "jointQuality": {
+        "leftShoulder": {
+          "acceptedCoverage": 0.6447368421052632,
+          "meanVisibility": 0.6443125135020206,
+          "largeJumpCandidates": 0
+        },
+        "rightShoulder": {
+          "acceptedCoverage": 0.6447368421052632,
+          "meanVisibility": 0.6423841636431845,
+          "largeJumpCandidates": 0
+        },
+        "leftWrist": {
+          "acceptedCoverage": 0.6447368421052632,
+          "meanVisibility": 0.6039577251986453,
+          "largeJumpCandidates": 0
+        },
+        "rightWrist": {
+          "acceptedCoverage": 0.06578947368421052,
+          "meanVisibility": 0.24942318114795184,
+          "largeJumpCandidates": 0
+        },
+        "leftHip": {
+          "acceptedCoverage": 0.6447368421052632,
+          "meanVisibility": 0.6445394401487551,
+          "largeJumpCandidates": 0
+        },
+        "rightHip": {
+          "acceptedCoverage": 0.6447368421052632,
+          "meanVisibility": 0.6444720100415381,
+          "largeJumpCandidates": 0
+        },
+        "leftAnkle": {
+          "acceptedCoverage": 0.6447368421052632,
+          "meanVisibility": 0.6212937526012722,
+          "largeJumpCandidates": 0
+        },
+        "rightAnkle": {
+          "acceptedCoverage": 0.618421052631579,
+          "meanVisibility": 0.3978467015059371,
+          "largeJumpCandidates": 0
+        }
+      }
+    },
+    {
+      "engine": "mediapipe",
+      "modelLabel": "MediaPipe Full",
+      "executionContext": "worker",
+      "delegate": "CPU",
+      "sampleRate": 15,
+      "requestedSamples": 76,
+      "completedSamples": 76,
+      "detectedSamples": 51,
+      "firstDetectedTimestampSeconds": 8.641667,
+      "lastDetectedTimestampSeconds": 11.978333,
+      "loadMilliseconds": 298.8999999985099,
+      "extractionMilliseconds": 27.899999991059303,
+      "inferenceMilliseconds": 1564.7000000178814,
+      "wallMilliseconds": 1913.5999999940395,
+      "averageInferenceMilliseconds": 20.588157894972124,
+      "inferenceFramesPerSecond": 48.571611170915496,
+      "detectedCoverage": 0.6710526315789473,
+      "jointQuality": {
+        "leftShoulder": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6707063231029009,
+          "largeJumpCandidates": 0
+        },
+        "rightShoulder": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.666329855981626,
+          "largeJumpCandidates": 0
+        },
+        "leftWrist": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6496879450584713,
+          "largeJumpCandidates": 0
+        },
+        "rightWrist": {
+          "acceptedCoverage": 0,
+          "meanVisibility": 0.12991104029903286,
+          "largeJumpCandidates": 0
+        },
+        "leftHip": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6708360110458574,
+          "largeJumpCandidates": 0
+        },
+        "rightHip": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6704704690920679,
+          "largeJumpCandidates": 0
+        },
+        "leftAnkle": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6400116242860493,
+          "largeJumpCandidates": 0
+        },
+        "rightAnkle": {
+          "acceptedCoverage": 0.618421052631579,
+          "meanVisibility": 0.38308222591876984,
+          "largeJumpCandidates": 0
+        }
+      }
+    },
+    {
+      "engine": "mediapipe",
+      "modelLabel": "MediaPipe Full",
+      "executionContext": "worker",
+      "delegate": "GPU",
+      "sampleRate": 15,
+      "requestedSamples": 76,
+      "completedSamples": 76,
+      "detectedSamples": 50,
+      "firstDetectedTimestampSeconds": 8.641667,
+      "lastDetectedTimestampSeconds": 11.978333,
+      "loadMilliseconds": 738.1999999955297,
+      "extractionMilliseconds": 28.60000003129244,
+      "inferenceMilliseconds": 1209.5999999642372,
+      "wallMilliseconds": 1998.2999999970198,
+      "averageInferenceMilliseconds": 15.915789473213648,
+      "inferenceFramesPerSecond": 62.83068783254547,
+      "detectedCoverage": 0.6578947368421053,
+      "jointQuality": {
+        "leftShoulder": {
+          "acceptedCoverage": 0.6578947368421053,
+          "meanVisibility": 0.6574520170688629,
+          "largeJumpCandidates": 0
+        },
+        "rightShoulder": {
+          "acceptedCoverage": 0.6578947368421053,
+          "meanVisibility": 0.6523044344625974,
+          "largeJumpCandidates": 0
+        },
+        "leftWrist": {
+          "acceptedCoverage": 0.6578947368421053,
+          "meanVisibility": 0.6052436224724117,
+          "largeJumpCandidates": 0
+        },
+        "rightWrist": {
+          "acceptedCoverage": 0,
+          "meanVisibility": 0.11424097075666252,
+          "largeJumpCandidates": 0
+        },
+        "leftHip": {
+          "acceptedCoverage": 0.6578947368421053,
+          "meanVisibility": 0.6576287722901294,
+          "largeJumpCandidates": 0
+        },
+        "rightHip": {
+          "acceptedCoverage": 0.6578947368421053,
+          "meanVisibility": 0.6571389609261563,
+          "largeJumpCandidates": 0
+        },
+        "leftAnkle": {
+          "acceptedCoverage": 0.6578947368421053,
+          "meanVisibility": 0.6202062854641363,
+          "largeJumpCandidates": 0
+        },
+        "rightAnkle": {
+          "acceptedCoverage": 0.5131578947368421,
+          "meanVisibility": 0.34055720857883753,
+          "largeJumpCandidates": 0
+        }
+      }
+    },
+    {
+      "engine": "mediapipe",
+      "modelLabel": "MediaPipe Heavy",
+      "executionContext": "worker",
+      "delegate": "CPU",
+      "sampleRate": 15,
+      "requestedSamples": 76,
+      "completedSamples": 76,
+      "detectedSamples": 51,
+      "firstDetectedTimestampSeconds": 8.641667,
+      "lastDetectedTimestampSeconds": 11.978333,
+      "loadMilliseconds": 1324.7999999970198,
+      "extractionMilliseconds": 29.799999982118607,
+      "inferenceMilliseconds": 4682.999999992549,
+      "wallMilliseconds": 6060.10000000149,
+      "averageInferenceMilliseconds": 61.61842105253354,
+      "inferenceFramesPerSecond": 16.228913089925456,
+      "detectedCoverage": 0.6710526315789473,
+      "jointQuality": {
+        "leftShoulder": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6709594342269396,
+          "largeJumpCandidates": 0
+        },
+        "rightShoulder": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6705184688693598,
+          "largeJumpCandidates": 0
+        },
+        "leftWrist": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.5630400055333188,
+          "largeJumpCandidates": 0
+        },
+        "rightWrist": {
+          "acceptedCoverage": 0.07894736842105263,
+          "meanVisibility": 0.15073380962406335,
+          "largeJumpCandidates": 0
+        },
+        "leftHip": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.670953988244659,
+          "largeJumpCandidates": 0
+        },
+        "rightHip": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6709299683570862,
+          "largeJumpCandidates": 0
+        },
+        "leftAnkle": {
+          "acceptedCoverage": 0.4605263157894737,
+          "meanVisibility": 0.3846192759902854,
+          "largeJumpCandidates": 0
+        },
+        "rightAnkle": {
+          "acceptedCoverage": 0.14473684210526316,
+          "meanVisibility": 0.24991280703168167,
+          "largeJumpCandidates": 0
+        }
+      }
+    },
+    {
+      "engine": "mediapipe",
+      "modelLabel": "MediaPipe Heavy",
+      "executionContext": "worker",
+      "delegate": "GPU",
+      "sampleRate": 15,
+      "requestedSamples": 76,
+      "completedSamples": 76,
+      "detectedSamples": 51,
+      "firstDetectedTimestampSeconds": 8.641667,
+      "lastDetectedTimestampSeconds": 11.978333,
+      "loadMilliseconds": 1250.7999999970198,
+      "extractionMilliseconds": 27.299999967217445,
+      "inferenceMilliseconds": 1565.299999974668,
+      "wallMilliseconds": 2864.39999999851,
+      "averageInferenceMilliseconds": 20.59605263124563,
+      "inferenceFramesPerSecond": 48.552993037264386,
+      "detectedCoverage": 0.6710526315789473,
+      "jointQuality": {
+        "leftShoulder": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.670929657785516,
+          "largeJumpCandidates": 0
+        },
+        "rightShoulder": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6702756544477061,
+          "largeJumpCandidates": 0
+        },
+        "leftWrist": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.5301517067771209,
+          "largeJumpCandidates": 0
+        },
+        "rightWrist": {
+          "acceptedCoverage": 0,
+          "meanVisibility": 0.054092830880299994,
+          "largeJumpCandidates": 0
+        },
+        "leftHip": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.6709507844950023,
+          "largeJumpCandidates": 0
+        },
+        "rightHip": {
+          "acceptedCoverage": 0.6710526315789473,
+          "meanVisibility": 0.670917535298749,
+          "largeJumpCandidates": 0
+        },
+        "leftAnkle": {
+          "acceptedCoverage": 0.40789473684210525,
+          "meanVisibility": 0.35227887567720917,
+          "largeJumpCandidates": 0
+        },
+        "rightAnkle": {
+          "acceptedCoverage": 0.11842105263157894,
+          "meanVisibility": 0.21691433310900865,
+          "largeJumpCandidates": 0
+        }
+      }
+    },
+    {
+      "engine": "movenet",
+      "modelLabel": "MoveNet Lightning",
+      "executionContext": "main-thread",
+      "delegate": "WebGL",
+      "sampleRate": 15,
+      "requestedSamples": 76,
+      "completedSamples": 76,
+      "detectedSamples": 50,
+      "firstDetectedTimestampSeconds": 6.973333333333334,
+      "lastDetectedTimestampSeconds": 11.778333333333334,
+      "loadMilliseconds": 878,
+      "extractionMilliseconds": 89.09999997913837,
+      "inferenceMilliseconds": 1227.5000000074506,
+      "wallMilliseconds": 2340,
+      "averageInferenceMilliseconds": 16.15131578957172,
+      "inferenceFramesPerSecond": 61.91446028475658,
+      "detectedCoverage": 0.6578947368421053,
+      "jointQuality": {
+        "leftShoulder": {
+          "acceptedCoverage": 0.32894736842105265,
+          "meanVisibility": 0.3026971829270846,
+          "largeJumpCandidates": 0
+        },
+        "rightShoulder": {
+          "acceptedCoverage": 0.3684210526315789,
+          "meanVisibility": 0.32252762701950577,
+          "largeJumpCandidates": 0
+        },
+        "leftWrist": {
+          "acceptedCoverage": 0.15789473684210525,
+          "meanVisibility": 0.22008888894005826,
+          "largeJumpCandidates": 0
+        },
+        "rightWrist": {
+          "acceptedCoverage": 0,
+          "meanVisibility": 0.13226999808102846,
+          "largeJumpCandidates": 0
+        },
+        "leftHip": {
+          "acceptedCoverage": 0.4868421052631579,
+          "meanVisibility": 0.3958422115660812,
+          "largeJumpCandidates": 0
+        },
+        "rightHip": {
+          "acceptedCoverage": 0.4605263157894737,
+          "meanVisibility": 0.3793694689918898,
+          "largeJumpCandidates": 0
+        },
+        "leftAnkle": {
+          "acceptedCoverage": 0.35526315789473684,
+          "meanVisibility": 0.31300539141030687,
+          "largeJumpCandidates": 0
+        },
+        "rightAnkle": {
+          "acceptedCoverage": 0.21052631578947367,
+          "meanVisibility": 0.2498198355499067,
+          "largeJumpCandidates": 0
+        }
+      }
+    }
+  ]
+}

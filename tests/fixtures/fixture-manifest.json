@@ -1,0 +1,63 @@
+{
+  "fixtureRootEnvironmentVariable": "CRUX_FIXTURE_ROOT",
+  "defaultLocalRoot": "/Users/evan/crux-vision-legacy/backend/static/originals",
+  "fixtures": [
+    {
+      "file": "portrait-test.MOV",
+      "purpose": ["portrait", "hevc", "rotation-90", "metadata-contract"],
+      "expected": {
+        "codedSize": [1920, 1080],
+        "displaySize": [1080, 1920],
+        "rotationDegreesClockwise": 90
+      }
+    },
+    {
+      "file": "landscape-test.MOV",
+      "purpose": ["landscape", "hevc", "rotation-180", "metadata-contract"],
+      "expected": {
+        "codedSize": [1920, 1080],
+        "displaySize": [1920, 1080],
+        "rotationDegreesClockwise": 180
+      }
+    },
+    {
+      "file": "lache-send.MOV",
+      "purpose": ["portrait", "dynamic-move", "full-body", "benchmark"],
+      "reviewRanges": [
+        {
+          "startSeconds": 7,
+          "endSeconds": 12,
+          "label": "lache movement",
+          "expectedPose": true,
+          "notes": "Climber transitions from extended contact into a dynamic swing. Right wrist is visually occluded or ambiguous in portions of the move."
+        }
+      ]
+    },
+    {
+      "file": "overhang-orange.MOV",
+      "purpose": ["portrait", "overhang", "occlusion", "end-effectors"],
+      "reviewRanges": [
+        {
+          "startSeconds": 7,
+          "endSeconds": 28,
+          "label": "overhang sequence",
+          "expectedPose": true,
+          "notes": "Use for later wrist, ankle, wall-occlusion, and sustained thermal checks."
+        }
+      ]
+    },
+    {
+      "file": "landscape-climb.MOV",
+      "purpose": ["landscape", "full-body", "extended-movement", "calibration"],
+      "reviewRanges": [
+        {
+          "startSeconds": 15,
+          "endSeconds": 20,
+          "label": "landscape extended movement",
+          "expectedPose": true,
+          "notes": "Use for landscape pose-quality coverage, long reach, and end-effector continuity checks."
+        }
+      ]
+    }
+  ]
+}
