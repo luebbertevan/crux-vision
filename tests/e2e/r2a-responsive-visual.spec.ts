@@ -55,6 +55,7 @@ const getReviewBounds = async (page: Page) =>
       canvas: bounds('[data-testid="overlay-canvas"]'),
       transport: bounds('.transport'),
       topbar: bounds('.topbar'),
+      stageBrand: bounds('.stage-brand'),
       rail: bounds('.control-rail'),
       rangeCard: bounds('.range-section'),
       poseCard: bounds('.analysis-section'),
@@ -455,6 +456,9 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   ).toBeVisible();
   await page.getByRole('button', { name: 'Show Analyze tools' }).click();
   const portrait = await getReviewBounds(page);
+  await expect(page.locator('.topbar')).toBeHidden();
+  await expect(page.locator('.stage-brand')).toBeVisible();
+  await expect(page.getByText('REVIEW', { exact: true })).toHaveCount(0);
   expect(portrait.stage.width).toBeGreaterThanOrEqual(392);
   expect(portrait.stage.height).toBeGreaterThanOrEqual(695);
   expect(portrait.stage.x).toBeLessThanOrEqual(0.5);
@@ -574,17 +578,19 @@ test('landscape phone keeps portrait and landscape review controls usable', asyn
   await importVideo(page, landscapeFixture);
   await expect
     .poll(async () => (await getReviewBounds(page)).stage.width)
-    .toBeGreaterThanOrEqual(851);
+    .toBeGreaterThanOrEqual(697);
   bounds = await getReviewBounds(page);
-  expect(bounds.stage.width).toBeGreaterThanOrEqual(851);
-  expect(bounds.stage.height).toBeGreaterThanOrEqual(478);
-  expect(bounds.stage.x).toBeLessThanOrEqual(0.5);
+  expect(bounds.stage.width).toBeGreaterThanOrEqual(697);
+  expect(bounds.stage.width).toBeLessThanOrEqual(700);
+  expect(bounds.stage.height).toBeGreaterThanOrEqual(392);
+  expect(bounds.stage.height).toBeLessThanOrEqual(393);
+  expect(bounds.stage.x).toBeGreaterThanOrEqual(75);
   expect(bounds.stage.y).toBeLessThanOrEqual(0.5);
-  expect(bounds.stage.right).toBeGreaterThanOrEqual(851.5);
-  expect(bounds.topbar.y).toBeGreaterThanOrEqual(7.5);
-  expect(bounds.topbar.bottom).toBeLessThanOrEqual(bounds.stage.bottom);
-  expect(bounds.transport.x).toBeGreaterThanOrEqual(7.5);
-  expect(bounds.transport.right).toBeLessThanOrEqual(844.5);
+  expect(bounds.stage.bottom).toBeLessThanOrEqual(393.5);
+  expect(bounds.stageBrand.x).toBeGreaterThanOrEqual(bounds.stage.x + 9.5);
+  expect(bounds.stageBrand.y).toBeGreaterThanOrEqual(bounds.stage.y + 9.5);
+  expect(bounds.transport.x).toBeGreaterThanOrEqual(bounds.stage.x + 7.5);
+  expect(bounds.transport.right).toBeLessThanOrEqual(bounds.stage.right - 7.5);
   expect(bounds.transport.y).toBeGreaterThanOrEqual(bounds.stage.bottom - 72);
   expect(bounds.transport.bottom).toBeLessThanOrEqual(bounds.stage.bottom - 4);
   expect(bounds.transport.height).toBeLessThanOrEqual(48);

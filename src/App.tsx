@@ -1740,8 +1740,21 @@ export function App() {
                   checkpoints={checkpoints}
                   onFeedbackChange={setStageFeedback}
                 />
+                <div
+                  className="stage-brand"
+                  aria-hidden="true"
+                >
+                  <span className="stage-brand-mark">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span>
+                    <strong>Crux Vision</strong>
+                    <small>Movement review</small>
+                  </span>
+                </div>
                 <div className="stage-topline">
-                  <span>REVIEW</span>
                   <span className="stage-topline-context">
                     {sourceIsPortrait && (
                       <span

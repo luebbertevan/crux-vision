@@ -251,6 +251,8 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
     await expect(nav).toBeVisible();
     await expect(stage).toBeVisible();
     await expect(transport).toBeVisible();
+    await expect(page.locator('.topbar')).toBeHidden();
+    await expect(page.locator('.stage-brand')).toBeVisible();
 
     for (const mode of ['Analyze', 'Playback', 'Overlay'] as const) {
       await showTools(page, mode);
@@ -280,14 +282,23 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
       if (layout.label === 'landscape-phone-landscape-video') {
         const railBounds = await page.locator('.control-rail').boundingBox();
         expect(railBounds).not.toBeNull();
-        expect(stageBounds!.width).toBeGreaterThanOrEqual(851);
-        expect(stageBounds!.height).toBeGreaterThanOrEqual(478);
-        expect(stageBounds!.x).toBeLessThanOrEqual(0.5);
+        expect(stageBounds!.width).toBeGreaterThanOrEqual(697);
+        expect(stageBounds!.width).toBeLessThanOrEqual(700);
+        expect(stageBounds!.height).toBeGreaterThanOrEqual(392);
+        expect(stageBounds!.height).toBeLessThanOrEqual(393);
+        expect(stageBounds!.x).toBeGreaterThanOrEqual(75);
         expect(stageBounds!.y).toBeLessThanOrEqual(0.5);
-        expect(transportBounds!.x).toBeGreaterThanOrEqual(7.5);
+        expect(
+          stageBounds!.y + stageBounds!.height,
+        ).toBeLessThanOrEqual(layout.viewport.height + 0.5);
+        expect(transportBounds!.x).toBeGreaterThanOrEqual(
+          stageBounds!.x + 7.5,
+        );
         expect(
           transportBounds!.x + transportBounds!.width,
-        ).toBeLessThanOrEqual(844.5);
+        ).toBeLessThanOrEqual(
+          stageBounds!.x + stageBounds!.width - 7.5,
+        );
         expect(railBounds!.y).toBeGreaterThanOrEqual(
           stageBounds!.y + stageBounds!.height + 10,
         );

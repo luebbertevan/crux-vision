@@ -56,11 +56,14 @@ during normal scrolling.
 
 At `852×393`, a portrait source and persistent transport remain in the left
 review column while the mode bar and selected tools use the existing scrollable
-right rail. A landscape source instead fills the visual viewport width, keeps
-the transport inset over the video, starts the stage at the top screen edge
-with the compact brand over it, and places the mode bar and selected tools below
-the stage. This deliberately mirrors the full-width portrait-phone player
-without adding crop, zoom, or pan.
+right rail. A landscape source instead keeps the transport inset over the
+video, starts the stage at the top screen edge, and scales to the largest size
+that keeps the entire player visible at once.
+The mode bar and selected tools follow below the stage. Every mobile source
+orientation hides the separate top bar and places a dark-backed brand lockup
+inside the video's top-left corner. The REVIEW label is removed and Movement
+review is lime for legibility. This preserves `object-fit: contain` without
+adding crop, zoom, or pan.
 
 Active ordinary controls are at least `44×44 px` in both orientations. R2D.1
 also corrects inherited small landscape range/action targets and replaces the
@@ -98,7 +101,10 @@ Automated coverage verifies:
 - portrait and landscape phone viewports work with both portrait and landscape
   source fixtures without horizontal overflow;
 - every source and viewport combination keeps the transport inside the stage,
-  and landscape media fills a short landscape phone with tools below;
+  and landscape media uses the largest complete-player fit on a short landscape
+  phone with tools below;
+- mobile review hides the separate top bar, displays the brand inside the stage,
+  and does not render the REVIEW label;
 - desktop transport stays at most `38 px` high and phone transport at most
   `48 px`, with icon-only play/pause styling and mobile target sizing preserved;
 - new sources start muted, the right-edge control toggles the media element,

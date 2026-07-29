@@ -67,16 +67,13 @@ export function useReviewStageSize({
         viewportHeight - stageTop - reservedBelowStage,
       );
       // iOS changes visualViewport.height as browser chrome expands/collapses.
-      // A phone stage must stay full-width instead of visibly resizing during
-      // scroll; secondary controls can continue below the initial viewport.
-      const isNarrowPhone = window.matchMedia('(max-width: 719px)').matches;
-      const isShortLandscapePhone = window.matchMedia(
-        '(max-width: 950px) and (max-height: 500px) and (orientation: landscape)',
+      // Portrait-phone stages stay width-driven so expanding browser chrome
+      // does not resize them during scroll. In landscape, fit both dimensions
+      // so the complete player and overlaid transport remain visible at once.
+      const isPortraitPhone = window.matchMedia(
+        '(max-width: 719px) and (orientation: portrait)',
       ).matches;
-      const isWidthDrivenPhone =
-        isNarrowPhone ||
-        (isShortLandscapePhone && displayWidth >= displayHeight);
-      const scale = isWidthDrivenPhone
+      const scale = isPortraitPhone
         ? availableWidth / displayWidth
         : Math.min(
             availableWidth / displayWidth,

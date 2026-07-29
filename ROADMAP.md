@@ -156,11 +156,13 @@ compact horizontal top bar. At the reference viewports, the
 portrait stage is approximately 496×882 px at 1440×900 and remains
 393×698.5 px at 393×852; desktop landscape is approximately 1072×603 px. The
 852×393 layout keeps portrait media beside its control rail. A landscape
-source instead starts at the top edge and uses the full phone width, with the
-compact brand over the video and selected tools following below the stage. This
-makes the tilted-phone player as immersive as the portrait-phone layout. The
-side brand lockup remains desktop-only. Phone review uses the translucent,
-inset over-video transport for both source and phone orientations while
+source instead starts at the top edge and uses the largest contain-fit that
+keeps the complete player and transport visible inside the screen, with
+selected tools following below the stage. Phone branding lives in a compact
+dark-backed lockup at the top-left of the video; the separate mobile top bar
+and REVIEW label are removed, and the Movement review subtitle uses lime for
+contrast. The side brand lockup remains desktop-only. Phone review uses the
+translucent, inset over-video transport for both source and phone orientations while
 retaining 44 px touch targets. Across desktop and phone layouts, play/pause is
 an icon-only control inside a slimmer pill transport instead of a filled
 standard button. A matching right-aligned audio control reflects the current
@@ -551,9 +553,13 @@ Build and validate:
 - validate portrait and landscape phone viewports against both portrait and
   landscape video fixtures, including safe areas, touch behavior, responsive
   overflow, and unchanged video/canvas registration;
-- let a landscape source fill the width of a short landscape phone and place
-  its compact header over the player and selected tools below the stage, while
-  retaining the compact side-by-side layout for portrait sources;
+- place a short landscape phone's landscape source at the largest uncropped
+  size that keeps the complete player inside the screen, with selected tools
+  below the stage, while retaining the compact side-by-side layout for portrait
+  sources;
+- remove the REVIEW stage label and mobile top bar, place a high-contrast brand
+  lockup inside the video on every phone layout, and render its Movement review
+  subtitle in lime;
 - reduce transport obstruction with a rounded pill, tighter spacing, and an
   icon-only play/pause control while preserving its accessible name and the
   mobile `44×44 px` hit target;

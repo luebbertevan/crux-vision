@@ -166,11 +166,14 @@ source-session reset.
 The mode bar appears below the stage on narrow portrait phones and at the top
 of the existing control rail on short landscape phones. It uses explicit text,
 selected states, accessible names, and `44×44 px` minimum active targets.
-When a short landscape phone displays a landscape source, the stage uses the
-full phone width from the top edge, the compact brand overlays the player, and
-the selected tools follow below it; portrait sources keep the compact
-side-by-side stage and rail. Desktop continues to show all panels with no mode
-bar, and both desktop source orientations use the same inset transport
+When a short landscape phone displays a landscape source, the stage starts at
+the top edge and uses the largest contain-fit that keeps the complete player
+and transport inside the viewport; selected tools follow below it. Portrait
+sources keep the compact side-by-side stage and rail. Every mobile stage owns a
+compact dark-backed brand lockup in its top-left corner instead of a separate
+top bar. The REVIEW label is removed, and the Movement review subtitle uses
+lime for contrast over footage. Desktop continues to show all panels with no
+mode bar, and both desktop source orientations use the same inset transport
 placement. The shared transport is a slim rounded pill with transparent,
 icon-only play/pause presentation. Its mobile button keeps a `44×44 px` hit
 target even though the visible icon no longer appears inside a filled button.
