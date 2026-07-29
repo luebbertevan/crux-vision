@@ -173,8 +173,8 @@ sources keep the compact side-by-side stage and rail. Every mobile stage owns a
 compact mark-and-name lockup in its top-left corner instead of a separate top
 bar. It has no glass backing and omits both the REVIEW label and Movement review
 subtitle so it stays legible without covering more footage. The landing and
-desktop-header Movement review subtitle continues to use the shared lime brand
-color. Desktop continues to show all panels with no mode bar, and both desktop
+desktop-header Movement review subtitle uses neutral muted text with a subtle
+lime glow. Desktop continues to show all panels with no mode bar, and both desktop
 source orientations use the same inset transport placement. The shared
 transport is a slim rounded pill with transparent, icon-only play/pause
 presentation. Its mobile button keeps a `44×44 px` hit target even though the

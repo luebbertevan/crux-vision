@@ -105,7 +105,10 @@ const expectNoHorizontalOverflow = async (page: import('@playwright/test').Page)
 const expectMovementReviewBranding = async (page: Page) => {
   const subtitle = page.locator('.topbar .brand small');
   await expect(subtitle).toBeVisible();
-  await expect(subtitle).toHaveCSS('color', 'rgb(188, 255, 112)');
+  await expect(subtitle).toHaveCSS('color', 'rgb(157, 159, 150)');
+  expect(
+    await subtitle.evaluate((element) => getComputedStyle(element).textShadow),
+  ).toContain('rgba(188, 255, 112, 0.28)');
 };
 
 test('desktop empty shell visual acceptance', async ({ page }, testInfo) => {

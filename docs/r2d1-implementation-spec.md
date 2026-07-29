@@ -63,7 +63,7 @@ The mode bar and selected tools follow below the stage. Every mobile source
 orientation hides the separate top bar and places a mark-and-name brand lockup
 inside the video's top-left corner. The lockup has no glass backing and omits
 both the REVIEW label and Movement review subtitle. Landing and desktop-header
-branding retains the lime Movement review subtitle. This preserves
+branding uses a muted Movement review subtitle with a subtle lime glow. This preserves
 `object-fit: contain` without adding crop, zoom, or pan.
 
 Active ordinary controls are at least `44×44 px` in both orientations. R2D.1

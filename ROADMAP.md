@@ -161,8 +161,8 @@ keeps the complete player and transport visible inside the screen, with
 selected tools following below the stage. Phone branding lives in a compact
 mark-and-name lockup at the top-left of the video with no glass backing; the
 separate mobile top bar, REVIEW label, and Movement review subtitle are removed.
-The landing and desktop-header subtitle retains the lime brand color. The side
-brand lockup remains desktop-only. Phone review uses the
+The landing and desktop-header subtitle uses muted text with a subtle lime
+glow. The side brand lockup remains desktop-only. Phone review uses the
 translucent, inset over-video transport for both source and phone orientations while
 retaining 44 px touch targets. Across desktop and phone layouts, play/pause is
 an icon-only control inside a slimmer pill transport instead of a filled
@@ -562,8 +562,8 @@ Build and validate:
   sources;
 - remove the REVIEW stage label and mobile top bar, place a high-contrast
   mark-and-name lockup with no glass backing inside the video on every phone
-  layout, omit its Movement review subtitle, and retain the lime subtitle on
-  landing and desktop header branding;
+  layout, omit its Movement review subtitle, and use a subtle lime shadow on
+  the neutral landing and desktop-header subtitle;
 - reduce transport obstruction with a rounded pill, tighter spacing, and an
   icon-only play/pause control while preserving its accessible name and the
   mobile `44×44 px` hit target;
