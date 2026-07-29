@@ -158,7 +158,10 @@ portrait stage is approximately 496×882 px at 1440×900 and remains
 852×393 layout keeps portrait media full-height beside a vertical sticky mode
 rail and an independently scrolling settings rail. Its compact transport stays
 inside the narrow player, gives the seek track the available space by omitting
-both time labels, and scales its branding with the stage. A landscape
+both time labels, and scales its branding with the stage. Below 720 px landscape
+width, the review grid uses the contain-fit player width first, narrows the mode
+rail, and gives the remaining bounded column to settings without letting the
+portrait-phone positioning rules overlap those surfaces. A landscape
 source instead starts at the top edge and uses the largest contain-fit that
 keeps the complete player and transport visible inside the screen. A vertical
 sticky mode rail sits to the left of the centered settings column below the

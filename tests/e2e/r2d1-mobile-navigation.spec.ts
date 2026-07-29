@@ -248,6 +248,16 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
       fixture: portraitFixture,
     },
     {
+      label: 'narrow-landscape-phone-portrait-video',
+      viewport: { width: 667, height: 375 },
+      fixture: portraitFixture,
+    },
+    {
+      label: 'compact-landscape-phone-portrait-video',
+      viewport: { width: 568, height: 320 },
+      fixture: portraitFixture,
+    },
+    {
       label: 'landscape-phone-landscape-video',
       viewport: { width: 852, height: 393 },
       fixture: landscapeFixture,
@@ -314,6 +324,9 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
       expect(navBounds).not.toBeNull();
       expect(railBounds).not.toBeNull();
       expect(navBounds!.x + navBounds!.width).toBeLessThan(railBounds!.x);
+      expect(railBounds!.x + railBounds!.width).toBeLessThanOrEqual(
+        layout.viewport.width + 0.5,
+      );
       const navButtons = await nav.getByRole('button').all();
       const navButtonBounds = await Promise.all(
         navButtons.map((button) => button.boundingBox()),

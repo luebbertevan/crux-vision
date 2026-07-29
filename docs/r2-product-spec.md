@@ -174,7 +174,10 @@ and transport inside the viewport; selected tools follow below it. Portrait
 sources keep the compact side-by-side stage and settings rail, fill the screen
 height without a reserved bottom strip, and use a stage-contained transport
 that omits both time readouts so the seek track remains useful when space is
-tight. Their over-video
+tight. Below 720 px landscape width, the portrait source's review area resets
+the portrait-phone full-viewport positioning, sizes the player from the
+available height and width, and uses a narrower vertical mode rail so video,
+navigation, settings, and transport remain in their own columns. Their over-video
 branding scales down with the player. Every mobile stage owns a compact
 mark-and-name lockup in its top-left corner instead of a separate top bar. It
 has no glass backing and omits both the REVIEW label and Movement review

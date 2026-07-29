@@ -59,7 +59,10 @@ column without a reserved bottom strip. Its compact transport remains entirely
 inside the narrow stage and omits both time readouts so seeking receives the
 remaining width. Its branding scales down with the player, and a
 vertical sticky mode rail sits between the video and independently scrolling
-settings. A landscape source instead keeps the transport inset over the video,
+settings. At landscape widths below 720 px, a narrower mode rail and bounded
+settings column preserve that ordering, while the review main and transport
+explicitly reset the portrait-phone full-viewport anchoring. A landscape source
+instead keeps the transport inset over the video,
 starts the stage at the top screen edge, and scales to the largest size that
 keeps the entire player visible at once. Below it, a vertical sticky mode rail
 sits to the left of a settings column that remains centered under the video.
@@ -115,6 +118,8 @@ Automated coverage verifies:
   settings scroll independently or the landscape-source settings page scrolls;
 - the short-landscape portrait transport hides both time readouts and devotes
   the recovered space to its seek track;
+- portrait sources at 667×375 and 568×320 keep video, transport, navigation,
+  and settings disjoint and within the viewport;
 - mobile Set start / Set end controls use the shared inline desktop treatment
   with the same 24 px painted control inside transparent 44 px touch targets;
 - mobile review hides the separate top bar, displays the mark and name inside
