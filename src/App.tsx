@@ -270,7 +270,7 @@ export function App() {
     CalibrationLabelRecord[]
   >([]);
   const [mobileWorkspaceMode, setMobileWorkspaceMode] =
-    useState<MobileWorkspaceMode>('review');
+    useState<MobileWorkspaceMode>('analyze');
 
   const adapterRef = useRef<BrowserMediaAdapter | null>(null);
   const objectUrlRef = useRef<string | null>(null);
@@ -418,7 +418,7 @@ export function App() {
         overlaySettingsRef.current = nextOverlaySettings;
         setOverlaySettings(nextOverlaySettings);
         setOverlaySettingsOpen(true);
-        setMobileWorkspaceMode('review');
+        setMobileWorkspaceMode('analyze');
         calibrationLabelsRef.current = [];
         setCalibrationLabels([]);
         editHistoryRef.current.clear();
@@ -1854,7 +1854,7 @@ export function App() {
                   onChange={changeRange}
                 >
                 <section
-                  className="review-tool-section analysis-run-section mobile-timeline-content"
+                  className="review-tool-section analysis-run-section mobile-analyze-content"
                   aria-label="Pose analysis"
                 >
                   <div
@@ -1979,7 +1979,7 @@ export function App() {
                   onExactFrameChange={seekToCalibrationFrame}
                 />
                 <section
-                  className="review-tool-section settings-history-bar mobile-timeline-content"
+                  className="review-tool-section settings-history-bar mobile-analyze-content"
                   data-testid="settings-history-bar"
                   aria-label="Edit history"
                 >
@@ -2032,7 +2032,7 @@ export function App() {
                     </button>
                   </div>
                 </section>
-                <div className="mobile-timeline-content">
+                <div className="mobile-playback-content">
                   <CheckpointControls
                     checkpoints={checkpoints}
                     currentCheckpointIndex={currentCheckpointIndex}
@@ -2052,73 +2052,77 @@ export function App() {
 
             <div className="pose-panel-slot">
               <section className="analysis-section" aria-labelledby="analysis-title">
-              <div className="section-heading analysis-heading">
-                <div>
-                  <span className="section-kicker">On-device pose</span>
-                  <h2 id="analysis-title">Movement overlay</h2>
-                </div>
-                <label className="switch-control">
-                  <input
-                    type="checkbox"
-                    checked={overlaySettings.masterVisible}
-                    onChange={(event) => {
-                      const visible = event.currentTarget.checked;
-                      changeOverlaySettings(
-                        (current) =>
-                          withOverlayMasterVisibility(current, visible),
-                        {
-                          key: 'overlay-master',
-                          label: 'Overlay visibility',
-                        },
-                      );
-                    }}
+                <div className="overlay-panel-content">
+                  <div className="section-heading analysis-heading">
+                    <div>
+                      <span className="section-kicker">On-device pose</span>
+                      <h2 id="analysis-title">Movement overlay</h2>
+                    </div>
+                    <label className="switch-control">
+                      <input
+                        type="checkbox"
+                        checked={overlaySettings.masterVisible}
+                        onChange={(event) => {
+                          const visible = event.currentTarget.checked;
+                          changeOverlaySettings(
+                            (current) =>
+                              withOverlayMasterVisibility(current, visible),
+                            {
+                              key: 'overlay-master',
+                              label: 'Overlay visibility',
+                            },
+                          );
+                        }}
+                      />
+                      <span aria-hidden="true" />
+                      <b>Overlays</b>
+                    </label>
+                  </div>
+
+                  <OverlaySettingsPanel
+                    key={source.id}
+                    settings={overlaySettings}
+                    checkpoints={checkpoints}
+                    analysisRangeDurationMicroseconds={
+                      range
+                        ? range.endMicroseconds - range.startMicroseconds
+                        : source.metadata.durationMicroseconds
+                    }
+                    open={overlaySettingsOpen}
+                    onOpenChange={setOverlaySettingsOpen}
+                    onSettingsChange={changeOverlaySettings}
                   />
-                  <span aria-hidden="true" />
-                  <b>Overlays</b>
-                </label>
-              </div>
+                </div>
 
-              <OverlaySettingsPanel
-                key={source.id}
-                settings={overlaySettings}
-                checkpoints={checkpoints}
-                analysisRangeDurationMicroseconds={
-                  range
-                    ? range.endMicroseconds - range.startMicroseconds
-                    : source.metadata.durationMicroseconds
-                }
-                open={overlaySettingsOpen}
-                onOpenChange={setOverlaySettingsOpen}
-                onSettingsChange={changeOverlaySettings}
-              />
-
-              <PoseQualityPanel
-                presetId={qualityPresetId}
-                policyTarget={policyTarget}
-                policy={qualityPolicy}
-                previewMode={previewMode}
-                centeredSmoothingRadiusMicroseconds={
-                  centeredSmoothingRadiusMicroseconds
-                }
-                evaluation={qualityEvaluation}
-                currentSample={currentQualitySample}
-                selectedModel={selectedModel}
-                labelMetrics={calibrationLabelMetrics}
-                labelCount={calibrationLabels.length}
-                onPresetChange={changeQualityPreset}
-                onPolicyTargetChange={changePolicyTarget}
-                onPolicyChange={updateQualityPolicy}
-                onPreviewModeChange={changePreviewMode}
-                onCenteredSmoothingRadiusChange={
-                  changeCenteredSmoothingRadius
-                }
-                onModelChange={changeAnalysisModel}
-                onLabel={labelCurrentJoint}
-                onClearLabels={clearCalibrationLabels}
-                onResetPolicy={resetQualityPolicy}
-                onExport={exportCalibration}
-                onWorkspaceToggle={setCalibrationWorkspaceOpen}
-              />
+                <div className="quality-panel-content">
+                  <PoseQualityPanel
+                    presetId={qualityPresetId}
+                    policyTarget={policyTarget}
+                    policy={qualityPolicy}
+                    previewMode={previewMode}
+                    centeredSmoothingRadiusMicroseconds={
+                      centeredSmoothingRadiusMicroseconds
+                    }
+                    evaluation={qualityEvaluation}
+                    currentSample={currentQualitySample}
+                    selectedModel={selectedModel}
+                    labelMetrics={calibrationLabelMetrics}
+                    labelCount={calibrationLabels.length}
+                    onPresetChange={changeQualityPreset}
+                    onPolicyTargetChange={changePolicyTarget}
+                    onPolicyChange={updateQualityPolicy}
+                    onPreviewModeChange={changePreviewMode}
+                    onCenteredSmoothingRadiusChange={
+                      changeCenteredSmoothingRadius
+                    }
+                    onModelChange={changeAnalysisModel}
+                    onLabel={labelCurrentJoint}
+                    onClearLabels={clearCalibrationLabels}
+                    onResetPolicy={resetQualityPolicy}
+                    onExport={exportCalibration}
+                    onWorkspaceToggle={setCalibrationWorkspaceOpen}
+                  />
+                </div>
 
               </section>
             </div>

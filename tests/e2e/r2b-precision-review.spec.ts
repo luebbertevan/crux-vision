@@ -266,6 +266,9 @@ test('keeps precision controls clear and touchable across review layouts', async
     const phoneLayout = layout.label.startsWith('phone');
 
     const controls = page.getByTestId('precision-review-controls');
+    if (phoneLayout) {
+      await page.getByRole('button', { name: 'Show Playback tools' }).click();
+    }
     await expect(controls).toBeVisible();
     await expect(controls.getByText('Frame', { exact: true })).toBeVisible();
     await page.locator('video').evaluate((element) => {
@@ -287,9 +290,6 @@ test('keeps precision controls clear and touchable across review layouts', async
     await expect(page.getByRole('button', { name: 'Previous estimated frame' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Next estimated frame' })).toBeEnabled();
 
-    if (phoneLayout) {
-      await page.getByRole('button', { name: 'Show Timeline tools' }).click();
-    }
     const checkpointControls = page.getByTestId('checkpoint-controls');
     await expect(checkpointControls).toBeVisible();
 
@@ -333,7 +333,7 @@ test('keeps precision controls clear and touchable across review layouts', async
           .getByRole('button', { name: 'Add', exact: true })
           .boundingBox()
       )?.height;
-      await page.getByRole('button', { name: 'Show Review tools' }).click();
+      await page.getByRole('button', { name: 'Show Playback tools' }).click();
     }
 
     const [controlBounds, rangeBounds] = await Promise.all([
@@ -374,7 +374,7 @@ test.describe('touch-first checkpoint playback', () => {
   test('pauses before navigating to a checkpoint on mobile', async ({ page }) => {
     await page.goto('/');
     await importVideo(page, portraitFixture);
-    await page.getByRole('button', { name: 'Show Timeline tools' }).click();
+    await page.getByRole('button', { name: 'Show Playback tools' }).click();
 
     expect(
       await page.evaluate(() =>

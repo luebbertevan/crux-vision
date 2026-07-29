@@ -1,12 +1,12 @@
-export type MobileWorkspaceMode = 'review' | 'timeline' | 'inspect';
+export type MobileWorkspaceMode = 'analyze' | 'playback' | 'overlay';
 
 const MOBILE_WORKSPACE_MODES: readonly {
   id: MobileWorkspaceMode;
   label: string;
 }[] = [
-  { id: 'review', label: 'Review' },
-  { id: 'timeline', label: 'Timeline' },
-  { id: 'inspect', label: 'Inspect' },
+  { id: 'analyze', label: 'Analyze' },
+  { id: 'playback', label: 'Playback' },
+  { id: 'overlay', label: 'Overlay' },
 ];
 
 type MobileWorkspaceNavProps = {
@@ -21,7 +21,7 @@ export function MobileWorkspaceNav({
   return (
     <nav
       className="mobile-workspace-nav"
-      aria-label="Review workspace"
+      aria-label="Mobile workspace"
       data-testid="mobile-workspace-nav"
     >
       {MOBILE_WORKSPACE_MODES.map((item) => (

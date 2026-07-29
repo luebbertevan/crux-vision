@@ -7,7 +7,7 @@ iPhone review pending
 ## Outcome
 
 Crux Vision now exposes one compact mobile navigation model without redesigning
-the working player. Review, Timeline, and Inspect divide the existing controls
+the working player. Analyze, Playback, and Overlay divide the existing controls
 into task-focused surfaces while the source video, live overlay, and transport
 remain the same mounted instances.
 
@@ -19,9 +19,9 @@ to make those modes legible.
 
 | Mode | Controls |
 |---|---|
-| Review | Playback speed, selected-range loop, previous/next presentation frame |
-| Timeline | Analysis range, progress and run/cancel actions, source replacement, edit history, checkpoints |
-| Inspect | Overlay master, skeleton/trails, trail sources and appearance, pose-quality preset and advanced calibration disclosure |
+| Analyze | Analysis range, progress and run/cancel actions, source replacement, edit history, pose-quality preset, and advanced calibration disclosure |
+| Playback | Playback speed, selected-range loop, previous/next presentation frame, and checkpoints |
+| Overlay | Overlay master, skeleton/trails, trail sources, and appearance |
 
 The mode bar uses text rather than adding uncertain icons. It appears directly
 after the stage in narrow portrait layouts and at the top of the existing
@@ -38,7 +38,7 @@ This preserves:
 - pose-quality preset, advanced calibration state, and disclosure choices.
 
 Changing orientation preserves the selected mode and all session state.
-Replacing the source returns the mode to Review and then follows the existing
+Replacing the source returns the mode to Analyze and then follows the existing
 source-session reset rules.
 
 ## Responsive contract
@@ -79,7 +79,7 @@ R2D.1 does not add:
 
 Automated coverage verifies:
 
-- Review is the default and source replacement returns to it;
+- Analyze is the default and source replacement returns to it;
 - exactly the assigned phone tool group is visible for each mode;
 - transport and stage remain visible in every mode;
 - playback rate, checkpoints, trail visibility, open disclosures, and selected
@@ -88,12 +88,13 @@ Automated coverage verifies:
   source fixtures without horizontal overflow;
 - active ordinary phone targets meet the `44×44 px` minimum;
 - the desktop mode bar stays hidden and the existing panels remain visible;
-- advanced calibration remains reachable by moving between Inspect and Review;
+- advanced calibration remains reachable at the bottom of Analyze while
+  frame navigation and checkpoints remain together in Playback;
 - video and canvas alignment remains covered by the existing responsive
   regression suite.
 
 The visual matrix covers `393×852` and `852×393` with both source orientations
-in Review, Timeline, and Inspect. The existing responsive suite retains the
+in Analyze, Playback, and Overlay. The existing responsive suite retains the
 `393×740` dynamic-browser-chrome case.
 
 The final automated gate passes 81 Vitest tests and 33 standard Playwright

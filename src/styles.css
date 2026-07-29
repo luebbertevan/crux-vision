@@ -2234,17 +2234,19 @@ details[open] > summary > .disclosure-arrow {
     outline-offset: -3px;
   }
 
-  .mobile-workspace-review .mobile-timeline-content,
-  .mobile-workspace-timeline .precision-review,
-  .mobile-workspace-review .pose-panel-slot,
-  .mobile-workspace-timeline .pose-panel-slot,
-  .mobile-workspace-inspect .range-panel-slot {
+  .mobile-workspace-analyze .precision-review,
+  .mobile-workspace-analyze .mobile-playback-content,
+  .mobile-workspace-analyze .overlay-panel-content,
+  .mobile-workspace-playback .mobile-analyze-content,
+  .mobile-workspace-playback .pose-panel-slot,
+  .mobile-workspace-overlay .range-panel-slot,
+  .mobile-workspace-overlay .quality-panel-content {
     display: none;
   }
-  .mobile-workspace-review .range-section {
+  .mobile-workspace-analyze .range-section {
     padding-block: 12px;
   }
-  .mobile-workspace-review .precision-review {
+  .mobile-workspace-playback .precision-review {
     margin-top: 0;
     padding-top: 0;
     border-top: 0;

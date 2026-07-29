@@ -522,18 +522,18 @@ mobile interaction model before gym feedback.
 
 Build and validate:
 
-- expose **Review**, **Timeline**, and **Inspect** through one compact mobile
+- expose **Analyze**, **Playback**, and **Overlay** through one compact mobile
   mode bar immediately after the stage in portrait and at the top of the
   existing control rail in landscape;
 - keep the existing video and transport mounted and unchanged across all three
   modes rather than duplicating controls or introducing a viewport-fixed dock;
-- place playback speed, range looping, and presentation-frame navigation in
-  Review; range, analysis, history, and checkpoints in Timeline; and overlay,
-  trail, and pose-quality controls in Inspect;
+- place range, analysis, history, pose quality, and calibration in Analyze;
+  playback speed, range looping, presentation-frame navigation, and
+  checkpoints in Playback; and overlay and trail controls in Overlay;
 - keep every tool component mounted while its mode is inactive so local
   disclosures, edit history, range, checkpoints, playback choices, overlay
   choices, and pose-quality state survive mode and orientation changes;
-- reset only the selected mode to Review when the source is replaced, while
+- reset only the selected mode to Analyze when the source is replaced, while
   retaining the existing source-session reset contract for analysis state;
 - reduce mobile vertical whitespace and control padding enough to keep the
   video and current task in view without weakening safe-area handling,
@@ -589,7 +589,7 @@ Build and validate:
   that session.
 
 The R2D navigation model should remain portable across web and a possible later
-native app: its Review, Timeline, Inspect, overlay, pose-quality, and advanced
+native app: its Analyze, Playback, Overlay, pose-quality, and advanced
 settings terminology does not depend on browser-specific layout.
 
 **R2 feedback question:** Can a climber import a phone clip at the gym, reach the

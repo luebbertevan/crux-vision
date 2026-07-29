@@ -65,10 +65,10 @@ export function RangeSelector({
 
   return (
     <section className="range-section" aria-labelledby="range-title">
-      <div className="section-heading mobile-timeline-content">
+      <div className="section-heading mobile-analyze-content">
         <div>
           <span className="section-kicker">Clip &amp; analysis</span>
-          <h2 id="range-title">Review controls</h2>
+          <h2 id="range-title">Analyze clip</h2>
         </div>
         <span className="range-duration">
           {(microsecondsToSeconds(range.endMicroseconds - range.startMicroseconds)).toFixed(1)}s
@@ -76,7 +76,7 @@ export function RangeSelector({
       </div>
 
       <div
-        className="range-readout mobile-timeline-content"
+        className="range-readout mobile-analyze-content"
         aria-live="polite"
       >
         <div className="range-readout-edge">
@@ -141,7 +141,7 @@ export function RangeSelector({
       </div>
 
       <div
-        className="range-track-wrap mobile-timeline-content"
+        className="range-track-wrap mobile-analyze-content"
         style={trackStyle}
       >
         <div className="range-track-visual" aria-hidden="true">

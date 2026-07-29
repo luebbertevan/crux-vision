@@ -22,7 +22,7 @@ async function importVideo(page: Page, fixture: string) {
 
 async function showTools(
   page: Page,
-  mode: 'Review' | 'Timeline' | 'Inspect',
+  mode: 'Analyze' | 'Playback' | 'Overlay',
 ) {
   const button = page.getByRole('button', {
     name: `Show ${mode} tools`,
@@ -47,7 +47,7 @@ async function expectNoHorizontalOverflow(page: Page) {
     .toBe(true);
 }
 
-test('keeps transport and review state intact while changing mobile tools', async ({
+test('keeps transport and workspace state intact while changing mobile tools', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 393, height: 852 });
@@ -60,13 +60,15 @@ test('keeps transport and review state intact while changing mobile tools', asyn
   const analysisStatus = page.getByTestId('analysis-status');
   const checkpoints = page.getByTestId('checkpoint-controls');
   const overlaySettings = page.getByTestId('overlay-settings');
+  const poseQuality = page.getByTestId('pose-quality-preset');
 
   await expect(nav).toBeVisible();
   await expect(transport).toBeVisible();
-  await expect(precision).toBeVisible();
-  await expect(analysisStatus).toBeHidden();
+  await expect(precision).toBeHidden();
+  await expect(analysisStatus).toBeVisible();
   await expect(checkpoints).toBeHidden();
   await expect(overlaySettings).toBeHidden();
+  await expect(poseQuality).toBeVisible();
 
   for (const button of await nav.getByRole('button').all()) {
     const bounds = await button.boundingBox();
@@ -74,18 +76,25 @@ test('keeps transport and review state intact while changing mobile tools', asyn
     expect(bounds?.height).toBeGreaterThanOrEqual(44);
   }
 
+  await showTools(page, 'Playback');
+  await expect(precision).toBeVisible();
+  await expect(analysisStatus).toBeHidden();
+  await expect(checkpoints).toBeVisible();
+  await expect(overlaySettings).toBeHidden();
+  await expect(poseQuality).toBeHidden();
   await page.getByRole('button', { name: 'Play at 0.5× speed' }).click();
   await expect(page.locator('main')).toHaveAttribute(
     'data-playback-rate',
     '0.5',
   );
 
-  await showTools(page, 'Timeline');
+  await showTools(page, 'Analyze');
   await expect(transport).toBeVisible();
   await expect(precision).toBeHidden();
   await expect(analysisStatus).toBeVisible();
-  await expect(checkpoints).toBeVisible();
+  await expect(checkpoints).toBeHidden();
   await expect(overlaySettings).toBeHidden();
+  await expect(poseQuality).toBeVisible();
   const startButtonBounds = await page
     .getByRole('button', { name: 'Set start' })
     .boundingBox();
@@ -101,6 +110,7 @@ test('keeps transport and review state intact while changing mobile tools', asyn
   expect(startButtonBounds!.width).toBeCloseTo(endButtonBounds!.width, 0);
   expect(startButtonBounds!.y).toBeCloseTo(endButtonBounds!.y, 0);
 
+  await showTools(page, 'Playback');
   await page.locator('video').evaluate(async (element) => {
     const video = element as HTMLVideoElement;
     video.pause();
@@ -112,12 +122,13 @@ test('keeps transport and review state intact while changing mobile tools', asyn
   await checkpoints.getByRole('button', { name: 'Add', exact: true }).click();
   await expect(checkpoints).toHaveAttribute('data-checkpoint-count', '1');
 
-  await showTools(page, 'Inspect');
+  await showTools(page, 'Overlay');
   await expect(transport).toBeVisible();
   await expect(precision).toBeHidden();
   await expect(analysisStatus).toBeHidden();
   await expect(checkpoints).toBeHidden();
   await expect(overlaySettings).toBeVisible();
+  await expect(poseQuality).toBeHidden();
 
   const skeleton = page.getByRole('checkbox', { name: 'Skeleton' });
   await skeleton.uncheck();
@@ -125,14 +136,13 @@ test('keeps transport and review state intact while changing mobile tools', asyn
   await overlaySettings.locator(':scope > summary').click();
   await expect(overlaySettings).not.toHaveAttribute('open', '');
 
-  await showTools(page, 'Review');
+  await showTools(page, 'Playback');
   await expect(page.locator('main')).toHaveAttribute(
     'data-playback-rate',
     '0.5',
   );
-  await showTools(page, 'Timeline');
   await expect(checkpoints).toHaveAttribute('data-checkpoint-count', '1');
-  await showTools(page, 'Inspect');
+  await showTools(page, 'Overlay');
   await expect(overlaySettings).not.toHaveAttribute('open', '');
   await overlaySettings.locator(':scope > summary').click();
   await expect(skeleton).not.toBeChecked();
@@ -140,7 +150,7 @@ test('keeps transport and review state intact while changing mobile tools', asyn
   await page.setViewportSize({ width: 852, height: 393 });
   await expect(nav).toBeVisible();
   await expect(
-    nav.getByRole('button', { name: 'Show Inspect tools' }),
+    nav.getByRole('button', { name: 'Show Overlay tools' }),
   ).toHaveAttribute('aria-pressed', 'true');
   await expect(overlaySettings).toBeVisible();
   await expect(transport).toBeVisible();
@@ -148,9 +158,11 @@ test('keeps transport and review state intact while changing mobile tools', asyn
 
   await importVideo(page, landscapeFixture);
   await expect(
-    nav.getByRole('button', { name: 'Show Review tools' }),
+    nav.getByRole('button', { name: 'Show Analyze tools' }),
   ).toHaveAttribute('aria-pressed', 'true');
-  await expect(precision).toBeVisible();
+  await expect(precision).toBeHidden();
+  await expect(analysisStatus).toBeVisible();
+  await expect(poseQuality).toBeVisible();
   await expect(page.locator('main')).toHaveAttribute(
     'data-playback-rate',
     '1',
@@ -202,7 +214,7 @@ test('keeps the compact navigation usable for portrait and landscape phone layou
     await expect(stage).toBeVisible();
     await expect(transport).toBeVisible();
 
-    for (const mode of ['Review', 'Timeline', 'Inspect'] as const) {
+    for (const mode of ['Analyze', 'Playback', 'Overlay'] as const) {
       await showTools(page, mode);
       await expect(nav).toBeVisible();
       await expect(stage).toBeVisible();
@@ -243,7 +255,7 @@ test('keeps active phone controls at least 44 pixels in both dimensions', async 
     await page.goto('/');
     await importVideo(page, portraitFixture);
 
-    for (const mode of ['Review', 'Timeline', 'Inspect'] as const) {
+    for (const mode of ['Analyze', 'Playback', 'Overlay'] as const) {
       await showTools(page, mode);
       const undersized = await page.evaluate(() => {
         const selectors = [

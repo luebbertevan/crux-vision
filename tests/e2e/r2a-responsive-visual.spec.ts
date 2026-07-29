@@ -180,7 +180,7 @@ test('desktop portrait and landscape stages use the available review surface', a
   await expect(
     page.locator('.range-section > .section-heading .section-kicker'),
   ).toHaveText('Clip & analysis');
-  await expect(page.locator('.range-section h2')).toHaveText('Review controls');
+  await expect(page.locator('.range-section h2')).toHaveText('Analyze clip');
   await expect(page.locator('.range-section [data-testid="analysis-status"]')).toBeVisible();
   await expect(page.locator('.analysis-section [data-testid="analysis-status"]')).toHaveCount(0);
   await expect(page.getByText('Pose analysis', { exact: true })).toHaveCount(0);
@@ -432,9 +432,9 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   const mobileNav = page.getByTestId('mobile-workspace-nav');
   await expect(mobileNav).toBeVisible();
   await expect(
-    mobileNav.getByRole('button', { name: 'Show Review tools' }),
+    mobileNav.getByRole('button', { name: 'Show Analyze tools' }),
   ).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'Show Inspect tools' }).click();
+  await page.getByRole('button', { name: 'Show Overlay tools' }).click();
   const overlaySettings = page.getByTestId('overlay-settings');
   await expect(overlaySettings.locator(':scope > summary')).toBeVisible();
   await expect(overlaySettings).toHaveAttribute('open', '');
@@ -444,7 +444,7 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   await expect(
     page.getByTestId('active-trail-source-shoulder-midpoint'),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Show Review tools' }).click();
+  await page.getByRole('button', { name: 'Show Analyze tools' }).click();
   const portrait = await getReviewBounds(page);
   expect(portrait.stage.width).toBeGreaterThanOrEqual(392);
   expect(portrait.stage.height).toBeGreaterThanOrEqual(695);
@@ -515,7 +515,7 @@ test('iPhone portrait uses full width with reachable transport and resilient chr
   );
   const playButton = page.getByRole('button', { name: /Play video|Pause video/ });
   expect((await playButton.boundingBox())?.height).toBeGreaterThanOrEqual(44);
-  await page.getByRole('button', { name: 'Show Timeline tools' }).click();
+  await page.getByRole('button', { name: 'Show Analyze tools' }).click();
   const analyzeButton = page.getByRole('button', { name: 'Analyze range' });
   await analyzeButton.scrollIntoViewIfNeeded();
   expect((await analyzeButton.boundingBox())?.height).toBeGreaterThanOrEqual(44);

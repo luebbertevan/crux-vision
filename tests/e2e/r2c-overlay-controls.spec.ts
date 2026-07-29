@@ -323,7 +323,7 @@ test('keeps the disclosure touchable without changing or obscuring the stage', a
     await page.goto('/');
     await importVideo(page, layout.fixture);
     if (layout.viewport.width <= 852) {
-      await page.getByRole('button', { name: 'Show Inspect tools' }).click();
+      await page.getByRole('button', { name: 'Show Overlay tools' }).click();
     }
 
     const stage = page.getByTestId('video-stage');
@@ -421,7 +421,7 @@ test('captures the R2C.2 real-fixture visual review matrix', async ({
     await page.goto('/');
     await importVideo(page, visualCase.fixture);
     if (visualCase.viewport.width <= 852) {
-      await page.getByRole('button', { name: 'Show Timeline tools' }).click();
+      await page.getByRole('button', { name: 'Show Analyze tools' }).click();
     }
     await setRange(page, visualCase.range[0], visualCase.range[1]);
     await page.getByRole('button', { name: 'Analyze range' }).click();
@@ -452,7 +452,7 @@ test('captures the R2C.2 real-fixture visual review matrix', async ({
       await seekPaused(page, visualCase.moment);
     }
     if (visualCase.viewport.width <= 852) {
-      await page.getByRole('button', { name: 'Show Inspect tools' }).click();
+      await page.getByRole('button', { name: 'Show Overlay tools' }).click();
     }
     if (!visualCase.settingsOpen) {
       await page.getByTestId('overlay-settings').locator(':scope > summary').click();

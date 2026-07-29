@@ -150,17 +150,17 @@ run sustained-device measurements, and conduct the first gym feedback session.
 
 #### R2D.1 — Mobile workspace navigation MVP
 
-R2D.1 adds one mobile-only **Review / Timeline / Inspect** mode bar without
-changing the desktop workspace or player architecture. Review owns speed, loop,
-and frame navigation. Timeline owns the range, analysis action and progress,
-edit history, and checkpoints. Inspect owns overlay visibility, trail
-selection/appearance, and the existing pose-quality surface.
+R2D.1 adds one mobile-only **Analyze / Playback / Overlay** mode bar without
+changing the desktop workspace or player architecture. Analyze owns the range,
+analysis action and progress, edit history, and the existing pose-quality and
+calibration surfaces. Playback owns speed, loop, frame navigation, and
+checkpoints. Overlay owns overlay visibility and trail selection/appearance.
 
 The single stage and transport stay mounted across modes. Tool components also
 stay mounted and are hidden only by the mobile layout, so playback, range,
 checkpoints, history, trail choices, pose-quality settings, and open
 disclosures survive mode and orientation changes. Replacing the source returns
-the mode to Review while retaining the established source-session reset.
+the mode to Analyze while retaining the established source-session reset.
 
 The mode bar appears below the stage on narrow portrait phones and at the top
 of the existing control rail on short landscape phones. It uses explicit text,
